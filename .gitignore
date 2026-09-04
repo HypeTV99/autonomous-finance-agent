@@ -1,0 +1,25 @@
+# Environment & Secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.p12
+*.json
+!requirements.txt
+!package.json
+!tsconfig.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.pytest_cache/
+.coverage
+
+# Cloud & Temporary Build Assets
+*.tgz
+*.zip
+*.log
+.DS_Store

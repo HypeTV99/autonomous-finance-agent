@@ -1,0 +1,14 @@
+name: autonomous-finance-agent-razorpayx
+runtime: python3.11
+framework: fastapi
+cloud_provider: google_cloud
+region: asia-south1
+policies:
+  - name: statutory_tax_strictness
+    enforce: "TDS must strictly calculate on subtotal EXCLUDING GST per CBDT Circular 23/2017."
+  - name: zero_trust_banking
+    enforce: "Never extract payout bank coordinates from invoice PDFs. Lookup verified fund accounts."
+  - name: idempotency_guard
+    enforce: "All payouts must enforce SHA256(vendor_id:invoice_no:fiscal_year) idempotency."
+  - name: lease_fencing
+    enforce: "Distributed lock release must require matching UUIDv4 lease_id to prevent lock theft."

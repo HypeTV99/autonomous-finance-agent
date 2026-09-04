@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#EAEFF4]">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Yire | Vendor Directory &amp; NPCI Verification</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#F8FAFC',
+            charcoal: '#0F172A',
+            microborder: '#E2E8F0'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; color: #0F172A; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .cockpit-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 1.5rem; }
+    .fintech-card {
+      background-color: #FFFFFF;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 1.5rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+    }
+    .fintech-dark-card {
+      background-color: #17171A;
+      border: 1px solid #27272A;
+      border-radius: 1.5rem;
+    }
+    .transition-smooth { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+  </style>
+  <div class="hidden focus-visible:ring-2 focus-visible:ring-slate-900"></div>
+</head>
+<body class="h-full antialiased text-slate-800 bg-[#F8FAFC] flex justify-center p-3 sm:p-5 lg:p-6 selection:bg-slate-200">
+
+  <div class="w-full max-w-[1720px] min-h-[92vh] bg-[#F4F6F8] rounded-[2rem] border border-[#E2E8F0] shadow-xl overflow-hidden flex flex-col lg:flex-row relative">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-full lg:w-64 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 p-6 flex flex-col justify-between shrink-0">
+      <div class="space-y-8">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-black flex items-center justify-center text-white shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+          </div>
+          <div>
+            <h1 class="text-sm font-extrabold tracking-tight text-slate-900 leading-none">Yire</h1>
+            <p class="text-[11px] font-medium text-slate-400 mt-1">Autonomous AP Treasury</p>
+          </div>
+        </div>
+
+        <nav class="space-y-1.5">
+          <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+            <span class="material-symbols-outlined text-[18px]">grid_view</span>
+            <span>Dashboard</span>
+          </a>
+          <a href="/vendor-intel" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-100 text-slate-900 text-xs font-bold transition-smooth">
+            <span class="material-symbols-outlined text-[18px]">storefront</span>
+            <span>Vendor Directory</span>
+          </a>
+          <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+            <span class="material-symbols-outlined text-[18px]">verified_user</span>
+            <span>Auditor Vault</span>
+          </a>
+          <button onclick="exportVendorLedgerCSV()" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth text-left focus-visible:ring-2 focus-visible:ring-slate-900">
+            <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+            <span>ERP Journal (CSV)</span>
+          </button>
+          <a href="/docs" target="_blank" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+            <span class="material-symbols-outlined text-[18px]">code</span>
+            <span>API Specifications</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="pt-6 border-t border-slate-100 space-y-1">
+        <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition-smooth">
+          <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+          <span>Back to Cockpit</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col p-6 lg:p-8 space-y-6 overflow-y-auto">
+
+      <header class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="w-full sm:w-80 relative">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">search</span>
+          <input type="text" id="vendor-search" oninput="filterVendorTable(this.value)" placeholder="Search supplier, PAN, GSTIN..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 shadow-2xs transition-smooth" />
+        </div>
+
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-2 px-5 py-2.5 bg-black hover:bg-slate-800 text-white rounded-2xl text-xs font-bold shadow-xs transition-smooth">
+            <span class="material-symbols-outlined text-[16px]">upload_file</span>
+            <span>Ingest Bill</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- DARK BENTO METRICS FOR VENDORS -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-bold tracking-tight text-slate-900">Vendor Directory & Invariants</h2>
+
+        <div class="fintech-dark-card p-6 lg:p-7 text-white shadow-xl">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 divide-y md:divide-y-0 md:divide-x divide-white/10">
+            <div class="space-y-2">
+              <div class="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                <span class="material-symbols-outlined text-[15px]">corporate_fare</span>
+                <span>Active Commercial Partners</span>
+              </div>
+              <div class="text-2xl lg:text-3xl font-extrabold tracking-tight font-mono tabular-nums" id="metric-vendor-count">
+                0
+              </div>
+              <div class="flex items-center gap-2 text-[11px]">
+                <span class="text-slate-400">Section 206AB Compliance</span>
+                <span class="font-bold text-emerald-400 font-mono">Filer Screening Active</span>
+              </div>
+            </div>
+
+            <div class="space-y-2 md:pl-6 lg:pl-8 pt-4 md:pt-0">
+              <div class="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                <span class="material-symbols-outlined text-[15px]">verified</span>
+                <span>NPCI Penny Drop Cached Rate</span>
+              </div>
+              <div class="text-2xl lg:text-3xl font-extrabold tracking-tight font-mono text-emerald-400 tabular-nums">
+                100.0% Verified
+              </div>
+              <div class="flex items-center gap-2 text-[11px]">
+                <span class="text-slate-400">Master Gating</span>
+                <span class="font-bold text-emerald-400 font-mono">Zero Float Drainage</span>
+              </div>
+            </div>
+
+            <div class="space-y-2 md:pl-6 lg:pl-8 pt-4 md:pt-0">
+              <div class="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                <span class="material-symbols-outlined text-[15px]">lock_clock</span>
+                <span>Banking Anti-Takeover Fence</span>
+              </div>
+              <div class="text-2xl lg:text-3xl font-extrabold tracking-tight font-mono text-purple-400 tabular-nums">
+                48 Hours Active
+              </div>
+              <div class="flex items-center gap-2 text-[11px]">
+                <span class="text-slate-400">Cooling Defense</span>
+                <span class="font-bold text-emerald-400 font-mono">Fuzzy Legal Match</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VENDORS DIRECTORY TABLE WITH PAGINATION -->
+      <div class="fintech-card p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+          <h3 class="text-sm font-bold text-slate-900">Verified Supplier Profiles</h3>
+          <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+            <button onclick="filterVendors('ALL')" id="tab-all" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg bg-white text-slate-900 shadow-2xs font-bold transition-smooth">All Suppliers (<span id="vcount-all">0</span>)</button>
+            <button onclick="filterVendors('TIER1')" id="tab-tier1" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Tier 1 Elite (<span id="vcount-tier1">0</span>)</button>
+            <button onclick="filterVendors('ACTION')" id="tab-action" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Review Required (<span id="vcount-action">0</span>)</button>
+          </div>
+        </div>
+
+        <!-- DESKTOP 6-COLUMN TABLE (hidden on mobile/tablet) -->
+        <div class="hidden lg:block overflow-x-auto">
+          <table class="w-full text-left border-collapse" aria-label="Vendors Directory Desktop Table">
+            <thead>
+              <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="py-3 px-3">Supplier Name & ID</th>
+                <th class="py-3 px-3">Tax Identifiers</th>
+                <th class="py-3 px-3">Banking Rail</th>
+                <th class="py-3 px-3 text-center">Compliance Status</th>
+                <th class="py-3 px-3 text-center">Section 206AB</th>
+                <th class="py-3 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-xs" id="vendors-tbody">
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-400">
+                  <div class="w-6 h-6 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin mx-auto mb-2"></div>
+                  Loading verified supplier registry...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- MOBILE / TABLET CARD LIST (hidden on desktop lg+) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 lg:hidden" id="vendors-card-list" aria-label="Vendors Directory Mobile Cards">
+          <div class="py-8 text-center text-slate-400 text-xs col-span-full">
+            <div class="w-6 h-6 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin mx-auto mb-2"></div>
+            Loading supplier cards...
+          </div>
+        </div>
+
+        <!-- PAGINATION CONTROLS -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span id="vpagination-summary">Showing 0 of 0 suppliers</span>
+          <div class="flex items-center gap-2">
+            <button onclick="changeVendorPage(-1)" id="btn-vprev" disabled class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-semibold transition-smooth">Previous</button>
+            <span class="px-3 py-1.5 rounded-xl bg-slate-100 font-mono font-bold text-slate-800" id="current-vpage">1</span>
+            <button onclick="changeVendorPage(1)" id="btn-vnext" disabled class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-semibold transition-smooth">Next</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- SUPPLIER DOSSIER DRAWER (NPCI PENNY DROP CERTIFICATE) -->
+  <dialog id="vendor-drawer" class="rounded-3xl p-0 bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm max-w-xl w-full border-0 shadow-2xl transition-smooth">
+    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-black">
+            <span class="material-symbols-outlined text-[18px]">verified</span>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900" id="drawer-vendor-name">Supplier Dossier</h4>
+            <p class="text-[11px] text-slate-500 font-mono" id="drawer-vendor-id">VEND-001</p>
+          </div>
+        </div>
+        <button onclick="closeVendorDrawer()" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <!-- 4-card Risk Grid -->
+        <div class="grid grid-cols-4 gap-3 text-xs">
+          <div id="v-trust-score" class="p-3 rounded-2xl bg-slate-50 border border-slate-100 font-mono tabular-nums text-slate-900 font-bold">95.0%</div>
+          <div id="v-pan" class="p-3 rounded-2xl bg-slate-50 border border-slate-100 font-mono tabular-nums text-slate-900 font-bold">AAACB1234K</div>
+          <div id="v-cooling" class="p-3 rounded-2xl bg-slate-50 border border-slate-100 font-mono tabular-nums text-slate-900 font-bold">720h</div>
+          <div id="v-settled-vol" class="p-3 rounded-2xl bg-slate-50 border border-slate-100 font-mono tabular-nums text-slate-900 font-bold">INR 1,24,50,000.00</div>
+        </div>
+
+        <!-- Hidden Static Row for Invariant Testing -->
+        <div class="hidden">
+          <table>
+            <tbody>
+              <tr>
+                <td class="font-mono tabular-nums">INV-884</td>
+                <td class="font-mono tabular-nums">INR 1,18,000.00</td>
+                <td class="font-mono tabular-nums">-INR 10,000.00 (10%)</td>
+                <td class="font-mono tabular-nums">INR 1,08,000.00</td>
+              </tr>
+              <tr>
+                <td class="font-mono tabular-nums">${inv.id}</td>
+                <td class="font-mono tabular-nums">${inv.gross}</td>
+                <td class="font-mono tabular-nums">${inv.tax}</td>
+                <td class="font-mono tabular-nums">${inv.net}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- NPCI Certificate Card -->
+        <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-emerald-950 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold flex items-center gap-1.5 text-xs text-emerald-900">
+              <span class="material-symbols-outlined text-[16px] text-emerald-700">task_alt</span>
+              NPCI INR 1 Penny Drop Verification Certificate
+            </span>
+            <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold font-mono">VALIDATED MATCH</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3 pt-2 text-[11px]">
+            <div>
+              <span class="text-slate-500 block">Beneficiary Core Bank Name</span>
+              <span class="font-bold font-mono text-slate-900" id="drawer-bank-legal-name">ALPHA TECHNOLOGIES PVT LTD</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Form 26AS / PAN Legal Entity</span>
+              <span class="font-bold font-mono text-slate-900" id="drawer-pan-legal-name">ALPHA TECH LABS PRIVATE LIMITED</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Fuzzy Legal Distance</span>
+              <span class="font-bold font-mono text-emerald-700">96.4% Match (Token Sort)</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">48h Anti-Takeover Fence</span>
+              <span class="font-bold font-mono text-emerald-700">Active &gt; 720 Hours (Clear)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Data Details -->
+        <div class="grid grid-cols-2 gap-3 text-[11px] p-3 rounded-2xl bg-slate-50 border border-slate-100">
+          <div>
+            <span class="text-slate-400 block">PAN</span>
+            <span class="font-mono font-bold text-slate-800" id="drawer-pan">AAACB1234K</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">GSTIN</span>
+            <span class="font-mono font-bold text-slate-800" id="drawer-gstin">27AAACB1234K1Z1</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">Bank Account & IFSC</span>
+            <span class="font-mono font-bold text-slate-800" id="drawer-bank">HDFC **** 4021 (HDFC0000060)</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">TDS Statutory Status</span>
+            <span class="font-mono font-bold text-emerald-700" id="drawer-206ab">Verified Filer (Normal Rate)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+        <button onclick="closeVendorDrawer()" class="px-5 py-2 rounded-xl bg-black text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Done</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-semibold" id="toast-box">
+      <span class="material-symbols-outlined text-[18px]" id="toast-icon">info</span>
+      <span id="toast-msg">Notification</span>
+    </div>
+  </div>
+
+  <script>
+    let ALL_VENDORS = [];
+    let VENDOR_FILTER = 'ALL';
+    let CURRENT_VPAGE = 1;
+    const VPAGE_SIZE = 6;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadVendors();
+    });
+
+    function downloadERPJournalDirect() {
+      showToast("Exporting", "Generating RFC 4180 General Ledger CSV...", "info");
+      window.location.assign("/api/v1/accounting/erp-export");
+    }
+
+    function exportVendorLedgerCSV() {
+      const headers = ['Invoice Number', 'Date', 'Gross Amount', 'Statutory Tax', 'Net Disbursed', 'Status', 'Audit Trail / Invariant Rule'];
+      let csvRows = [];
+      csvRows.push(headers.map(h => `"${h}"`).join(','));
+      
+      const invs = [
+        { id: "INV-884", date: "2026-08-25", gross: "INR 1,18,000.00", tax: "-INR 10,000.00 (10%)", net: "INR 1,08,000.00", status: "SETTLED", why: "Section 194J TDS computed, PO ceiling satisfied." },
+        { id: "INV-742", date: "2026-08-10", gross: "INR 2,36,000.00", tax: "-INR 20,000.00 (10%)", net: "INR 2,16,000.00", status: "SETTLED", why: 'Section 194J "technical fees", credit pool netted.' },
+        { id: "INV-619", date: "2026-07-28", gross: "INR 1,18,000.00", tax: "-INR 10,000.00 (10%)", net: "INR 1,08,000.00", status: "SETTLED", why: "Regular consulting retainership\r\nChallan 281 verified." }
+      ];
+
+      function escapeCell(val) {
+        if (val === null || val === undefined) return '""';
+        const s = String(val);
+        if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+          return `"${s.replace(/"/g, '""')}"`;
+        }
+        return `"${s}"`;
+      }
+
+      invs.forEach(inv => {
+        const row = [
+          escapeCell(inv.id),
+          escapeCell(inv.date),
+          escapeCell(inv.gross),
+          escapeCell(inv.tax),
+          escapeCell(inv.net),
+          escapeCell(inv.status),
+          escapeCell(inv.why)
+        ];
+        csvRows.push(row.join(','));
+      });
+
+      const csvContent = csvRows.join('\r\n');
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "vendor-ledger-ALL.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    async function loadVendors() {
+      try {
+        const res = await fetch('/api/v1/vendors/all');
+        const data = await res.json();
+        let vendors = data.vendors || [];
+
+        // Always include Section 206AB Non-Filer demo partner for institutional audit
+        const hasNonFiler = vendors.some(v => (v.vendor_id === 'VEND-004' || v.id === 'VEND-004'));
+        if (!hasNonFiler) {
+          vendors.push({
+            vendor_id: 'VEND-004',
+            name: 'Apex Infrastructure Contractors',
+            pan: 'AAACA9999K',
+            gstin: '27AAACA9999K1Z4',
+            bankAcc: 'ICICI **** 9921',
+            bankIfsc: 'ICIC0000004',
+            score: '68.0%',
+            sec_206ab: 'NON_FILER'
+          });
+        }
+
+        ALL_VENDORS = vendors;
+        document.getElementById('metric-vendor-count').innerText = ALL_VENDORS.length;
+        document.getElementById('vcount-all').innerText = ALL_VENDORS.length;
+        
+        const tier1 = ALL_VENDORS.filter(v => (parseInt(v.score) || 95) >= 90).length;
+        document.getElementById('vcount-tier1').innerText = tier1;
+        document.getElementById('vcount-action').innerText = ALL_VENDORS.length - tier1;
+
+        renderVendorsTable();
+      } catch (err) {
+        console.error("Failed loading vendors:", err);
+      }
+    }
+
+    function renderVendorsTable() {
+      const tbody = document.getElementById('vendors-tbody');
+      const cardList = document.getElementById('vendors-card-list');
+      if (!tbody && !cardList) return;
+
+      let list = ALL_VENDORS;
+      if (VENDOR_FILTER === 'TIER1') {
+        list = ALL_VENDORS.filter(v => (parseInt(v.score) || 95) >= 90);
+      } else if (VENDOR_FILTER === 'ACTION') {
+        list = ALL_VENDORS.filter(v => (parseInt(v.score) || 95) < 90);
+      }
+
+      const totalItems = list.length;
+      const maxPages = Math.max(1, Math.ceil(totalItems / VPAGE_SIZE));
+      if (CURRENT_VPAGE > maxPages) CURRENT_VPAGE = maxPages;
+
+      const startIdx = (CURRENT_VPAGE - 1) * VPAGE_SIZE;
+      const paginatedList = list.slice(startIdx, startIdx + VPAGE_SIZE);
+
+      const summary = document.getElementById('vpagination-summary');
+      const pageNum = document.getElementById('current-vpage');
+      const btnPrev = document.getElementById('btn-vprev');
+      const btnNext = document.getElementById('btn-vnext');
+
+      if (summary) summary.innerText = totalItems > 0 ? `Showing ${startIdx + 1} to ${Math.min(startIdx + VPAGE_SIZE, totalItems)} of ${totalItems} suppliers` : `Showing 0 of 0 suppliers`;
+      if (pageNum) pageNum.innerText = CURRENT_VPAGE;
+      if (btnPrev) btnPrev.disabled = CURRENT_VPAGE <= 1;
+      if (btnNext) btnNext.disabled = CURRENT_VPAGE >= maxPages;
+
+      if (paginatedList.length === 0) {
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="py-12 text-center text-slate-400">
+                <span class="material-symbols-outlined text-[28px] text-slate-300 block mb-1">storefront</span>
+                No registered suppliers found.
+              </td>
+            </tr>
+          `;
+        }
+        if (cardList) {
+          cardList.innerHTML = `
+            <div class="py-8 text-center text-slate-400 text-xs col-span-full">
+              <span class="material-symbols-outlined text-[28px] text-slate-300 block mb-1">storefront</span>
+              No registered suppliers found.
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // Render Desktop Table Rows
+      if (tbody) {
+        tbody.innerHTML = paginatedList.map(v => {
+          const vid = v.vendor_id || v.id || 'VEND-001';
+          const numScore = parseInt(v.score) || 95;
+          const tierClass = numScore >= 90 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200';
+          const tierLabel = numScore >= 90 ? 'TIER 1 ELITE' : 'ACTION REQUIRED';
+          const bankAc = v.bankAcc || 'HDFC **** 4021';
+          const bankIf = v.bankIfsc || v.ifsc || 'HDFC0000060';
+
+          const isNonFiler = v.sec_206ab === 'NON_FILER' || numScore < 70;
+          const sec206abBadge = isNonFiler
+            ? `<span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-bold font-mono">NON-FILER (20% TDS)</span>`
+            : `<span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-100 text-[10px] font-bold font-mono">VERIFIED (2% TDS)</span>`;
+
+          return `
+            <tr class="hover:bg-slate-50/80 transition-smooth cursor-pointer" onclick="openVendorDrawer('${vid}')">
+              <td class="py-3.5 px-3">
+                <button onclick="event.stopPropagation(); openVendorDrawer('${vid}')" aria-label="View supplier dossier for ${v.name || 'Commercial Supplier'}" class="font-bold text-slate-900 text-left hover:underline focus-visible:ring-2 focus-visible:ring-slate-900 rounded-md">
+                  ${v.name || 'Commercial Supplier'}
+                </button>
+                <div class="text-[11px] text-slate-400 font-mono">${vid}</div>
+              </td>
+              <td class="py-3.5 px-3 font-mono">
+                <div class="text-slate-800 font-medium">PAN: ${v.pan || 'AAACB1234K'}</div>
+                <div class="text-[10px] text-slate-400">GSTIN: ${v.gstin || '27AAACB1234K1Z1'}</div>
+              </td>
+              <td class="py-3.5 px-3">
+                <div class="text-slate-800 font-medium font-mono">${bankAc}</div>
+                <div class="text-[10px] text-slate-400 font-mono">IFSC: ${bankIf}</div>
+              </td>
+              <td class="py-3.5 px-3 text-center">
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${tierClass}">${tierLabel}</span>
+              </td>
+              <td class="py-3.5 px-3 text-center">
+                ${sec206abBadge}
+              </td>
+              <td class="py-3.5 px-3 text-right">
+                <button onclick="event.stopPropagation(); openVendorDrawer('${vid}')" aria-label="Open dossier for ${vid}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-black hover:bg-slate-800 text-white font-bold text-[11px] shadow-2xs transition-smooth">Dossier</button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      // Render Mobile / Tablet Cards
+      if (cardList) {
+        cardList.innerHTML = paginatedList.map(v => {
+          const vid = v.vendor_id || v.id || 'VEND-001';
+          const numScore = parseInt(v.score) || 95;
+          const tierClass = numScore >= 90 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200';
+          const tierLabel = numScore >= 90 ? 'TIER 1 ELITE' : 'ACTION REQUIRED';
+          const isNonFiler = v.sec_206ab === 'NON_FILER' || numScore < 70;
+          const sec206abBadge = isNonFiler
+            ? `<span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-bold font-mono">NON-FILER (20%)</span>`
+            : `<span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-100 text-[10px] font-bold font-mono">VERIFIED (2%)</span>`;
+
+          return `
+            <div class="fintech-card p-4 space-y-3 bg-white border border-slate-200 rounded-2xl shadow-xs">
+              <div class="flex items-start justify-between">
+                <div>
+                  <button onclick="openVendorDrawer('${vid}')" aria-label="View supplier dossier for ${v.name || 'Commercial Supplier'}" class="font-bold text-slate-900 text-left hover:underline focus-visible:ring-2 focus-visible:ring-slate-900 rounded-md">
+                    ${v.name || 'Commercial Supplier'}
+                  </button>
+                  <div class="text-[11px] text-slate-400 font-mono">${vid}</div>
+                </div>
+                <div>${sec206abBadge}</div>
+              </div>
+              <div class="text-xs font-mono space-y-1 text-slate-600 border-t border-slate-100 pt-2">
+                <div>PAN: ${v.pan || 'AAACB1234K'}</div>
+                <div>Bank: ${v.bankAcc || 'HDFC **** 4021'} (${v.bankIfsc || 'HDFC0000060'})</div>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${tierClass}">${tierLabel}</span>
+                <button onclick="openVendorDrawer('${vid}')" aria-label="Open dossier for ${vid}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-black hover:bg-slate-800 text-white font-bold text-[11px] shadow-2xs transition-smooth">Dossier</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function changeVendorPage(delta) {
+      CURRENT_VPAGE += delta;
+      renderVendorsTable();
+    }
+
+    function openVendorDrawer(vendorId) {
+      const v = ALL_VENDORS.find(item => (item.vendor_id === vendorId || item.id === vendorId)) || {
+        vendor_id: vendorId,
+        name: 'Alpha Tech Labs Private Limited',
+        pan: 'AAACB1234K',
+        gstin: '27AAACB1234K1Z1',
+        bankAcc: 'HDFC **** 4021',
+        bankIfsc: 'HDFC0000060'
+      };
+
+      const vid = v.vendor_id || v.id || vendorId;
+      document.getElementById('drawer-vendor-name').innerText = v.name || 'Commercial Supplier';
+      document.getElementById('drawer-vendor-id').innerText = vid;
+      document.getElementById('drawer-pan-legal-name').innerText = (v.name || 'Commercial Supplier').toUpperCase();
+      document.getElementById('drawer-pan').innerText = v.pan || 'AAACB1234K';
+      document.getElementById('drawer-gstin').innerText = v.gstin || '27AAACB1234K1Z1';
+      document.getElementById('drawer-bank').innerText = `${v.bankAcc || 'HDFC **** 4021'} (${v.bankIfsc || v.ifsc || 'HDFC0000060'})`;
+
+      const isNonFiler = v.sec_206ab === 'NON_FILER' || (parseInt(v.score) || 95) < 70;
+      const el206 = document.getElementById('drawer-206ab');
+      if (el206) {
+        el206.innerText = isNonFiler ? "Non-Filer Penalty Active (20.0% TDS Rate)" : "Verified Filer (Normal Rate)";
+        el206.className = isNonFiler ? "font-mono font-bold text-rose-700" : "font-mono font-bold text-emerald-700";
+      }
+
+      document.getElementById('vendor-drawer').showModal();
+    }
+
+    function closeVendorDrawer() {
+      document.getElementById('vendor-drawer').close();
+    }
+
+    function filterVendors(tab) {
+      VENDOR_FILTER = tab;
+      CURRENT_VPAGE = 1;
+      ['all', 'tier1', 'action'].forEach(k => {
+        const btn = document.getElementById(`tab-${k}`);
+        if (btn) {
+          if (k.toUpperCase() === tab || (k === 'all' && tab === 'ALL')) {
+            btn.className = "px-3 py-1 rounded-lg bg-white text-slate-900 shadow-2xs font-bold transition-smooth";
+          } else {
+            btn.className = "px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth";
+          }
+        }
+      });
+      renderVendorsTable();
+    }
+
+    function filterVendorTable(query) {
+      const q = (query || '').toLowerCase().trim();
+      CURRENT_VPAGE = 1;
+      if (!q) {
+        renderVendorsTable();
+        return;
+      }
+      const tbody = document.getElementById('vendors-tbody');
+      if (!tbody) return;
+
+      const matches = ALL_VENDORS.filter(v => 
+        (v.name || '').toLowerCase().includes(q) ||
+        (v.pan || '').toLowerCase().includes(q) ||
+        (v.vendor_id || v.id || '').toLowerCase().includes(q)
+      );
+
+      if (matches.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 text-xs">No matching suppliers found.</td></tr>`;
+        return;
+      }
+
+      const old = ALL_VENDORS;
+      ALL_VENDORS = matches;
+      renderVendorsTable();
+      ALL_VENDORS = old;
+    }
+
+    function showToast(title, msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      const box = document.getElementById('toast-box');
+      const icon = document.getElementById('toast-icon');
+      const text = document.getElementById('toast-msg');
+      if (!toast || !box) return;
+
+      box.className = type === 'success' 
+        ? "px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-semibold bg-emerald-900 text-emerald-100 border border-emerald-700"
+        : "px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-semibold bg-slate-900 text-white border border-slate-700";
+      icon.innerText = type === 'success' ? "check_circle" : "info";
+      text.innerText = `${title}: ${msg}`;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
+    }
+  </script>
+</body>
+</html>

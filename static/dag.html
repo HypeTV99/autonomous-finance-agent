@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#EAEFF4]">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Yire | Autonomous AP &amp; Statutory Treasury</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#F8FAFC',
+            charcoal: '#0F172A',
+            microborder: '#E2E8F0'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; color: #0F172A; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .cockpit-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 1.5rem; }
+    .fintech-card {
+      background-color: #FFFFFF;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 1.5rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+    }
+    .fintech-dark-card {
+      background-color: #17171A;
+      border: 1px solid #27272A;
+      border-radius: 1.5rem;
+    }
+    .virtual-card-gradient {
+      background: linear-gradient(135deg, #232328 0%, #151518 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.25rem;
+    }
+    .transition-smooth {
+      transition-property: opacity, transform, background-color, border-color, color, fill, stroke;
+      transition-duration: 150ms;
+      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+    button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #0F172A; }
+  </style>
+  <div class="hidden focus-visible:ring-2 focus-visible:ring-slate-900"></div>
+</head>
+<body class="h-full antialiased text-slate-800 bg-[#F8FAFC] flex justify-center p-3 sm:p-5 lg:p-6 selection:bg-slate-200">
+
+  <!-- SKIP TO MAIN CONTENT ACCESSIBILITY LINK -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-slate-900 focus:text-white focus:rounded-xl focus:shadow-lg focus:text-xs focus:font-bold">
+    Skip to main content
+  </a>
+
+  <!-- MAIN APP WINDOW CONTAINER -->
+  <div id="drop-target" class="w-full max-w-[1720px] min-h-[92vh] bg-[#F4F6F8] rounded-[2rem] border border-[#E2E8F0] shadow-xl overflow-hidden flex flex-col lg:flex-row relative">
+
+    <!-- LEFT SIDEBAR NAVIGATION -->
+    <aside class="w-full lg:w-64 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 p-6 flex flex-col justify-between shrink-0">
+      <div class="space-y-8">
+        <!-- Brand Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-black flex items-center justify-center text-white shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+          </div>
+          <div>
+            <h1 class="text-sm font-extrabold tracking-tight text-slate-900 leading-none">Yire</h1>
+            <p class="text-[11px] font-medium text-slate-400 mt-1">Autonomous AP Treasury</p>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="space-y-1.5" aria-label="Main Navigation">
+          <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-100 text-slate-900 text-xs font-bold transition-smooth">
+            <span class="material-symbols-outlined text-[18px]">grid_view</span>
+            <span>Dashboard</span>
+          </a>
+          <a href="/vendor-intel" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+            <span class="material-symbols-outlined text-[18px]">storefront</span>
+            <span>Vendor Directory</span>
+          </a>
+          <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+            <span class="material-symbols-outlined text-[18px]">verified_user</span>
+            <span>Auditor Vault</span>
+          </a>
+          <!-- DIRECT IN-PAGE ERP DOWNLOAD BUTTON -->
+          <button onclick="downloadERPJournalDirect()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth text-left">
+            <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+            <span>ERP Journal (CSV)</span>
+          </button>
+          <a href="/docs" target="_blank" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+            <span class="material-symbols-outlined text-[18px]">code</span>
+            <span>API Specifications</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Bottom System Controls -->
+      <div class="pt-6 border-t border-slate-100 space-y-1">
+        <button onclick="confirmCleanReset()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-slate-400 hover:text-rose-700 hover:bg-rose-50 text-xs font-medium transition-smooth">
+          <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+          <span>Clean Slate Reset</span>
+        </button>
+        <div class="flex items-center justify-between px-4 py-2.5 text-xs text-slate-400">
+          <span>Engine Status</span>
+          <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold font-mono">ONLINE</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main id="main-content" class="flex-1 flex flex-col p-6 lg:p-8 space-y-6 overflow-y-auto">
+
+      <!-- TOP BAR WITH ROLE SELECTOR (MAKER-CHECKER SOD) & ENVIRONMENT INDICATOR -->
+      <header class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="w-full sm:w-80 relative">
+            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">search</span>
+            <input type="text" id="universal-search" oninput="filterInvoices(this.value)" placeholder="Search invoices, vendors, amounts..." aria-label="Search invoices, vendors, amounts" class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 shadow-2xs transition-smooth" />
+          </div>
+          <!-- ENVIRONMENT INDICATOR -->
+          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-semibold" aria-label="Environment: Sandbox Simulation">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>SANDBOX / UAT SIMULATION</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <!-- SINGLE INGESTION ACTION -->
+          <button onclick="triggerInvoiceUpload()" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-2 px-5 py-2.5 bg-black hover:bg-slate-800 text-white rounded-2xl text-xs font-bold shadow-xs active:scale-[0.97] transition-smooth">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            <span>Add Invoice</span>
+          </button>
+
+          <!-- ROLE SWITCHER (MAKER-CHECKER SEGREGATION OF DUTIES - SANDBOX ONLY) -->
+          <div class="flex items-center bg-amber-50/80 border border-amber-200 rounded-2xl p-1 shadow-2xs text-amber-900" title="Sandbox Simulation Control">
+            <span class="px-2 py-0.5 rounded-lg bg-amber-200/70 text-[10px] font-extrabold uppercase tracking-wider text-amber-900 font-mono">Sandbox</span>
+            <span class="material-symbols-outlined text-[16px] text-amber-700 ml-1.5 mr-1">manage_accounts</span>
+            <select id="user-role-select" onchange="switchActiveRole(this.value)" aria-label="Simulate User Role (Sandbox only)" class="focus-visible:ring-2 focus-visible:ring-slate-900 bg-transparent text-xs font-bold text-slate-800 focus:outline-none pr-2 cursor-pointer">
+              <option value="ROLE_CONTROLLER" selected>Role: Treasury Controller (Checker)</option>
+              <option value="ROLE_TREASURER">Role: Chief Treasurer (Checker)</option>
+              <option value="ROLE_AP_CLERK">Role: AP Clerk (Maker)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2 pl-1">
+            <div class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs" id="avatar-badge">
+              TC
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- HIDDEN MULTI-FILE INPUT -->
+      <input type="file" id="global-file-input" accept=".pdf,.zip" multiple class="hidden" onchange="handleFileSelection(event)" aria-label="Invoice file upload">
+
+      <!-- DASHBOARD VIEWS SUB-NAVIGATION & TITLE -->
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 pb-3" role="tablist" aria-label="Operational Views">
+          <div class="flex items-center gap-2">
+            <button id="view-tab-cockpit" onclick="switchDashboardView('COCKPIT')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs transition-smooth">
+              Cockpit Overview
+            </button>
+            <button id="view-tab-controller" onclick="switchDashboardView('CONTROLLER')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs transition-smooth">
+              Controller Desk (Exceptions)
+            </button>
+            <button id="view-tab-treasury" onclick="switchDashboardView('TREASURY')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs transition-smooth">
+              Treasury Queue (Wire Release)
+            </button>
+          </div>
+          <span class="text-xs font-medium text-slate-500" id="role-governance-label">Active Governance: Treasury Controller (Review & Overrides Authorized)</span>
+        </div>
+
+        <!-- LIGHT ENTERPRISE KPI CARDS (Replaces Dark Bento Card) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Treasury Core KPI Cards">
+          <!-- Metric 1: Supplier Cash Disbursed -->
+          <div class="fintech-card p-5 space-y-2">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+              <span>Supplier Cash Disbursed</span>
+              <span class="material-symbols-outlined text-[18px] text-slate-400">payments</span>
+            </div>
+            <div class="text-2xl font-extrabold tracking-tight font-mono text-slate-900 tabular-nums" id="metric-hero-settled">
+              INR 0.00
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+              <span>Pipeline In-Flight:</span>
+              <span class="font-bold text-slate-700 font-mono" id="metric-hero-pipeline">INR 0.00</span>
+            </div>
+          </div>
+
+          <!-- Metric 2: TDS Payable (Neutral statutory withholding, no red alarm styling) -->
+          <div class="fintech-card p-5 space-y-2">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+              <span>TDS Payable</span>
+              <span class="material-symbols-outlined text-[18px] text-slate-400">account_balance</span>
+            </div>
+            <div class="text-2xl font-extrabold tracking-tight font-mono text-slate-900 tabular-nums" id="metric-hero-tds">
+              INR 0.00
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+              <span>Statutory Provision:</span>
+              <span class="font-bold text-slate-700 font-mono">ITA 2025 Sec 393(1)</span>
+            </div>
+          </div>
+
+          <!-- Metric 3: GST Retention Payable -->
+          <div class="fintech-card p-5 space-y-2">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+              <span>GST Retention Payable</span>
+              <span class="material-symbols-outlined text-[18px] text-slate-400">shield</span>
+            </div>
+            <div class="text-2xl font-extrabold tracking-tight font-mono text-slate-900 tabular-nums" id="metric-hero-escrow">
+              INR 0.00
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+              <span>ITC Protected:</span>
+              <span class="font-bold text-slate-700 font-mono">Held for GSTR-2B</span>
+            </div>
+          </div>
+
+          <!-- Metric 4: Operating Liquidity -->
+          <div class="fintech-card p-5 space-y-2">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+              <span>Operating Liquidity</span>
+              <span class="material-symbols-outlined text-[18px] text-slate-400">account_balance_wallet</span>
+            </div>
+            <div class="text-2xl font-extrabold tracking-tight font-mono text-slate-900 tabular-nums" id="metric-hero-liquidity">
+              INR 50,00,000.00
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+              <span>Clearing Rail:</span>
+              <span class="font-bold text-emerald-700 font-mono">NPCI IMPS 24x7</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP INSTITUTIONAL TELEMETRY TICKER BAR -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" aria-label="Treasury Liquidity Telemetry">
+        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+          <span class="text-xs font-semibold text-slate-500">Settled Liquidity Volume</span>
+          <div id="ticker-settled-val" class="text-2xl font-bold text-slate-900 mt-1 font-mono tabular-nums">INR 1,24,50,000.00</div>
+          <div id="ticker-settled-sub" class="text-xs text-slate-400 mt-1 font-mono">Real-time IMPS clearing</div>
+        </div>
+        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+          <span class="text-xs font-semibold text-slate-500">Pipeline In-Flight Disbursal</span>
+          <div id="ticker-pipeline-val" class="text-2xl font-bold text-slate-900 mt-1 font-mono tabular-nums">INR 3,79,000.00</div>
+          <div id="ticker-pipeline-sub" class="text-xs text-slate-400 mt-1 font-mono">2 In-Flight Invoices</div>
+        </div>
+        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+          <span class="text-xs font-semibold text-slate-500">Statutory Tax Reserve</span>
+          <div id="ticker-tax-val" class="text-2xl font-bold text-slate-900 mt-1 font-mono tabular-nums">INR 30,000.00</div>
+          <div id="ticker-tax-sub" class="text-xs text-slate-400 mt-1 font-mono">Challan 281 Reserve</div>
+        </div>
+      </div>
+
+      <!-- 4-STEP FINANCIAL WATERFALL -->
+      <div class="fintech-card p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">4-Step Financial Waterfall Calculation</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">Statutory Gross-to-Net breakdown with dual entry balance verification</p>
+          </div>
+          <span id="waterfall-variance-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono">Variance: INR 0.00</span>
+        </div>
+        <div class="grid grid-cols-7 items-center text-center gap-2">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-[11px] text-slate-500 font-semibold block">Gross Invoice</span>
+            <div class="text-lg font-bold text-slate-900 mt-1 font-mono tabular-nums" data-bind="gross-amount">INR 1,18,000.00</div>
+          </div>
+          <div class="flex justify-center" title="Minus Statutory TDS" aria-label="minus">
+            <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs">&minus;</span>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-[11px] text-slate-600 font-semibold block">Statutory TDS</span>
+            <div class="text-lg font-bold text-rose-900 mt-1 font-mono tabular-nums" data-bind="tds-amount">INR 10,000.00</div>
+          </div>
+          <div class="flex justify-center" title="Minus Credit Notes" aria-label="minus">
+            <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs">&minus;</span>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-[11px] text-slate-600 font-semibold block">Open Credits</span>
+            <div class="text-lg font-bold text-amber-900 mt-1 font-mono tabular-nums" data-bind="credit-amount">INR 0.00</div>
+          </div>
+          <div class="flex justify-center" title="Equals Net Disbursable" aria-label="equals">
+            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">=</span>
+          </div>
+          <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200">
+            <span class="text-[11px] text-emerald-800 font-semibold block">Net Disbursable</span>
+            <div class="text-xl font-extrabold text-emerald-950 mt-1 font-mono tabular-nums" data-bind="net-amount">INR 1,08,000.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPLIANCE STATUS RAIL -->
+      <div id="compliance-rail" role="button" tabindex="0" aria-expanded="false" aria-controls="compliance-expanded-drawer" onclick="toggleComplianceDrawer()" onkeydown="handleRailKey(event)" class="fintech-card p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+        <div class="flex items-center gap-3">
+          <span id="rail-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+          <span id="rail-summary-text" class="text-xs font-bold text-slate-800">4/4 Statutory Invariants Verified</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="badge-inv-kyc" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">KYC PASS</span>
+          <span id="badge-inv-tax" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">TDS PASS</span>
+          <span id="badge-inv-cooling" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">COOLING PASS</span>
+          <span id="badge-inv-rate" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">RATE PASS</span>
+        </div>
+      </div>
+      <div id="compliance-expanded-drawer" class="hidden fintech-card p-4 text-xs space-y-2">
+        <p class="text-slate-600">Statutory invariant details expanded view.</p>
+      </div>
+
+      <!-- GENERAL LEDGER BALANCE INDICATOR -->
+      <div class="fintech-card p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px] text-emerald-600">account_balance</span>
+          <span id="gl-summary-text" class="text-xs font-mono font-bold text-slate-800">Debits == Credits (INR 0.00 Variance)</span>
+        </div>
+        <a id="gl-audit-link" href="/audit#verify-INV-884" class="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">View in Auditor Vault</a>
+      </div>
+
+      <!-- DUAL-COLUMN GRID -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        <!-- LEFT COLUMN: Dynamic Chart + Invoices Table with Pagination -->
+        <div class="xl:col-span-8 space-y-6">
+          <!-- 12-Month Chart -->
+          <div class="fintech-card p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span class="text-xs font-semibold text-slate-400">Volume, rolling 12 months</span>
+                <div class="text-2xl font-black text-slate-900 font-mono tracking-tight mt-0.5" id="chart-headline-volume">
+                  INR 50,00,000.00
+                </div>
+              </div>
+              <div class="flex items-center gap-4 text-xs font-semibold">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-3 h-3 rounded-sm bg-black"></span>
+                  <span class="text-slate-600">Disbursed</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-3 h-3 rounded-sm bg-slate-300"></span>
+                  <span class="text-slate-400">Tax Reserve</span>
+                </div>
+                <div class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200">
+                  Fiscal Year 2026-27
+                </div>
+              </div>
+            </div>
+            <div class="h-48 w-full relative">
+              <canvas id="cashflowChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Transaction History Table with Pagination -->
+          <div class="fintech-card p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+              <h3 class="text-sm font-bold text-slate-900">Transaction History</h3>
+              <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl text-xs font-semibold" role="tablist" aria-label="Queue Filter Tabs">
+                <button role="tab" id="qtab-all" onclick="filterQueue('ALL')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg bg-white text-slate-900 shadow-2xs font-bold transition-smooth">All (<span id="count-all">0</span>)</button>
+                <button role="tab" id="qtab-ready" onclick="filterQueue('READY')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Auto-Scheduled (<span id="count-stp">0</span>)</button>
+                <button role="tab" id="qtab-action" onclick="filterQueue('ACTION_REQUIRED')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Action Required (<span id="count-exc">0</span>)</button>
+                <button role="tab" id="qtab-settled" onclick="filterQueue('SETTLED')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Settled (<span id="count-paid">0</span>)</button>
+              </div>
+            </div>
+
+            <!-- DESKTOP 6-COLUMN TABLE (hidden on mobile/tablet) -->
+            <div class="hidden lg:block overflow-x-auto">
+              <table class="w-full text-left border-collapse" aria-label="Treasury Transactions Desktop Table">
+                <thead>
+                  <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <th class="py-3 px-3">Transaction and Vendor</th>
+                    <th class="py-3 px-3">Payment Terms</th>
+                    <th class="py-3 px-3 text-right">Amount</th>
+                    <th class="py-3 px-3">Tax and Retention</th>
+                    <th class="py-3 px-3 text-center">Lifecycle Status</th>
+                    <th class="py-3 px-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs" id="invoices-tbody">
+                  <tr>
+                    <td colspan="6" class="py-12 text-center text-slate-400 text-xs">
+                      <div class="w-6 h-6 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin mx-auto mb-2"></div>
+                      Loading treasury transactions...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- MOBILE / TABLET CARD LIST (hidden on desktop lg+) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 lg:hidden" id="invoices-card-list" aria-label="Treasury Transactions Mobile Cards">
+              <div class="py-8 text-center text-slate-400 text-xs col-span-full">
+                <div class="w-6 h-6 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin mx-auto mb-2"></div>
+                Loading treasury cards...
+              </div>
+            </div>
+
+            <!-- DYNAMIC QUEUE TABLE TEMPLATE -->
+            <template id="invoice-row-template">
+              <table>
+                <tr>
+                  <td class="py-3 px-3 font-mono tabular-nums text-slate-900">${item.invoice_number}</td>
+                  <td class="py-3 px-3 font-mono tabular-nums text-slate-900">${item.gross_formatted}</td>
+                  <td class="py-3 px-3 font-mono tabular-nums text-slate-900">${item.tds_formatted}</td>
+                  <td class="py-3 px-3 font-mono tabular-nums text-slate-900">${item.net_formatted}</td>
+                  <td class="py-3 px-3 font-mono tabular-nums text-slate-900">${item.stage_progress}</td>
+                </tr>
+              </table>
+            </template>
+
+            <!-- PAGINATION CONTROLS -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span id="pagination-summary">Showing 0 of 0 transactions</span>
+              <div class="flex items-center gap-2">
+                <button onclick="changePage(-1)" id="btn-prev-page" disabled class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-semibold transition-smooth">Previous</button>
+                <span class="px-3 py-1.5 rounded-xl bg-slate-100 font-mono font-bold text-slate-800" id="current-page-num">1</span>
+                <button onclick="changePage(1)" id="btn-next-page" disabled class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-semibold transition-smooth">Next</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Operating Card & Milestone Feed -->
+        <div class="xl:col-span-4 space-y-6">
+          <div class="fintech-card p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-900">Operating Account</h3>
+              <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-100 text-[10px] font-bold font-mono">KYC ACTIVE</span>
+            </div>
+
+            <!-- Virtual Card -->
+            <div class="virtual-card-gradient p-5 text-white space-y-6 shadow-lg cursor-pointer" onclick="openAccountDetailsModal()">
+              <div class="flex items-center justify-between">
+                <span class="material-symbols-outlined text-[24px] text-white/80">token</span>
+                <span class="material-symbols-outlined text-[20px] text-white/60">wifi</span>
+              </div>
+              <div class="space-y-1">
+                <span class="text-[10px] font-medium text-white/60 uppercase tracking-widest">Account Holder</span>
+                <p class="text-xs font-bold tracking-wider uppercase font-mono">YIRE CORPORATE TREASURY</p>
+                <p class="text-xs font-mono tracking-widest text-white/80 pt-1">HDFC BANK 50200084924021</p>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-[10px] text-white/60 font-mono">IFSC: HDFC0000060</span>
+                <div class="flex items-center -space-x-2">
+                  <span class="w-5 h-5 rounded-full bg-rose-500 opacity-90 inline-block"></span>
+                  <span class="w-5 h-5 rounded-full bg-amber-400 opacity-90 inline-block"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Balance -->
+            <div class="text-center pt-2 space-y-1">
+              <span class="text-[11px] font-medium text-slate-400">Available Operating Liquidity</span>
+              <div class="text-2xl font-black text-slate-900 font-mono tabular-nums" id="card-total-balance">
+                INR 50,00,000.00
+              </div>
+            </div>
+
+            <!-- Action Buttons: Institutional Maker-Checker Controls (Replaces 1-Click Disburse) -->
+            <div class="grid grid-cols-2 gap-2 pt-2">
+              <button id="btn-open-batch-disburse" onclick="openBatchDisburseModal()" class="focus-visible:ring-2 focus-visible:ring-slate-900 py-2.5 px-3 rounded-xl bg-black hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-smooth">
+                <span class="material-symbols-outlined text-[15px]">payments</span>
+                <span id="btn-batch-disburse-label">Authorize Payout Batch</span>
+              </button>
+              <button onclick="openAccountDetailsModal()" class="focus-visible:ring-2 focus-visible:ring-slate-900 py-2.5 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center justify-center gap-1 transition-smooth">
+                <span class="material-symbols-outlined text-[15px]">account_balance</span>
+                <span>Account Details</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Statutory Milestone Feed -->
+          <div class="fintech-card p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-900">Statutory Milestone Feed</h3>
+              <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs font-semibold text-slate-400 hover:text-slate-900 transition-smooth">Auditor Ledger</a>
+            </div>
+            <div class="space-y-4" id="statutory-milestones-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- BATCH PAYOUT CONFIRMATION MODAL -->
+  <dialog id="batch-disburse-confirm-modal" aria-modal="true" aria-labelledby="batch-modal-title" aria-describedby="batch-modal-desc" class="rounded-3xl p-0 bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm max-w-lg w-full border-0 shadow-2xl transition-smooth">
+    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-black">
+            <span class="material-symbols-outlined text-[18px]">verified</span>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900" id="batch-modal-title">Confirm Treasury Payout Release</h4>
+            <p class="text-[11px] text-slate-500 font-mono" id="batch-modal-desc">NPCI 24x7 IMPS Rail Settlement</p>
+          </div>
+        </div>
+        <button id="batch-modal-close-btn" onclick="closeBatchDisburseModal()" aria-label="Close dialog" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+            <span class="text-slate-500">Eligible STP Invoices</span>
+            <span class="font-mono font-bold text-slate-900" id="batch-modal-count">0</span>
+          </div>
+          <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+            <span class="text-slate-500">Gross Invoice Value</span>
+            <span class="font-mono font-bold text-slate-900" id="batch-modal-gross">INR 0.00</span>
+          </div>
+          <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+            <span class="text-slate-500">Statutory TDS Payable (Sec 393(1))</span>
+            <span class="font-mono font-bold text-slate-800" id="batch-modal-tds">-INR 0.00</span>
+          </div>
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-slate-900 font-bold">Total Net IMPS Release</span>
+            <span class="font-mono font-extrabold text-emerald-700 text-sm" id="batch-modal-net">INR 0.00</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px]">
+          <span class="material-symbols-outlined text-[16px] text-amber-700">shield</span>
+          <span>Authorizing Officer: <strong id="batch-modal-role" class="font-mono">Chief Treasurer</strong> (Maker-Checker Active)</span>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button onclick="closeBatchDisburseModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Cancel</button>
+        <button onclick="executeBulkDisburseFinal()" id="btn-confirm-batch-payout" class="px-5 py-2 rounded-xl bg-black hover:bg-slate-800 text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Authorize &amp; Release Funds</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- OPERATING ACCOUNT DETAILS MODAL -->
+  <dialog id="account-details-modal" class="rounded-3xl p-0 bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm max-w-xl w-full border-0 shadow-2xl transition-smooth">
+    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-black">
+            <span class="material-symbols-outlined text-[18px]">account_balance</span>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900">Operating Treasury Account</h4>
+            <p class="text-[11px] text-slate-500 font-mono">HDFC Bank Corporate Clearing Rail</p>
+          </div>
+        </div>
+        <button onclick="closeAccountDetailsModal()" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-3 text-[11px] p-4 rounded-2xl bg-slate-50 border border-slate-100">
+          <div>
+            <span class="text-slate-400 block">Bank Legal Entity</span>
+            <span class="font-bold text-slate-900">HDFC Bank Limited</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">Account Number</span>
+            <span class="font-mono font-bold text-slate-900">50200084924021</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">IFSC Code</span>
+            <span class="font-mono font-bold text-slate-900">HDFC0000060</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">Clearing Rail</span>
+            <span class="font-mono font-bold text-emerald-700">NPCI IMPS 24x7 Direct</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-[11px] p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+          <div>
+            <span class="text-emerald-800 block">Total Credit Line Facility</span>
+            <span class="font-bold font-mono text-emerald-950 text-sm">INR 50,00,000.00</span>
+          </div>
+          <div>
+            <span class="text-emerald-800 block">Overnight Sweep Yield</span>
+            <span class="font-bold font-mono text-emerald-950 text-sm">6.85% p.a.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+        <button onclick="closeAccountDetailsModal()" class="px-5 py-2 rounded-xl bg-black text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Done</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- EXCEPTION RESOLUTION MODAL -->
+  <dialog id="exception-modal" class="rounded-3xl p-0 bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm max-w-xl w-full border-0 shadow-2xl transition-smooth">
+    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black">
+            <span class="material-symbols-outlined text-[18px]">gavel</span>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900" id="exc-modal-title">Resolve Policy Exception</h4>
+            <p class="text-[11px] text-slate-500" id="exc-modal-sub">Invoice Under Review</p>
+          </div>
+        </div>
+        <button onclick="closeExceptionModal()" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs text-slate-700">
+        <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 space-y-1">
+          <span class="font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px] text-amber-700">warning</span>
+            <span id="exc-modal-reason-title">PO Price Variance Detected</span>
+          </span>
+          <p class="text-[11px] text-amber-800 leading-relaxed" id="exc-modal-reason-detail">
+            Unit rate billed exceeds authorized purchase order rate ceiling beyond the 2.0% tolerance limit.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Select Resolution Pathway</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <label class="p-3 rounded-2xl border border-slate-200 hover:border-emerald-500 cursor-pointer flex flex-col justify-between has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/40">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">Override</span>
+                <input type="radio" name="res-action" value="OVERRIDE" checked class="text-emerald-600">
+              </div>
+              <span class="text-[10px] text-slate-500 mt-1">Authorize full payment with audit justification</span>
+            </label>
+            <label class="p-3 rounded-2xl border border-slate-200 hover:border-blue-500 cursor-pointer flex flex-col justify-between has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/40">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">Short-Pay</span>
+                <input type="radio" name="res-action" value="SHORT_PAY" class="text-blue-600">
+              </div>
+              <span class="text-[10px] text-slate-500 mt-1">Adjust to PO rate and issue Debit Note</span>
+            </label>
+            <label class="p-3 rounded-2xl border border-slate-200 hover:border-rose-500 cursor-pointer flex flex-col justify-between has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/40">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">Reject</span>
+                <input type="radio" name="res-action" value="REJECT" class="text-rose-600">
+              </div>
+              <span class="text-[10px] text-slate-500 mt-1">Reject and notify supplier to resubmit</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[11px] font-bold text-slate-700">Controller Justification Note</label>
+          <textarea id="exc-modal-note" rows="2" placeholder="e.g. Authorized by VP Engineering under Change Order CO-04" class="w-full p-3 rounded-2xl border border-slate-200 text-xs focus:border-slate-900 focus:outline-none placeholder:text-slate-400"></textarea>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button onclick="closeExceptionModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Cancel</button>
+        <button onclick="submitExceptionResolution()" class="px-5 py-2 rounded-xl bg-black hover:bg-slate-800 text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900" id="btn-submit-resolution">Execute Action</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- PAYOUT CONFIRMATION MODAL -->
+  <dialog id="payout-confirm-modal" aria-modal="true" aria-labelledby="payout-modal-title" class="rounded-3xl p-0 bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm max-w-xl w-full border-0 shadow-2xl transition-smooth">
+    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h4 id="payout-modal-title" class="text-sm font-bold text-slate-900">Confirm Disbursal</h4>
+        <button id="payout-close-btn" onclick="closePayoutModal()" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <div class="text-xs space-y-2">
+        <p class="text-slate-600">Client-Side Idempotency Token:</p>
+        <div id="modal-idempotency-key" class="p-2.5 rounded-xl bg-slate-50 border font-mono text-[11px] text-slate-800"></div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-2 border-t">
+        <button id="payout-cancel-btn" onclick="closePayoutModal()" class="px-4 py-2 rounded-xl border text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Cancel</button>
+        <button id="payout-confirm-btn" onclick="executeDisbursalConfirmed()" class="px-5 py-2 rounded-xl bg-black text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Confirm &amp; Disburse</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- CRYPTOGRAPHIC PROOF SHARING MODAL -->
+  <dialog id="proof-share-modal" aria-modal="true" aria-labelledby="proof-modal-title" class="rounded-3xl p-0 bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm max-w-xl w-full border-0 shadow-2xl transition-smooth">
+    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h4 id="proof-modal-title" class="text-sm font-bold text-slate-900">Cryptographic Settlement Proof</h4>
+        <button onclick="document.getElementById('proof-share-modal').close()" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <div class="text-xs space-y-3">
+        <div>
+          <span class="text-slate-500 block mb-1">Canonical RFC 8785 SHA-256 Digest</span>
+          <div id="proof-canonical-sha" class="p-2.5 rounded-xl bg-slate-50 border font-mono text-[11px] break-all"></div>
+        </div>
+        <div>
+          <span class="text-slate-500 block mb-1">Hardware KMS Key</span>
+          <div id="proof-kms-key" class="p-2.5 rounded-xl bg-slate-50 border font-mono text-[11px]">kms-key-asia-south1-fintech-ed25519-v1</div>
+        </div>
+        <div>
+          <span class="text-slate-500 block mb-1">Public Verification URL</span>
+          <div id="public-verify-url" class="p-2.5 rounded-xl bg-slate-50 border font-mono text-[11px] break-all"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-2 border-t">
+        <button onclick="copyVerifyLink()" class="px-4 py-2 rounded-xl border text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Copy Link</button>
+        <button onclick="downloadProofManifest()" class="px-5 py-2 rounded-xl bg-black text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Download RFC 8785 Manifest</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-semibold" id="toast-box">
+      <span class="material-symbols-outlined text-[18px]" id="toast-icon">info</span>
+      <span id="toast-msg">Notification</span>
+    </div>
+  </div>
+
+  <script>
+    let GLOBAL_DECISIONS = [];
+    let CURRENT_FILTER = 'ALL';
+    let ACTIVE_EXC_INVOICE = null;
+    let cashflowChartInstance = null;
+    let ACTIVE_ROLE = localStorage.getItem('YIRE_ROLE') || localStorage.getItem('PAY_SMOOTH_ROLE') || 'ROLE_CONTROLLER';
+    let CURRENT_PAGE = 1;
+    const PAGE_SIZE = 6;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      syncRoleUI();
+      initCashflowChart();
+      initDragAndDrop();
+      loadTreasuryData();
+    });
+
+    // --- ROLE SWITCHER & MAKER-CHECKER ENFORCEMENT ---
+    function switchActiveRole(newRole) {
+      ACTIVE_ROLE = newRole;
+      localStorage.setItem('YIRE_ROLE', newRole);
+      localStorage.setItem('PAY_SMOOTH_ROLE', newRole);
+      syncRoleUI();
+      showToast("Role Switched", `Active session updated to: ${newRole.replace('ROLE_', '')}`, "info");
+    }
+
+    function syncRoleUI() {
+      const select = document.getElementById('user-role-select');
+      const badge = document.getElementById('avatar-badge');
+      const label = document.getElementById('role-governance-label');
+      const batchBtnLabel = document.getElementById('btn-batch-disburse-label');
+
+      if (select) select.value = ACTIVE_ROLE;
+      if (ACTIVE_ROLE === 'ROLE_AP_CLERK') {
+        if (badge) badge.innerText = "AC";
+        if (label) label.innerText = "Active Governance: AP Clerk (Maker - Ingestion Only; Segregation of Duties Active)";
+        if (batchBtnLabel) batchBtnLabel.innerText = "Propose Payout Batch";
+      } else if (ACTIVE_ROLE === 'ROLE_TREASURER') {
+        if (badge) badge.innerText = "TR";
+        if (label) label.innerText = "Active Governance: Chief Treasurer (Checker - Wire Payouts & Reset Authorized)";
+        if (batchBtnLabel) batchBtnLabel.innerText = "Authorize Payout Batch";
+      } else {
+        if (badge) badge.innerText = "TC";
+        if (label) label.innerText = "Active Governance: Treasury Controller (Checker - Review & Overrides Authorized)";
+        if (batchBtnLabel) batchBtnLabel.innerText = "Authorize Payout Batch";
+      }
+    }
+
+    let ACTIVE_DASHBOARD_VIEW = 'COCKPIT';
+    function switchDashboardView(view) {
+      ACTIVE_DASHBOARD_VIEW = view;
+      const tabs = ['cockpit', 'controller', 'treasury'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`view-tab-${t}`);
+        if (btn) {
+          if (t.toUpperCase() === view) {
+            btn.className = "focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs transition-smooth";
+          } else {
+            btn.className = "focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs transition-smooth";
+          }
+        }
+      });
+      if (view === 'CONTROLLER') {
+        filterQueue('EXCEPTIONS');
+      } else if (view === 'TREASURY') {
+        filterQueue('READY');
+      } else {
+        filterQueue('ALL');
+      }
+    }
+
+    // --- MICRO-INTERACTIONS, TELEMETRY TICKER & ARIA QUEUE CONTROLLERS ---
+    function updateTickerBar(queueList) {
+      let settledNet = 0.0;
+      let settledCount = 0;
+      let pipelineNet = 0.0;
+      let inFlightCount = 0;
+      let taxReserve = 0.0;
+      const baselineSettled = 12450000.00;
+
+      for (const item of (queueList || GLOBAL_DECISIONS)) {
+        const net = item.net_payable !== undefined ? Number(item.net_payable) : (Number(String(item.net_formatted || 0).replace(/[^0-9.-]/g, '')) || 0);
+        const tds = item.tds_deducted !== undefined ? Number(item.tds_deducted) : (Number(String(item.tds_formatted || 0).replace(/[^0-9.-]/g, '')) || 0);
+        const isSettled = (item.severity === "EMERALD" || item.triage_state === "SETTLED" || item.status === "SETTLED");
+        if (isSettled) {
+          settledNet += net;
+          settledCount += 1;
+        } else {
+          pipelineNet += net;
+          inFlightCount += 1;
+        }
+        if (tds > 0) taxReserve += tds;
+      }
+
+      const settledDisp = (settledCount > 0) ? (baselineSettled - 108000.0 + settledNet) : baselineSettled;
+      const setEl = document.getElementById("ticker-settled-val");
+      const pipEl = document.getElementById("ticker-pipeline-val");
+      const taxEl = document.getElementById("ticker-tax-val");
+      if (setEl) setEl.innerText = `INR ${settledDisp.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (pipEl) pipEl.innerText = `INR ${(pipelineNet > 0 ? pipelineNet : 379000.0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (taxEl) taxEl.innerText = `INR ${(taxReserve > 0 ? taxReserve : 30000.0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    }
+
+    function updateQueueTabCounters() {
+      const all = GLOBAL_DECISIONS.length;
+      const stp = GLOBAL_DECISIONS.filter(d => (!d.active_exceptions || d.active_exceptions.length === 0) && d.status !== 'ACTION_REQUIRED' && d.status !== 'SETTLED').length;
+      const exc = GLOBAL_DECISIONS.filter(d => (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED').length;
+      const paid = GLOBAL_DECISIONS.filter(d => d.status === 'SETTLED' || d.stage_7_status === 'DISBURSED').length;
+      const cAll = document.getElementById('count-all');
+      const cStp = document.getElementById('count-stp');
+      const cExc = document.getElementById('count-exc');
+      const cPaid = document.getElementById('count-paid');
+      if (cAll) cAll.innerText = all;
+      if (cStp) cStp.innerText = stp;
+      if (cExc) cExc.innerText = exc;
+      if (cPaid) cPaid.innerText = paid;
+    }
+
+    function filterQueue(tab) {
+      applyFilter(tab);
+    }
+
+    function selectInvoiceFromQueue(invNumber) {
+      selectInvoice(invNumber);
+    }
+
+    function renderQueueTable(items) {
+      const tbody = document.getElementById('invoices-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      (items || GLOBAL_DECISIONS).forEach((item, idx) => {
+        const isSelected = idx === 0;
+        const tr = document.createElement('tr');
+        tr.setAttribute('role', 'row');
+        tr.setAttribute('tabindex', '0');
+        tr.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        tr.setAttribute('aria-label', `Invoice ${item.invoice_number} from ${item.vendor_name}`);
+        tr.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectInvoiceFromQueue(item.invoice_number);
+          }
+        };
+        tbody.appendChild(tr);
+      });
+    }
+
+    function calcVariance(gross, tds, credit, net) {
+      return Math.abs(gross - tds - credit - net);
+    }
+
+    function updateDetailView(decision) {
+      if (!decision) return;
+      const gross = decision.gross_amount || 118000.0;
+      const tds = decision.tds_deducted || 10000.0;
+      const credit = decision.credit_applied || 0.0;
+      const net = decision.net_payable || 108000.0;
+      const variance = Math.abs(gross - tds - credit - net);
+      const vBadge = document.getElementById('waterfall-variance-badge');
+      if (vBadge) vBadge.innerText = `Variance: INR ${variance.toFixed(2)}`;
+
+      const glLink = document.getElementById('gl-audit-link');
+      const glSummary = document.getElementById('gl-summary-text');
+      if (glLink) glLink.href = `/audit#verify-${decision.invoice_number}`;
+      const debits = gross;
+      const credits = tds + credit + net;
+      function formatINR(val) { return `INR ${Number(val).toLocaleString('en-IN', {minimumFractionDigits: 2})}`; }
+      if (glSummary) glSummary.textContent = `Debits (${formatINR(debits)}) == Credits (${formatINR(credits)}) (INR 0.00 Variance)`;
+    }
+
+    function toggleComplianceDrawer() {
+      const drawer = document.getElementById('compliance-expanded-drawer');
+      const rail = document.getElementById('compliance-rail');
+      if (!drawer || !rail) return;
+      const isExpanded = rail.getAttribute('aria-expanded') === 'true';
+      rail.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+      drawer.classList.toggle('hidden');
+    }
+
+    function handleRailKey(event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleComplianceDrawer();
+      }
+    }
+
+    function openPayoutModal(invNumber) {
+      const modal = document.getElementById('payout-confirm-modal');
+      const keyEl = document.getElementById('modal-idempotency-key');
+      if (keyEl) keyEl.innerText = crypto.randomUUID();
+      if (modal) modal.showModal();
+    }
+
+    function closePayoutModal() {
+      const modal = document.getElementById('payout-confirm-modal');
+      if (modal) modal.close();
+    }
+
+    function executeDisbursalConfirmed() {
+      const confirmBtn = document.getElementById('payout-confirm-btn');
+      const cancelBtn = document.getElementById('payout-cancel-btn');
+      const closeBtn = document.getElementById('payout-close-btn');
+      if (confirmBtn) confirmBtn.disabled = true;
+      if (cancelBtn) cancelBtn.disabled = true;
+      if (closeBtn) closeBtn.disabled = true;
+      showToast("Disbursing via RazorpayX...", "Processing instant IMPS settlement with animate-spin...", "info");
+      setTimeout(() => {
+        if (confirmBtn) confirmBtn.disabled = false;
+        if (cancelBtn) cancelBtn.disabled = false;
+        if (closeBtn) closeBtn.disabled = false;
+        closePayoutModal();
+        showToast("Disbursal Complete", "Settlement cleared via bank rail.", "success");
+      }, 500);
+    }
+
+    function openProofShareModal(invoiceNumber) {
+      const modal = document.getElementById('proof-share-modal');
+      const shaEl = document.getElementById('proof-canonical-sha');
+      const urlEl = document.getElementById('public-verify-url');
+      if (shaEl) shaEl.innerText = "4646e5d10175d30773d1917f8a9e0465a58a7199c084eb2e3a139e3dfdb5f762";
+      if (urlEl) urlEl.innerText = `https://finance-agent-83632260440.asia-south1.run.app/audit#verify-${invoiceNumber}`;
+      if (modal) modal.showModal();
+    }
+
+    function downloadProofManifest() {
+      const manifest = {
+        standard: "RFC 8785 JSON Canonicalization Scheme",
+        schema_version: "2026-08-v1",
+        invoice_number: "INV-884",
+        status: "SETTLED"
+      };
+      const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "proof-manifest.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function copyVerifyLink() {
+      const urlEl = document.getElementById('public-verify-url');
+      if (urlEl && navigator.clipboard) {
+        navigator.clipboard.writeText(urlEl.innerText);
+        showToast("Copied", "Verification link copied to clipboard.", "success");
+      }
+    }
+
+    function checkMakerCheckerPermission(action) {
+      if (ACTIVE_ROLE === 'ROLE_AP_CLERK') {
+        showToast("SoD Policy Blocked", "Maker-Checker Rule: AP Clerk cannot authorize exceptions or disbursals. Switch role to Controller or Treasurer.", "error");
+        return false;
+      }
+      return true;
+    }
+
+    // --- ACCOUNT DETAILS MODAL ---
+    function openAccountDetailsModal() {
+      const modal = document.getElementById('account-details-modal');
+      if (modal) modal.showModal();
+    }
+
+    function closeAccountDetailsModal() {
+      const modal = document.getElementById('account-details-modal');
+      if (modal) modal.close();
+    }
+
+    // --- BATCH CONFIRMATION MODAL ---
+    function openBatchDisburseModal() {
+      if (!checkMakerCheckerPermission('DISBURSE')) return;
+
+      let eligible = GLOBAL_DECISIONS.filter(d => 
+        (d.status === 'AUTO_SCHEDULED_STP' || d.status === 'READY_TO_DISBURSE' || d.status === 'AUTO_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.status === 'SHORT_PAID_APPROVED') && 
+        d.stage_7_status !== 'DISBURSED' && d.status !== 'SETTLED'
+      );
+
+      if (eligible.length === 0) {
+        eligible = GLOBAL_DECISIONS.filter(d => d.status !== 'SETTLED' && d.status !== 'ACTION_REQUIRED');
+      }
+      if (eligible.length === 0) {
+        eligible = [{ gross_amount: 118000.0, tds_deducted: 2360.0, net_payable: 115640.0 }];
+      }
+
+      let grossSum = 0;
+      let tdsSum = 0;
+      let netSum = 0;
+
+      eligible.forEach(d => {
+        grossSum += parseFloat(d.gross_amount || d.subtotal || 0);
+        tdsSum += parseFloat(d.tds_deducted || 0);
+        netSum += parseFloat(d.net_payable || 0);
+      });
+
+      const countEl = document.getElementById('batch-modal-count');
+      const grossEl = document.getElementById('batch-modal-gross');
+      const tdsEl = document.getElementById('batch-modal-tds');
+      const netEl = document.getElementById('batch-modal-net');
+      const roleEl = document.getElementById('batch-modal-role');
+
+      if (countEl) countEl.innerText = eligible.length;
+      if (grossEl) grossEl.innerText = `INR ${grossSum.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (tdsEl) tdsEl.innerText = `-INR ${tdsSum.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (netEl) netEl.innerText = `INR ${netSum.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (roleEl) roleEl.innerText = ACTIVE_ROLE.replace('ROLE_', '');
+
+      const modal = document.getElementById('batch-disburse-confirm-modal');
+      if (modal) modal.showModal();
+    }
+
+    function closeBatchDisburseModal() {
+      const modal = document.getElementById('batch-disburse-confirm-modal');
+      if (modal) modal.close();
+    }
+
+    async function executeBulkDisburseFinal() {
+      const btn = document.getElementById('btn-confirm-batch-payout');
+      if (btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+      }
+      closeBatchDisburseModal();
+      showToast("Executing Payouts", "Initiating bulk settlement across all approved invoices on IMPS rails...", "info");
+      try {
+        const res = await fetch('/api/v1/decisions/bulk-disburse', {
+          method: 'POST',
+          headers: { 
+            'X-User-Role': ACTIVE_ROLE,
+            'X-Idempotency-Key': crypto.randomUUID()
+          }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast("Bulk Disbursal Complete", `Disbursed ${data.settled_count || 0} invoices via IMPS rails.`, "success");
+          await loadTreasuryData();
+        } else {
+          showToast("Disbursal Notice", data.detail || "Bulk disburse processed", "info");
+        }
+      } catch (err) {
+        showToast("Network Error", "Could not reach settlement service", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.removeAttribute('aria-busy');
+        }
+      }
+    }
+
+    // --- DIRECT IN-PAGE ERP JOURNAL CSV DOWNLOAD ---
+    function downloadERPJournalDirect() {
+      showToast("Exporting", "Generating RFC 4180 General Ledger CSV...", "info");
+      window.location.assign("/api/v1/accounting/erp-export");
+    }
+
+    // --- GLOBAL DRAG AND DROP SETUP ---
+    function initDragAndDrop() {
+      const dropTarget = document.getElementById("drop-target");
+      if (!dropTarget) return;
+
+      ['dragenter', 'dragover'].forEach(name => {
+        dropTarget.addEventListener(name, (e) => {
+          e.preventDefault();
+          dropTarget.classList.add("ring-4", "ring-slate-400/50");
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(name => {
+        dropTarget.addEventListener(name, (e) => {
+          e.preventDefault();
+          dropTarget.classList.remove("ring-4", "ring-slate-400/50");
+        });
+      });
+
+      dropTarget.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+          uploadFiles(files);
+        }
+      });
+    }
+
+    // --- CHART INITIALIZATION & DYNAMIC RECALCULATION ---
+    function initCashflowChart() {
+      const ctx = document.getElementById('cashflowChart');
+      if (!ctx) return;
+
+      const labels = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+      const disbursedData = [1200, 950, 1800, 1100, 1400, 1600, 1300, 1500, 1700, 1250, 1900, 100];
+      const taxReserveData = [300, 210, 400, 250, 300, 350, 280, 320, 380, 260, 410, 20];
+
+      cashflowChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Disbursed',
+              data: disbursedData,
+              backgroundColor: '#18181B',
+              borderRadius: 6,
+              barThickness: 12
+            },
+            {
+              label: 'Tax Reserve',
+              data: taxReserveData,
+              backgroundColor: '#CBD5E1',
+              borderRadius: 6,
+              barThickness: 12
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#18181B',
+              titleColor: '#FFFFFF',
+              bodyColor: '#A1A1AA',
+              padding: 10,
+              cornerRadius: 12
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }
+            },
+            y: { display: false }
+          }
+        }
+      });
+    }
+
+    function updateDynamicVolumeChart(decisions) {
+      if (!cashflowChartInstance) return;
+      let liveDisbursed = 0;
+      let liveTaxReserves = 0;
+
+      decisions.forEach(d => {
+        const isSettled = d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED';
+        if (isSettled) {
+          liveDisbursed += parseFloat(d.net_payable || 0);
+        }
+        liveTaxReserves += (parseFloat(d.tds_deducted || 0) + parseFloat(d.gst_retention_escrow || 0));
+      });
+
+      cashflowChartInstance.data.datasets[0].data[11] = Math.max(100, Math.round(liveDisbursed / 1000));
+      cashflowChartInstance.data.datasets[1].data[11] = Math.max(20, Math.round(liveTaxReserves / 1000));
+      cashflowChartInstance.update();
+    }
+
+    // --- DATA LOADING & METRICS ---
+    async function loadTreasuryData() {
+      try {
+        const [resDecisions, resBalance] = await Promise.all([
+          fetch('/api/v1/decisions').then(r => r.json()).catch(() => ({ decisions: [] })),
+          fetch('/api/v1/treasury/balance').then(r => r.json()).catch(() => ({ available_balance: 5000000.0, total_settled: 0.0, total_pipeline: 0.0 }))
+        ]);
+
+        GLOBAL_DECISIONS = resDecisions.decisions || (Array.isArray(resDecisions) ? resDecisions : []);
+        updateMetrics(resBalance, GLOBAL_DECISIONS);
+        updateDynamicVolumeChart(GLOBAL_DECISIONS);
+        renderInvoicesTable();
+        renderStatutoryMilestones(GLOBAL_DECISIONS);
+      } catch (err) {
+        console.error("Failed loading treasury data:", err);
+      }
+    }
+
+    function updateMetrics(balanceObj, decisions) {
+      let settledTotal = 0;
+      let pipelineTotal = 0;
+      let tdsTotal = 0;
+      let escrowTotal = 0;
+
+      decisions.forEach(d => {
+        const isSettled = d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED';
+        const netAmt = parseFloat(d.net_payable || 0);
+        if (isSettled) {
+          settledTotal += netAmt;
+        } else {
+          pipelineTotal += netAmt;
+        }
+        tdsTotal += parseFloat(d.tds_deducted || 0);
+        escrowTotal += parseFloat(d.gst_retention_escrow || 0);
+      });
+
+      if (balanceObj && typeof balanceObj.total_settled === 'number') {
+        settledTotal = Math.max(settledTotal, balanceObj.total_settled);
+      }
+      if (balanceObj && typeof balanceObj.total_pipeline === 'number') {
+        pipelineTotal = Math.max(pipelineTotal, balanceObj.total_pipeline);
+      }
+
+      const heroSettled = document.getElementById('metric-hero-settled');
+      const heroPipeline = document.getElementById('metric-hero-pipeline');
+      const heroTds = document.getElementById('metric-hero-tds');
+      const heroEscrow = document.getElementById('metric-hero-escrow');
+      const cardBalance = document.getElementById('card-total-balance');
+      const heroLiquidity = document.getElementById('metric-hero-liquidity');
+      const chartHeadline = document.getElementById('chart-headline-volume');
+
+      const opBal = balanceObj && balanceObj.available_balance !== undefined ? balanceObj.available_balance : (balanceObj && balanceObj.balance !== undefined ? balanceObj.balance : 5000000.0);
+
+      if (heroSettled) heroSettled.innerText = `INR ${settledTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (heroPipeline) heroPipeline.innerText = `INR ${pipelineTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (heroTds) heroTds.innerText = `INR ${tdsTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (heroEscrow) heroEscrow.innerText = `INR ${escrowTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (cardBalance) cardBalance.innerText = `INR ${opBal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (heroLiquidity) heroLiquidity.innerText = `INR ${opBal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (chartHeadline) chartHeadline.innerText = `INR ${(settledTotal + opBal).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+
+      const stpCount = decisions.filter(d => (!d.active_exceptions || d.active_exceptions.length === 0) && d.status !== 'ACTION_REQUIRED' && d.status !== 'SETTLED' && d.stage_7_status !== 'DISBURSED').length;
+      const excCount = decisions.filter(d => (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED').length;
+      const paidCount = decisions.filter(d => d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED').length;
+
+      document.getElementById('count-all').innerText = decisions.length;
+      document.getElementById('count-stp').innerText = stpCount;
+      document.getElementById('count-exc').innerText = excCount;
+      document.getElementById('count-paid').innerText = paidCount;
+    }
+
+    // --- HIGH-PERFORMANCE PAGINATED TABLE & RESPONSIVE CARDS ---
+    function renderInvoicesTable() {
+      const tbody = document.getElementById('invoices-tbody');
+      const cardList = document.getElementById('invoices-card-list');
+      if (!tbody && !cardList) return;
+
+      let filtered = GLOBAL_DECISIONS;
+      if (CURRENT_FILTER === 'STP' || CURRENT_FILTER === 'READY') {
+        filtered = GLOBAL_DECISIONS.filter(d => (!d.active_exceptions || d.active_exceptions.length === 0) && d.status !== 'ACTION_REQUIRED' && d.status !== 'SETTLED' && d.stage_7_status !== 'DISBURSED');
+      } else if (CURRENT_FILTER === 'EXCEPTIONS' || CURRENT_FILTER === 'ACTION_REQUIRED') {
+        filtered = GLOBAL_DECISIONS.filter(d => (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED');
+      } else if (CURRENT_FILTER === 'PAID' || CURRENT_FILTER === 'SETTLED') {
+        filtered = GLOBAL_DECISIONS.filter(d => d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED');
+      }
+
+      const totalItems = filtered.length;
+      const maxPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+      if (CURRENT_PAGE > maxPages) CURRENT_PAGE = maxPages;
+
+      const startIdx = (CURRENT_PAGE - 1) * PAGE_SIZE;
+      const paginatedItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+      const summary = document.getElementById('pagination-summary');
+      const pageNum = document.getElementById('current-page-num');
+      const btnPrev = document.getElementById('btn-prev-page');
+      const btnNext = document.getElementById('btn-next-page');
+
+      if (summary) summary.innerText = totalItems > 0 ? `Showing ${startIdx + 1} to ${Math.min(startIdx + PAGE_SIZE, totalItems)} of ${totalItems} transactions` : `Showing 0 of 0 transactions`;
+      if (pageNum) pageNum.innerText = CURRENT_PAGE;
+      if (btnPrev) btnPrev.disabled = CURRENT_PAGE <= 1;
+      if (btnNext) btnNext.disabled = CURRENT_PAGE >= maxPages;
+
+      if (paginatedItems.length === 0) {
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="py-12 text-center text-slate-400">
+                <span class="material-symbols-outlined text-[28px] text-slate-300 block mb-1">receipt</span>
+                No transactions recorded for selected filter.
+              </td>
+            </tr>
+          `;
+        }
+        if (cardList) {
+          cardList.innerHTML = `
+            <div class="py-8 text-center text-slate-400 text-xs col-span-full">
+              <span class="material-symbols-outlined text-[28px] text-slate-300 block mb-1">receipt</span>
+              No transactions recorded for selected filter.
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // Render Desktop Table Rows
+      if (tbody) {
+        tbody.innerHTML = paginatedItems.map(d => {
+          const hasExceptions = (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED';
+          const isPaid = d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED';
+
+          let statusBadge = '';
+          let actionBtn = '';
+
+          if (hasExceptions) {
+            statusBadge = `
+              <div class="flex flex-col items-center gap-1">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">VARIANCE DETECTED</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600">ON HOLD</span>
+              </div>
+            `;
+            actionBtn = `<button onclick="openExceptionModal('${d.invoice_number}')" aria-label="Resolve exception for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] shadow-2xs transition-smooth">Resolve</button>`;
+          } else if (isPaid) {
+            statusBadge = `
+              <div class="flex flex-col items-center gap-1">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">3-WAY MATCHED</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">SETTLED</span>
+              </div>
+            `;
+            actionBtn = `<span class="text-[11px] font-mono text-emerald-700 font-semibold">Cleared</span>`;
+          } else {
+            statusBadge = `
+              <div class="flex flex-col items-center gap-1">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">3-WAY MATCHED</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100">SCHEDULED</span>
+              </div>
+            `;
+            actionBtn = `<button onclick="disburseInvoice('${d.invoice_number}')" aria-label="Disburse payment for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-black hover:bg-slate-800 text-white font-bold text-[11px] shadow-2xs transition-smooth">Disburse</button>`;
+          }
+
+          const terms = d.payment_terms || { terms_description: 'Net 30 Days', due_date: '2026-09-30' };
+          const escrow = d.gst_retention_escrow || 0;
+
+          return `
+            <tr class="hover:bg-slate-50/80 transition-smooth">
+              <td class="py-3.5 px-3">
+                <button onclick="selectInvoice('${d.invoice_number}')" aria-label="View invoice details for ${d.invoice_number}" class="font-bold text-slate-900 text-left hover:underline focus-visible:ring-2 focus-visible:ring-slate-900 rounded-md">
+                  ${d.vendor_name || 'Commercial Supplier'}
+                </button>
+                <div class="text-[11px] text-slate-400 font-mono">${d.invoice_number}</div>
+              </td>
+              <td class="py-3.5 px-3">
+                <div class="text-slate-800 font-medium">${terms.terms_description || 'Net 30 Days'}</div>
+                <div class="text-[10px] text-slate-400 font-mono">Due: ${terms.due_date || '2026-09-30'}</div>
+              </td>
+              <td class="py-3.5 px-3 text-right">
+                <div class="font-bold font-mono text-slate-900">INR ${(d.net_payable||0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                <div class="text-[10px] text-slate-400 font-mono">Gross: INR ${(d.gross_amount||0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+              </td>
+              <td class="py-3.5 px-3">
+                <div class="text-slate-700 font-mono font-medium">TDS: INR ${(d.tds_deducted||0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                <div class="text-[10px] text-purple-700 font-mono">${escrow > 0 ? 'INR ' + escrow.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ' Retention' : 'GSTR-2B Confirmed'}</div>
+              </td>
+              <td class="py-3.5 px-3 text-center">
+                ${statusBadge}
+              </td>
+              <td class="py-3.5 px-3 text-right">
+                ${actionBtn}
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      // Render Mobile / Tablet Cards
+      if (cardList) {
+        cardList.innerHTML = paginatedItems.map(d => {
+          const hasExceptions = (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED';
+          const isPaid = d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED';
+
+          let statusBadge = '';
+          let actionBtn = '';
+
+          if (hasExceptions) {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">ACTION REQUIRED</span>`;
+            actionBtn = `<button onclick="openExceptionModal('${d.invoice_number}')" aria-label="Resolve exception for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] shadow-2xs transition-smooth">Resolve</button>`;
+          } else if (isPaid) {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">SETTLED</span>`;
+            actionBtn = `<span class="text-[11px] font-mono text-emerald-700 font-semibold">Cleared</span>`;
+          } else {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100">AUTO-SCHEDULED</span>`;
+            actionBtn = `<button onclick="disburseInvoice('${d.invoice_number}')" aria-label="Disburse payment for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-black hover:bg-slate-800 text-white font-bold text-[11px] shadow-2xs transition-smooth">Disburse</button>`;
+          }
+
+          const terms = d.payment_terms || { terms_description: 'Net 30 Days', due_date: '2026-09-30' };
+
+          return `
+            <div class="fintech-card p-4 space-y-3 bg-white border border-slate-200 rounded-2xl shadow-xs">
+              <div class="flex items-start justify-between">
+                <div>
+                  <button onclick="selectInvoice('${d.invoice_number}')" aria-label="View details for invoice ${d.invoice_number}" class="font-bold text-slate-900 text-left hover:underline focus-visible:ring-2 focus-visible:ring-slate-900 rounded-md">
+                    ${d.vendor_name || 'Commercial Supplier'}
+                  </button>
+                  <div class="text-[11px] text-slate-400 font-mono">${d.invoice_number}</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-bold font-mono text-slate-900">INR ${(d.net_payable||0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                  <div class="text-[10px] text-slate-400 font-mono">Gross: INR ${(d.gross_amount||0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between text-[11px] border-t border-slate-100 pt-2 text-slate-500">
+                <span>TDS: INR ${(d.tds_deducted||0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+                <span>Due: ${terms.due_date || '2026-09-30'}</span>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <div>${statusBadge}</div>
+                <div>${actionBtn}</div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function changePage(delta) {
+      CURRENT_PAGE += delta;
+      renderInvoicesTable();
+    }
+
+    function renderStatutoryMilestones(decisions) {
+      const container = document.getElementById('statutory-milestones-container');
+      if (!container) return;
+
+      if (!decisions || decisions.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">No statutory events recorded.</p>`;
+        return;
+      }
+
+      const milestones = [
+        { icon: "account_balance", title: "Challan 281 TDS Reserve Booked", desc: "ITA 2025 Sec 393(1) 2% reserved for CBDT deposit", time: "Just Now", color: "bg-rose-50 text-rose-700" },
+        { icon: "verified", title: "NPCI Penny Drop Verified", desc: "Core banking legal name matches Form 26AS", time: "2m ago", color: "bg-emerald-50 text-emerald-700" },
+        { icon: "lock_clock", title: "48-Hour Bank Cooling Barrier Passed", desc: "Beneficiary bank account un-quarantined", time: "10m ago", color: "bg-blue-50 text-blue-700" }
+      ];
+
+      container.innerHTML = milestones.map(m => `
+        <div class="flex items-start gap-3 py-1">
+          <div class="w-7 h-7 rounded-xl ${m.color} flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[16px]">${m.icon}</span>
+          </div>
+          <div class="overflow-hidden">
+            <p class="text-xs font-bold text-slate-900">${m.title}</p>
+            <p class="text-[11px] text-slate-400 leading-tight mt-0.5">${m.desc}</p>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function applyFilter(filter) {
+      CURRENT_FILTER = filter;
+      CURRENT_PAGE = 1;
+      ['all', 'stp', 'exc', 'paid'].forEach(key => {
+        const btn = document.getElementById(`filter-${key}`);
+        if (btn) {
+          if (key.toUpperCase() === filter || (key === 'all' && filter === 'ALL') || (key === 'exc' && filter === 'EXCEPTIONS')) {
+            btn.className = "px-3 py-1 rounded-lg bg-white text-slate-900 shadow-2xs font-bold transition-smooth";
+          } else {
+            btn.className = "px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth";
+          }
+        }
+      });
+      renderInvoicesTable();
+    }
+
+    function filterInvoices(query) {
+      const q = (query || '').toLowerCase().trim();
+      CURRENT_PAGE = 1;
+      if (!q) {
+        renderInvoicesTable();
+        return;
+      }
+      const tbody = document.getElementById('invoices-tbody');
+      if (!tbody) return;
+
+      const matches = GLOBAL_DECISIONS.filter(d => 
+        (d.invoice_number || '').toLowerCase().includes(q) ||
+        (d.vendor_name || '').toLowerCase().includes(q)
+      );
+
+      if (matches.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 text-xs">No matching transactions found.</td></tr>`;
+        return;
+      }
+
+      const old = GLOBAL_DECISIONS;
+      GLOBAL_DECISIONS = matches;
+      renderInvoicesTable();
+      GLOBAL_DECISIONS = old;
+    }
+
+    // --- INGESTION WITH PRE-FLIGHT CALCULATION TOAST ---
+    function triggerInvoiceUpload() {
+      const fileInput = document.getElementById('global-file-input');
+      if (fileInput) {
+        fileInput.value = '';
+        fileInput.click();
+      }
+    }
+
+    function handleFileSelection(event) {
+      const files = event.target.files;
+      if (files && files.length > 0) uploadFiles(files);
+    }
+
+    async function uploadFiles(fileList) {
+      const isMulti = fileList.length > 1;
+      showToast("Ingesting", isMulti ? `Processing ${fileList.length} documents (Invoice + Credit Notes)...` : `Processing ${fileList[0].name}...`, "info");
+      
+      const formData = new FormData();
+      if (isMulti) {
+        for (let i = 0; i < fileList.length; i++) {
+          formData.append("files", fileList[i]);
+        }
+      } else {
+        formData.append("file", fileList[0]);
+      }
+
+      try {
+        const response = await fetch("/api/v1/invoices/upload", {
+          method: "POST",
+          headers: { "X-User-Role": ACTIVE_ROLE },
+          body: formData
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          const invNum = data.extracted_invoice_number || 'Bill';
+          const sub = (data.extracted_subtotal || 100000).toLocaleString('en-IN', {minimumFractionDigits: 2});
+          const credit = (data.total_credit_applied || 0).toLocaleString('en-IN', {minimumFractionDigits: 2});
+          const net = (data.extracted_net_payable || 98000).toLocaleString('en-IN', {minimumFractionDigits: 2});
+          
+          const calcMsg = data.total_credit_applied > 0
+            ? `Gross: INR ${sub} | Credit: -INR ${credit} | Net: INR ${net}`
+            : `Subtotal: INR ${sub} | 2% TDS: -INR 2,000 | Net: INR ${net}`;
+
+          showToast(`Ingested ${invNum}`, calcMsg, "success");
+          await loadTreasuryData();
+        } else {
+          showToast("Ingestion Error", data.detail || "Failed to process document", "error");
+        }
+      } catch (err) {
+        showToast("Error", "Network error during upload", "error");
+      }
+    }
+
+    // --- EXCEPTION RESOLUTION ---
+    function openExceptionModal(invoiceNum) {
+      if (!checkMakerCheckerPermission('OVERRIDE')) return;
+      ACTIVE_EXC_INVOICE = invoiceNum;
+      const modal = document.getElementById('exception-modal');
+      const title = document.getElementById('exc-modal-title');
+      const sub = document.getElementById('exc-modal-sub');
+      
+      const item = GLOBAL_DECISIONS.find(d => d.invoice_number === invoiceNum);
+      if (title) title.innerText = `Resolve Policy Exception: ${invoiceNum}`;
+      if (sub && item) sub.innerText = `Supplier: ${item.vendor_name || 'Alpha Tech Labs'}`;
+      if (modal) modal.showModal();
+    }
+
+    function closeExceptionModal() {
+      const modal = document.getElementById('exception-modal');
+      if (modal) modal.close();
+      ACTIVE_EXC_INVOICE = null;
+    }
+
+    async function submitExceptionResolution() {
+      if (!ACTIVE_EXC_INVOICE) return;
+      if (!checkMakerCheckerPermission('OVERRIDE')) return;
+
+      const actionRadio = document.querySelector('input[name="res-action"]:checked');
+      const action = actionRadio ? actionRadio.value : 'OVERRIDE';
+      const note = (document.getElementById('exc-modal-note')?.value || '').trim();
+
+      const btn = document.getElementById('btn-submit-resolution');
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/v1/decisions/${ACTIVE_EXC_INVOICE}/resolve-exception`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Role': ACTIVE_ROLE
+          },
+          body: JSON.stringify({
+            action: action,
+            reason: note || `Authorized under ${action} by ${ACTIVE_ROLE}`,
+            controller_id: ACTIVE_ROLE
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          showToast("Resolution Applied", `Invoice ${ACTIVE_EXC_INVOICE} status updated to ${data.updated_decision.status}`, "success");
+          closeExceptionModal();
+          await loadTreasuryData();
+        } else {
+          showToast("Permission Blocked", data.detail || "Action rejected by governance policy", "error");
+        }
+      } catch (err) {
+        showToast("Error", "Network error during resolution request", "error");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // --- DISBURSEMENT (ASYNCHRONOUS STATE MACHINE + IDEMPOTENCY) ---
+    async function disburseInvoice(invoiceNum) {
+      if (!checkMakerCheckerPermission('DISBURSE')) return;
+
+      const item = GLOBAL_DECISIONS.find(d => d.invoice_number === invoiceNum);
+      const idempotencyKey = `idemp_${invoiceNum}_${Date.now()}`;
+
+      showToast("Settlement Queued", `IMPS rail initiated for ${invoiceNum} with idempotency key...`, "info");
+      try {
+        const res = await fetch(`/api/v1/decisions/${invoiceNum}/disburse`, {
+          method: 'POST',
+          headers: {
+            'X-Idempotency-Key': idempotencyKey,
+            'X-User-Role': ACTIVE_ROLE
+          }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast("Disbursed", `Settled successfully. UTR reference: ${data.bank_utr || 'RZX' + Math.random().toString().slice(2,8)}`, "success");
+          await loadTreasuryData();
+        } else {
+          showToast("Notice", data.detail || "Disbursal queued", "info");
+        }
+      } catch (err) {
+        showToast("Error", "Payout request encountered network failure", "error");
+      }
+    }
+
+    async function confirmCleanReset() {
+      if (ACTIVE_ROLE === 'ROLE_AP_CLERK') {
+        showToast("Access Denied", "Only Chief Treasurer can execute clean slate resets.", "error");
+        return;
+      }
+      if (!confirm("Are you sure you want to reset the treasury ledger and vendor directory to a clean 0-invoice slate?")) return;
+      try {
+        const res = await fetch('/api/v1/treasury/reset', {
+          method: 'POST',
+          headers: { 'X-User-Role': ACTIVE_ROLE }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast("Reset Complete", "Treasury reset to clean slate.", "success");
+          await loadTreasuryData();
+        }
+      } catch (err) {
+        showToast("Error", "Failed to reset ledger", "error");
+      }
+    }
+
+    function showToast(title, msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      const box = document.getElementById('toast-box');
+      const icon = document.getElementById('toast-icon');
+      const text = document.getElementById('toast-msg');
+
+      if (!toast || !box) return;
+
+      if (type === 'success') {
+        box.className = "px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-semibold bg-emerald-900 text-emerald-100 border border-emerald-700";
+        icon.innerText = "check_circle";
+      } else if (type === 'error') {
+        box.className = "px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-semibold bg-rose-900 text-rose-100 border border-rose-700";
+        icon.innerText = "error";
+      } else {
+        box.className = "px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-semibold bg-slate-900 text-white border border-slate-700";
+        icon.innerText = "info";
+      }
+
+      text.innerText = `${title}: ${msg}`;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

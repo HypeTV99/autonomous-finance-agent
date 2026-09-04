@@ -1,0 +1,56 @@
+name: Playwright UI & Responsive Suite
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  playwright-ui:
+    name: Playwright End-to-End & Responsive Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Install Playwright Chromium & OS Dependencies
+        run: |
+          playwright install --with-deps chromium
+
+      - name: Run Playwright Tests
+        env:
+          TEST_PORT: "4173"
+          GOOGLE_CLOUD_PROJECT: "ci-sandbox-project"
+        run: |
+          pytest -q -m playwright --tracing=retain-on-failure --screenshot=only-on-failure --output=artifacts/playwright
+
+      - name: Upload Test Traces and Screenshots on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-artifacts
+          path: artifacts/playwright/
+          retention-days: 7
+
+      - name: Upload Golden Reference Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-reference-screenshots
+          path: artifacts/screenshots/
+          retention-days: 14

@@ -1,0 +1,16 @@
+.gcloudignore
+.git
+.gitignore
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+graphify-out/
+test_invoices/
+*.bak
+scratch/
+bandit_report.txt
+stitch_raw/
+tests/
+sample_invoice.pdf

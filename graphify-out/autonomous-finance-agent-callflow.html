@@ -1,0 +1,2440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>autonomous-finance-agent — Complete Call Flow &amp; Architecture Documentation</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --border: #334155;
+  --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+  --warn: #fbbf24; --err: #f87171; --ok: #34d399;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+h1 { font-size: 2.4rem; margin-bottom: 8px; background: linear-gradient(135deg, var(--accent), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+h2 { font-size: 1.7rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+h3 { font-size: 1.25rem; margin: 32px 0 12px; color: var(--accent); }
+h4 { font-size: 1.05rem; margin: 20px 0 8px; color: var(--warn); }
+p { margin: 8px 0; color: var(--muted); }
+.subtitle { color: var(--muted); font-size: 1.1rem; margin-bottom: 32px; }
+.mermaid { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.mermaid.is-enhanced { padding: 0; overflow: hidden; min-height: 260px; }
+.mermaid-viewport { padding: 54px 24px 24px; overflow: hidden; cursor: grab; touch-action: none; min-height: 260px; }
+.mermaid-viewport.is-dragging { cursor: grabbing; }
+.mermaid-viewport svg { max-width: none !important; height: auto; transform-origin: 0 0; transition: transform 120ms ease; }
+.mermaid-toolbar { position: absolute; top: 10px; right: 10px; z-index: 3; display: flex; align-items: center; gap: 6px; padding: 6px; background: rgba(15,23,42,0.92); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.28); }
+.mermaid-toolbar button, .mermaid-toolbar .zoom-level { height: 28px; min-width: 32px; border: 1px solid var(--border); border-radius: 6px; background: #1e293b; color: var(--text); font: 600 0.78rem system-ui, sans-serif; display: inline-flex; align-items: center; justify-content: center; }
+.mermaid-toolbar button { cursor: pointer; }
+.mermaid-toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+.mermaid-toolbar .zoom-level { min-width: 52px; color: var(--muted); background: transparent; }
+.call-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+.call-table th { background: #1a2744; color: var(--accent); text-align: left; padding: 10px 14px; border: 1px solid var(--border); }
+.call-table td { padding: 8px 14px; border: 1px solid var(--border); vertical-align: top; }
+.call-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+.tag-async { background: #7c3aed33; color: #a78bfa; }
+.tag-class { background: #05966933; color: var(--ok); }
+.tag-func { background: #2563eb33; color: var(--accent); }
+.tag-cmd { background: #d9770633; color: var(--warn); }
+.tag-endpoint { background: #dc262633; color: var(--err); }
+.tag-hook { background: #db277733; color: #f472b6; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 16px 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin: 16px 0; }
+.arrow-chain { font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent); padding: 10px; background: rgba(56,189,248,0.06); border-radius: 6px; }
+code { font-family: 'Fira Code', 'Cascadia Code', monospace; background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; font-size: 0.88em; }
+ul, ol { margin: 8px 0 8px 24px; color: var(--muted); }
+li { margin: 4px 0; }
+a { color: var(--accent); }
+hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+.nav { position: sticky; top: 0; background: var(--bg); z-index: 10; padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem; }
+.nav a { text-decoration: none; }
+.nav a:hover { text-decoration: underline; }
+@media (max-width: 768px) { .container { padding: 16px; } h1 { font-size: 1.8rem; } }
+
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>autonomous-finance-agent — Complete Call Flow &amp; Architecture Documentation</h1>
+<p class="subtitle">Generated from graphify knowledge graph: 479 nodes, 1366 edges, 74 communities. Commit: unknown</p>
+
+<div class="nav">
+    <a href="#overview">Architecture Overview</a>
+    <a href="#analysis-clustering">Analysis &amp; Clustering</a>
+    <a href="#outputs-docs">Outputs &amp; Docs</a>
+    <a href="#cli-skills">CLI &amp; Skill Installers</a>
+    <a href="#ingest-cache-update">Ingestion &amp; Updates</a>
+    <a href="#serve-api">Serving API</a>
+    <a href="#tests-fixtures">Tests &amp; Fixtures</a>
+    <a href="#demo-invoice-generator">Demo Invoice Generator</a>
+    <a href="#batch-invoice-generation">Batch Invoice Generation</a>
+    <a href="#screen-polishing-master-fixes">Screen Polishing &amp; Master Fixes</a>
+    <a href="#module-script-group-15">Module &amp; Script Group 15</a>
+    <a href="#module-script-group-18">Module &amp; Script Group 18</a>
+    <a href="#module-script-group-19">Module &amp; Script Group 19</a>
+    <a href="#module-script-group-20">Module &amp; Script Group 20</a>
+    <a href="#module-script-group-21">Module &amp; Script Group 21</a>
+    <a href="#other">Other</a>
+</div>
+
+<!-- ====== Architecture Overview ====== -->
+<h2 id="overview">1. Architecture Overview</h2>
+
+<div class="mermaid">
+
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    ANALYSIS_CLUSTERING_C79796DA("Analysis &amp; Clustering<br/><small>34 nodes</small>")
+    class ANALYSIS_CLUSTERING_C79796DA module;
+    OUTPUTS_DOCS_ED82387C("Outputs &amp; Docs<br/><small>1 nodes</small>")
+    class OUTPUTS_DOCS_ED82387C module;
+    CLI_SKILLS_9964CBB8("CLI &amp; Skill Installers<br/><small>30 nodes</small>")
+    class CLI_SKILLS_9964CBB8 module;
+    INGEST_CACHE_UPDATE_FF457338("Ingestion &amp; Updates<br/><small>6 nodes</small>")
+    class INGEST_CACHE_UPDATE_FF457338 module;
+    SERVE_API_35EC8E86("Serving API<br/><small>2 nodes</small>")
+    class SERVE_API_35EC8E86 module;
+    TESTS_FIXTURES_B84B1DCC("Tests &amp; Fixtures<br/><small>369 nodes</small>")
+    class TESTS_FIXTURES_B84B1DCC module;
+    DEMO_INVOICE_GENERATOR_8357C0EA("Demo Invoice Generator<br/><small>3 nodes</small>")
+    class DEMO_INVOICE_GENERATOR_8357C0EA module;
+    BATCH_INVOICE_GENERATION_E4DCF7F9("Batch Invoice Generation<br/><small>2 nodes</small>")
+    class BATCH_INVOICE_GENERATION_E4DCF7F9 module;
+    SCREEN_POLISHING_MASTER_FIXES_60B1B375("Screen Polishing &amp; Master Fixes<br/><small>2 nodes</small>")
+    class SCREEN_POLISHING_MASTER_FIXES_60B1B375 module;
+    MODULE_SCRIPT_GROUP_15_2F9166D7("Module &amp; Script Group 15<br/><small>2 nodes</small>")
+    class MODULE_SCRIPT_GROUP_15_2F9166D7 module;
+    MODULE_SCRIPT_GROUP_18_345BD768("Module &amp; Script Group 18<br/><small>1 nodes</small>")
+    class MODULE_SCRIPT_GROUP_18_345BD768 module;
+    MODULE_SCRIPT_GROUP_19_ED228DEF("Module &amp; Script Group 19<br/><small>1 nodes</small>")
+    class MODULE_SCRIPT_GROUP_19_ED228DEF module;
+    MODULE_SCRIPT_GROUP_20_86882DF1("Module &amp; Script Group 20<br/><small>1 nodes</small>")
+    class MODULE_SCRIPT_GROUP_20_86882DF1 module;
+    MODULE_SCRIPT_GROUP_21_ED88ED01("Module &amp; Script Group 21<br/><small>1 nodes</small>")
+    class MODULE_SCRIPT_GROUP_21_ED88ED01 module;
+    OTHER_D0941E68("Other<br/><small>24 nodes</small>")
+    class OTHER_D0941E68 module;
+    TESTS_FIXTURES_B84B1DCC -->|contains x34| CLI_SKILLS_9964CBB8
+    ANALYSIS_CLUSTERING_C79796DA -->|imports x21| TESTS_FIXTURES_B84B1DCC
+    TESTS_FIXTURES_B84B1DCC -->|contains x19| ANALYSIS_CLUSTERING_C79796DA
+    CLI_SKILLS_9964CBB8 -->|uses x11| TESTS_FIXTURES_B84B1DCC
+    ANALYSIS_CLUSTERING_C79796DA -->|references x3| CLI_SKILLS_9964CBB8
+    CLI_SKILLS_9964CBB8 -->|uses| ANALYSIS_CLUSTERING_C79796DA
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h4>Architecture Layers</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>Layer</th><th>Nodes</th><th>Communities</th></tr>
+      <tr><td>Analysis &amp; Clustering</td><td>34</td><td><code>5, 60, 61</code></td></tr><tr><td>Outputs &amp; Docs</td><td>1</td><td><code>38</code></td></tr><tr><td>CLI &amp; Skill Installers</td><td>30</td><td><code>6, 34</code></td></tr><tr><td>Ingestion &amp; Updates</td><td>6</td><td><code>11, 26, 27</code></td></tr><tr><td>Serving API</td><td>2</td><td><code>17, 68</code></td></tr><tr><td>Tests &amp; Fixtures</td><td>369</td><td><code>0, 1, 2, 3, 4, 7, 8, 9, 10, 16, 29, 30, 31, 32, 33, 44, 46, 47, 48, 50, 53, 54, 62, 63, 64, 65, 66, 67, 69, 70, 71</code></td></tr><tr><td>Demo Invoice Generator</td><td>3</td><td><code>12</code></td></tr><tr><td>Batch Invoice Generation</td><td>2</td><td><code>13</code></td></tr><tr><td>Screen Polishing &amp; Master Fixes</td><td>2</td><td><code>14</code></td></tr><tr><td>Module &amp; Script Group 15</td><td>2</td><td><code>15</code></td></tr><tr><td>Module &amp; Script Group 18</td><td>1</td><td><code>18</code></td></tr><tr><td>Module &amp; Script Group 19</td><td>1</td><td><code>19</code></td></tr><tr><td>Module &amp; Script Group 20</td><td>1</td><td><code>20</code></td></tr><tr><td>Module &amp; Script Group 21</td><td>1</td><td><code>21</code></td></tr><tr><td>Other</td><td>24</td><td><code>22, 23, 24, 25, 28, 35, 36, 37, 39, 40, 41, 42, 43, 45, 49, 51, 52, 55, 56, 57, 58, 59, 72, 73</code></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Core Flow</h4>
+    <div class="arrow-chain">Outputs &amp; Docs -&gt; Analysis &amp; Clustering -&gt; Tests &amp; Fixtures -&gt; CLI &amp; Skill Installers -&gt; Ingestion &amp; Updates -&gt; Serving API -&gt; Demo Invoice Generator</div>
+  </div>
+</div>
+<div class="grid">
+  <div class="card">
+    <h4>Graph Report Highlights</h4>
+    <ul>
+      <li>479 nodes · 1366 edges · 74 communities (72 shown, 2 thin omitted)</li>
+      <li>Extraction: 80% EXTRACTED · 20% INFERRED · 0% AMBIGUOUS · INFERRED: 272 edges (avg confidence: 0.95)</li>
+      <li>Token cost: 0 input · 0 output</li>
+      <li>1. `TDSSection` - 42 edges</li>
+      <li>2. `StatutoryComplianceTaxEngine` - 37 edges</li>
+      <li>3. `FirestoreStateStore` - 28 edges</li>
+    </ul>
+  </div>
+</div>
+<hr>
+<!-- ====== 2. Analysis & Clustering ====== -->
+<h2 id="analysis-clustering">2. Analysis &amp; Clustering</h2>
+<p>Analysis &amp; Clustering groups implementation around benchmark, test, suitepy, compliance, mostly in benchmark_suite.py, compliance_engine.py, schemas.py. This section covers 34 nodes and 53 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Analysis &amp; Clustering (34 nodes, 53 edges)
+    subgraph analysis_clustering_benchmark_suite_py_7981a299["benchmark_suite.py"]
+        benchmark_suite_10b90484("benchmark_suite.py")
+        benchmark_suite_financialcontrolbenchmarkengine_8616131a("FinancialControlBenchmarkEngine<br/><small>benchmark_suite.py</small>")
+        benchmark_suite_financialcontrolbenchmarkengine_a4fe8f75("generate_benchmark_corpus()<br/><small>benchmark_suite.py</small>")
+        benchmark_suite_financialcontrolbenchmarkengine_e5912538("execute_benchmark_suite()<br/><small>benchmark_suite.py</small>")
+        benchmark_suite_benchmarkexecutionmetrics_fcc16c7e("BenchmarkExecutionMetrics<br/><small>benchmark_suite.py</small>")
+        benchmark_suite_benchmarktransaction_22c41eed("BenchmarkTransaction<br/><small>benchmark_suite.py</small>")
+    end
+    subgraph analysis_clustering_compliance_engine_py_893c387e["compliance_engine.py"]
+        compliance_engine_adaptivebehavioralriskengine_2f5153c6("AdaptiveBehavioralRiskEngine<br/><small>compliance_engine.py</small>")
+        compliance_engine_adaptivebehavioralriskengine_e_034a7144("evaluate_behavioral_baseline()<br/><small>compliance_engine.py</small>")
+        compliance_engine_autonomousselfhealingreconcili_ad14f0bf("AutonomousSelfHealingReconciliationService<br/><small>compliance_engine.py</small>")
+        compliance_engine_autonomousselfhealingreconcili_36d2234f("execute_self_healing_recovery()<br/><small>compliance_engine.py</small>")
+        compliance_engine_contractclauseintelligenceengi_675566c6("ContractClauseIntelligenceEngine<br/><small>compliance_engine.py</small>")
+        compliance_engine_contractclauseintelligenceengi_63995f9e("evaluate_contract_clauses()<br/><small>compliance_engine.py</small>")
+    end
+    subgraph analysis_clustering_tests_unit_test_financial_be_f83c6820["tests/unit/test_financial_benchmark.py"]
+        tests_unit_test_financial_benchmark_00a33c42("test_financial_benchmark.py")
+        tests_unit_test_financial_benchmark_test_financi_3af12ce5("benchmark corpus generation()<br/><small>tests/unit/test_financial_benchmark.py</small>")
+        tests_unit_test_financial_benchmark_test_financi_0a0ead18("execution and invariants()<br/><small>tests/unit/test_financial_benchmark.py</small>")
+    end
+    comprehensive_system_audit_bdc92f47("comprehensive_system_audit.py")
+    main_execute_self_healing_reconciliation_73e20d2e("self healing reconciliation()<br/><small>main.py</small>")
+    schemas_vendorbehavioralbaseline_57296527("VendorBehavioralBaseline<br/><small>schemas.py</small>")
+    benchmark_suite_financialcontrolbenchmarkengine_8616131a -->|method| benchmark_suite_financialcontrolbenchmarkengine_a4fe8f75
+    benchmark_suite_financialcontrolbenchmarkengine_8616131a -->|method| benchmark_suite_financialcontrolbenchmarkengine_e5912538
+    compliance_engine_adaptivebehavioralriskengine_2f5153c6 -->|method| compliance_engine_adaptivebehavioralriskengine_e_034a7144
+    compliance_engine_autonomousselfhealingreconcili_ad14f0bf -->|method| compliance_engine_autonomousselfhealingreconcili_36d2234f
+    compliance_engine_contractclauseintelligenceengi_675566c6 -->|method| compliance_engine_contractclauseintelligenceengi_63995f9e
+    benchmark_suite_financialcontrolbenchmarkengine_e5912538 -->|calls| benchmark_suite_financialcontrolbenchmarkengine_a4fe8f75
+    benchmark_suite_financialcontrolbenchmarkengine_e5912538 -->|calls| compliance_engine_autonomousselfhealingreconcili_36d2234f
+    benchmark_suite_financialcontrolbenchmarkengine_e5912538 -->|calls| benchmark_suite_benchmarkexecutionmetrics_fcc16c7e
+    benchmark_suite_financialcontrolbenchmarkengine_a4fe8f75 -->|calls| benchmark_suite_benchmarktransaction_22c41eed
+    compliance_engine_adaptivebehavioralriskengine_e_034a7144 -->|calls| schemas_vendorbehavioralbaseline_57296527
+    main_execute_self_healing_reconciliation_73e20d2e -->|calls| compliance_engine_autonomousselfhealingreconcili_36d2234f
+    tests_unit_test_financial_benchmark_test_financi_3af12ce5 -->|calls| benchmark_suite_financialcontrolbenchmarkengine_a4fe8f75
+    tests_unit_test_financial_benchmark_test_financi_0a0ead18 -->|calls| benchmark_suite_financialcontrolbenchmarkengine_e5912538
+    benchmark_suite_10b90484 -->|imports| compliance_engine_adaptivebehavioralriskengine_2f5153c6
+    benchmark_suite_10b90484 -->|imports| compliance_engine_autonomousselfhealingreconcili_ad14f0bf
+    benchmark_suite_10b90484 -->|imports| compliance_engine_contractclauseintelligenceengi_675566c6
+    comprehensive_system_audit_bdc92f47 -->|imports| benchmark_suite_financialcontrolbenchmarkengine_8616131a
+    comprehensive_system_audit_bdc92f47 -->|imports| benchmark_suite_10b90484
+    tests_unit_test_financial_benchmark_00a33c42 -->|imports| benchmark_suite_financialcontrolbenchmarkengine_8616131a
+    tests_unit_test_financial_benchmark_00a33c42 -->|imports| benchmark_suite_10b90484
+    benchmark_suite_financialcontrolbenchmarkengine_8616131a -->|uses| compliance_engine_autonomousselfhealingreconcili_ad14f0bf
+    compliance_engine_adaptivebehavioralriskengine_2f5153c6 -->|uses| schemas_vendorbehavioralbaseline_57296527
+    main_execute_self_healing_reconciliation_73e20d2e -->|uses| compliance_engine_autonomousselfhealingreconcili_ad14f0bf
+    tests_unit_test_financial_benchmark_test_financi_3af12ce5 -->|uses| benchmark_suite_financialcontrolbenchmarkengine_8616131a
+    %% Omitted for readability: 16 nodes, 1 edges
+    class benchmark_suite_10b90484 module;
+    class benchmark_suite_financialcontrolbenchmarkengine_8616131a klass;
+    class benchmark_suite_financialcontrolbenchmarkengine_a4fe8f75 function;
+    class benchmark_suite_financialcontrolbenchmarkengine_e5912538 function;
+    class benchmark_suite_benchmarkexecutionmetrics_fcc16c7e klass;
+    class benchmark_suite_benchmarktransaction_22c41eed klass;
+    class compliance_engine_adaptivebehavioralriskengine_2f5153c6 klass;
+    class compliance_engine_adaptivebehavioralriskengine_e_034a7144 function;
+    class compliance_engine_autonomousselfhealingreconcili_ad14f0bf async;
+    class compliance_engine_autonomousselfhealingreconcili_36d2234f function;
+    class compliance_engine_contractclauseintelligenceengi_675566c6 klass;
+    class compliance_engine_contractclauseintelligenceengi_63995f9e function;
+    class tests_unit_test_financial_benchmark_00a33c42 test;
+    class tests_unit_test_financial_benchmark_test_financi_3af12ce5 test;
+    class tests_unit_test_financial_benchmark_test_financi_0a0ead18 test;
+    class comprehensive_system_audit_bdc92f47 module;
+    class main_execute_self_healing_reconciliation_73e20d2e function;
+    class schemas_vendorbehavioralbaseline_57296527 klass;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>BenchmarkExecutionMetrics</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>execute_benchmark_suite()</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>BenchmarkExecutionMetrics node in benchmark_suite.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>BenchmarkTransaction</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>generate_benchmark_corpus()</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><code>TDSSection</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>BenchmarkTransaction node in benchmark_suite.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>BenchmarkVectorType</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>benchmark corpus generation()</code><br><small style="color:var(--muted)">tests/unit/test_financial_benchmark.py</small><br><code>test_financial_benchmark.py</code><br><small style="color:var(--muted)">tests/unit/test_financial_benchmark.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>BenchmarkVectorType node in benchmark_suite.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>FinancialControlBenchmarkEngine</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>benchmark corpus generation()</code><br><small style="color:var(--muted)">tests/unit/test_financial_benchmark.py</small><br><code>benchmark executive summary()</code><br><small style="color:var(--muted)">main.py</small><br><code>comprehensive_system_audit.py</code><br><small style="color:var(--muted)">comprehensive_system_audit.py</small><br>+4 more</td>
+  <td><code>AutonomousSelfHealingReconciliationService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>execute_benchmark_suite()</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>generate_benchmark_corpus()</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br>+1 more</td>
+  <td>FinancialControlBenchmarkEngine node in benchmark_suite.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>AdaptiveBehavioralRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>benchmark_suite.py</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>risk engine baselines()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br><code>test_forensic_causal_intelligence.py</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><code>evaluate_behavioral_baseline()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>VendorBehavioralBaseline</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>AdaptiveBehavioralRiskEngine node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>AutonomousSelfHealingReconciliationService</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-async">Async</span></td>
+  <td><code>benchmark_suite.py</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>FinancialControlBenchmarkEngine</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>healing reconciliation service()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br>+3 more</td>
+  <td><code>execute_self_healing_recovery()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>SelfHealingReconciliationAction</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>AutonomousSelfHealingReconciliationService node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>ContractClauseIntelligenceEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>benchmark_suite.py</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>rate cap enforcement()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br><code>test_forensic_causal_intelligence.py</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><code>ContractClauseType</code><br><small style="color:var(--muted)">schemas.py</small><br><code>ContractClauseVerification</code><br><small style="color:var(--muted)">schemas.py</small><br><code>evaluate_contract_clauses()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>ContractClauseIntelligenceEngine node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>ContractClauseVerification</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>ContractClauseIntelligenceEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>evaluate_contract_clauses()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>ContractClauseVerification node in schemas.py.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>SelfHealingReconciliationAction</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AutonomousSelfHealingReconciliationService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>execute_self_healing_recovery()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>SelfHealingReconciliationAction node in schemas.py.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>VendorBehavioralBaseline</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AdaptiveBehavioralRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>evaluate_behavioral_baseline()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>VendorBehavioralBaseline node in schemas.py.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>.execute_benchmark_suite()</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>execution and invariants()</code><br><small style="color:var(--muted)">tests/unit/test_financial_benchmark.py</small><br><code>FinancialControlBenchmarkEngine</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><code>BenchmarkExecutionMetrics</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>execute_self_healing_recovery()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>generate_benchmark_corpus()</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td>.execute_benchmark_suite() node in benchmark_suite.py.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>.generate_benchmark_corpus()</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>benchmark corpus generation()</code><br><small style="color:var(--muted)">tests/unit/test_financial_benchmark.py</small><br><code>execute_benchmark_suite()</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>FinancialControlBenchmarkEngine</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><code>BenchmarkTransaction</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td>.generate_benchmark_corpus() node in benchmark_suite.py.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>.evaluate_behavioral_baseline()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>AdaptiveBehavioralRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>risk engine baselines()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><code>VendorBehavioralBaseline</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.evaluate_behavioral_baseline() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>.execute_self_healing_recovery()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>AutonomousSelfHealingReconciliationService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>execute_benchmark_suite()</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>healing reconciliation service()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br>+1 more</td>
+  <td><code>SelfHealingReconciliationAction</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.execute_self_healing_recovery() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>.evaluate_contract_clauses()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>ContractClauseIntelligenceEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>rate cap enforcement()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><code>ContractClauseVerification</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.evaluate_contract_clauses() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>execute_self_healing_reconciliation()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>AutonomousSelfHealingReconciliationService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>execute_self_healing_recovery()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>execute_self_healing_reconciliation() node in main.py.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>test_financial_control_benchmark_corpus_generation()</code><br><small style="color:var(--muted)">tests/unit/test_financial_benchmark.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>BenchmarkVectorType</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>FinancialControlBenchmarkEngine</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>generate_benchmark_corpus()</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>test_financial_control_benchmark_execution_and_invariants()</code><br><small style="color:var(--muted)">tests/unit/test_financial_benchmark.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>execute_benchmark_suite()</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>FinancialControlBenchmarkEngine</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>test_adaptive_behavioral_risk_engine_baselines()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>AdaptiveBehavioralRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>evaluate_behavioral_baseline()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>test_autonomous_self_healing_reconciliation_service()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>AutonomousSelfHealingReconciliationService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>execute_self_healing_recovery()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>test_contract_clause_acceptance_and_rate_cap_enforcement()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>ContractClauseIntelligenceEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>evaluate_contract_clauses()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>benchmark_suite.py</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>comprehensive_system_audit.py</code><br><small style="color:var(--muted)">comprehensive_system_audit.py</small><br><code>test_financial_benchmark.py</code><br><small style="color:var(--muted)">tests/unit/test_financial_benchmark.py</small></td>
+  <td><code>AdaptiveBehavioralRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>AutonomousSelfHealingReconciliationService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>CanonicalFinancialDecisionSerializer</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+14 more</td>
+  <td>Module file in benchmark_suite.py.</td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><code>Enum</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>benchmark_suite.py</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>Enum node in project.</td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><code>str</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>str node in project.</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><code>comprehensive_system_audit.py</code><br><small style="color:var(--muted)">comprehensive_system_audit.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>benchmark_suite.py</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>FinancialControlBenchmarkEngine</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td>Module file in comprehensive_system_audit.py.</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><code>test_financial_benchmark.py</code><br><small style="color:var(--muted)">tests/unit/test_financial_benchmark.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>benchmark_suite.py</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>BenchmarkVectorType</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>FinancialControlBenchmarkEngine</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td>Module file in tests/unit/test_financial_benchmark.py.</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><code>Autonomous Enterprise Financial Control Benchmark Suite Evaluates a 1,000…</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Autonomous Enterprise Financial Control Benchmark Suite Evaluates a 1,000….</td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><code>High-Throughput Vectorized Benchmark Simulator. Generates and evaluates a 1,000…</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for High-Throughput Vectorized Benchmark Simulator. Generates and evaluates a 1,000….</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>Learns vendor-specific behavioral baselines: - Normal amount band (e.g. ₹80,000…</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Learns vendor-specific behavioral baselines: - Normal amount band (e.g. ₹80,000….</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>Enforces commercial agreement clauses: - PAYMENT_ONLY_AFTER_ACCEPTANCE_SIGNOFF…</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Enforces commercial agreement clauses: - PAYMENT_ONLY_AFTER_ACCEPTANCE_SIGNOFF….</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>benchmark_suite.py</code></td><td>9 nodes</td></tr>
+<tr><td><code>compliance_engine.py</code></td><td>9 nodes</td></tr>
+<tr><td><code>schemas.py</code></td><td>3 nodes</td></tr>
+<tr><td><code>tests/unit/test_financial_benchmark.py</code></td><td>3 nodes</td></tr>
+<tr><td><code>tests/unit/test_forensic_causal_intelligence.py</code></td><td>3 nodes</td></tr>
+<tr><td><code>main.py</code></td><td>2 nodes</td></tr>
+<tr><td><code>comprehensive_system_audit.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>test_live_benchmark_breakdown.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: calls x13, uses x11, imports x6, contains x6. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 3. Outputs & Docs ====== -->
+<h2 id="outputs-docs">3. Outputs &amp; Docs</h2>
+<p>Outputs &amp; Docs groups implementation around patch, linkspy, mostly in patch_html_links.py. This section covers 1 nodes and 0 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Outputs &amp; Docs (1 nodes, 0 edges)
+    patch_html_links_4af77fe2("patch_html_links.py")
+    class patch_html_links_4af77fe2 module;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>patch_html_links.py</code><br><small style="color:var(--muted)">patch_html_links.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in patch_html_links.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>patch_html_links.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: No high-confidence call edges detected. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 4. CLI & Skill Installers ====== -->
+<h2 id="cli-skills">4. CLI &amp; Skill Installers</h2>
+<p>CLI &amp; Skill Installers groups implementation around mainpy, compliance, enginepy, simulate, mostly in main.py, compliance_engine.py, schemas.py. This section covers 30 nodes and 46 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: CLI &amp; Skill Installers (30 nodes, 46 edges)
+    subgraph cli_skills_main_py_9040bb1f["main.py"]
+        main_simulate_sensitivity_matrix_eb276c3b("simulate sensitivity matrix()<br/><small>main.py</small>")
+        main_simulate_counterfactual_decision_affc9310("simulate counterfactual decision()<br/><small>main.py</small>")
+        main_cfo_ai_copilot_chat_f918f806("cfo_ai_copilot_chat()<br/><small>main.py</small>")
+        main_run_financial_control_benchmark_48471031("financial control benchmark()<br/><small>main.py</small>")
+        main_handle_gcs_pubsub_event_d9766ca0("handle_gcs_pubsub_event()<br/><small>main.py</small>")
+    end
+    subgraph cli_skills_compliance_engine_py_91151a42["compliance_engine.py"]
+        compliance_engine_financialcontrolsensitivitymat_7b565f7d("FinancialControlSensitivityMatrixEngine<br/><small>compliance_engine.py</small>")
+        compliance_engine_counterfactualcausalsimulation_9a6fed79("CounterfactualCausalSimulationEngine<br/><small>compliance_engine.py</small>")
+        compliance_engine_counterfactualcausalsimulation_53b1431e("simulate_counterfactual()<br/><small>compliance_engine.py</small>")
+        compliance_engine_financialcontrolsensitivitymat_201932b1("simulate_matrix_scenarios()<br/><small>compliance_engine.py</small>")
+    end
+    subgraph cli_skills_schemas_py_c6d87432["schemas.py"]
+        schemas_counterfactualsimulationresult_9e564224("CounterfactualSimulationResult<br/><small>schemas.py</small>")
+        schemas_scenariooutcome_014eb18c("ScenarioOutcome<br/><small>schemas.py</small>")
+        schemas_multivariablesensitivityreport_b3cbc03f("MultiVariableSensitivityReport<br/><small>schemas.py</small>")
+        schemas_scenarioinput_f5d306f4("ScenarioInput<br/><small>schemas.py</small>")
+    end
+    subgraph cli_skills_External_generated_0c226fa1["External / generated"]
+        request_088e29b0("Request")
+        post_9b466094("post")
+    end
+    subgraph cli_skills_tests_unit_test_forensic_causal_intel_9afada1a["tests/unit/test_forensic_causal_intelligence.py"]
+        tests_unit_test_forensic_causal_intelligence_tes_49ec4485("control sensitivity matrix()<br/><small>tests/unit/test_forensic_causal_intelligence.py</small>")
+        tests_unit_test_forensic_causal_intelligence_tes_500a5054("causal simulation engine()<br/><small>tests/unit/test_forensic_causal_intelligence.py</small>")
+    end
+    inject_copilot_9a3069a2("inject_copilot.py")
+    compliance_engine_counterfactualcausalsimulation_9a6fed79 -->|method| compliance_engine_counterfactualcausalsimulation_53b1431e
+    compliance_engine_financialcontrolsensitivitymat_7b565f7d -->|method| compliance_engine_financialcontrolsensitivitymat_201932b1
+    compliance_engine_counterfactualcausalsimulation_53b1431e -->|calls| schemas_counterfactualsimulationresult_9e564224
+    compliance_engine_financialcontrolsensitivitymat_201932b1 -->|calls| schemas_scenariooutcome_014eb18c
+    compliance_engine_financialcontrolsensitivitymat_201932b1 -->|calls| schemas_multivariablesensitivityreport_b3cbc03f
+    main_simulate_counterfactual_decision_affc9310 -->|calls| compliance_engine_counterfactualcausalsimulation_53b1431e
+    main_simulate_sensitivity_matrix_eb276c3b -->|calls| compliance_engine_financialcontrolsensitivitymat_201932b1
+    tests_unit_test_forensic_causal_intelligence_tes_500a5054 -->|calls| compliance_engine_counterfactualcausalsimulation_53b1431e
+    tests_unit_test_forensic_causal_intelligence_tes_49ec4485 -->|calls| schemas_scenarioinput_f5d306f4
+    tests_unit_test_forensic_causal_intelligence_tes_49ec4485 -->|calls| compliance_engine_financialcontrolsensitivitymat_201932b1
+    compliance_engine_counterfactualcausalsimulation_9a6fed79 -->|uses| schemas_counterfactualsimulationresult_9e564224
+    compliance_engine_financialcontrolsensitivitymat_7b565f7d -->|uses| schemas_scenarioinput_f5d306f4
+    compliance_engine_financialcontrolsensitivitymat_7b565f7d -->|uses| schemas_multivariablesensitivityreport_b3cbc03f
+    compliance_engine_financialcontrolsensitivitymat_7b565f7d -->|uses| schemas_scenariooutcome_014eb18c
+    main_simulate_counterfactual_decision_affc9310 -->|uses| compliance_engine_counterfactualcausalsimulation_9a6fed79
+    main_simulate_sensitivity_matrix_eb276c3b -->|uses| schemas_scenarioinput_f5d306f4
+    main_simulate_sensitivity_matrix_eb276c3b -->|uses| compliance_engine_financialcontrolsensitivitymat_7b565f7d
+    tests_unit_test_forensic_causal_intelligence_tes_500a5054 -->|uses| compliance_engine_counterfactualcausalsimulation_9a6fed79
+    tests_unit_test_forensic_causal_intelligence_tes_49ec4485 -->|uses| compliance_engine_financialcontrolsensitivitymat_7b565f7d
+    %% Omitted for readability: 12 nodes, 0 edges
+    class main_simulate_sensitivity_matrix_eb276c3b function;
+    class main_simulate_counterfactual_decision_affc9310 function;
+    class main_cfo_ai_copilot_chat_f918f806 function;
+    class main_run_financial_control_benchmark_48471031 function;
+    class main_handle_gcs_pubsub_event_d9766ca0 function;
+    class compliance_engine_financialcontrolsensitivitymat_7b565f7d klass;
+    class compliance_engine_counterfactualcausalsimulation_9a6fed79 klass;
+    class compliance_engine_counterfactualcausalsimulation_53b1431e function;
+    class compliance_engine_financialcontrolsensitivitymat_201932b1 function;
+    class schemas_counterfactualsimulationresult_9e564224 klass;
+    class schemas_scenariooutcome_014eb18c klass;
+    class schemas_multivariablesensitivityreport_b3cbc03f klass;
+    class schemas_scenarioinput_f5d306f4 klass;
+    class request_088e29b0 klass;
+    class post_9b466094 function;
+    class tests_unit_test_forensic_causal_intelligence_tes_49ec4485 test;
+    class tests_unit_test_forensic_causal_intelligence_tes_500a5054 test;
+    class inject_copilot_9a3069a2 module;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>CounterfactualCausalSimulationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>causal simulation engine()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br><code>main.py</code><br><small style="color:var(--muted)">main.py</small><br><code>simulate counterfactual decision()</code><br><small style="color:var(--muted)">main.py</small><br>+1 more</td>
+  <td><code>CounterfactualSimulationResult</code><br><small style="color:var(--muted)">schemas.py</small><br><code>simulate_counterfactual()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>CounterfactualCausalSimulationEngine node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>FinancialControlSensitivityMatrixEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>benchmark_suite.py</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>control sensitivity matrix()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br><code>main.py</code><br><small style="color:var(--muted)">main.py</small><br>+2 more</td>
+  <td><code>MultiVariableSensitivityReport</code><br><small style="color:var(--muted)">schemas.py</small><br><code>ScenarioInput</code><br><small style="color:var(--muted)">schemas.py</small><br><code>ScenarioOutcome</code><br><small style="color:var(--muted)">schemas.py</small><br>+1 more</td>
+  <td>FinancialControlSensitivityMatrixEngine node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>CounterfactualSimulationResult</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>CounterfactualCausalSimulationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>simulate_counterfactual()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>CounterfactualSimulationResult node in schemas.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>MultiVariableSensitivityReport</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>FinancialControlSensitivityMatrixEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>simulate_matrix_scenarios()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>MultiVariableSensitivityReport node in schemas.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>ScenarioInput</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>control sensitivity matrix()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br><code>FinancialControlSensitivityMatrixEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+3 more</td>
+  <td>No direct outbound edge</td>
+  <td>ScenarioInput node in schemas.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>ScenarioOutcome</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>FinancialControlSensitivityMatrixEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>simulate_matrix_scenarios()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>ScenarioOutcome node in schemas.py.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>.simulate_counterfactual()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>causal simulation engine()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br><code>CounterfactualCausalSimulationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>simulate counterfactual decision()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><code>CounterfactualSimulationResult</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.simulate_counterfactual() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>.simulate_matrix_scenarios()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>control sensitivity matrix()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br><code>FinancialControlSensitivityMatrixEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>simulate sensitivity matrix()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><code>MultiVariableSensitivityReport</code><br><small style="color:var(--muted)">schemas.py</small><br><code>ScenarioOutcome</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.simulate_matrix_scenarios() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>cfo_ai_copilot_chat()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Supports retrieval-augmented Q&amp;A or streaming chat.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>handle_gcs_pubsub_event()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>ApprovalTier</code><br><small style="color:var(--muted)">schemas.py</small><br><code>OpenCreditRecord</code><br><small style="color:var(--muted)">schemas.py</small><br><code>RazorpayXBankingClient</code><br><small style="color:var(--muted)">razorpayx_client.py</small><br>+1 more</td>
+  <td>handle_gcs_pubsub_event() node in main.py.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>handle_razorpayx_webhook()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>handle_razorpayx_webhook() node in main.py.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>public_auditor_verification()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>EnterpriseKeyRegistry</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>public_auditor_verification() node in main.py.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>run_financial_control_benchmark()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>FinancialControlBenchmarkEngine</code><br><small style="color:var(--muted)">benchmark_suite.py</small></td>
+  <td>run_financial_control_benchmark() node in main.py.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>seed_vendor_credits()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>OpenCreditRecord</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>seed_vendor_credits() node in main.py.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>simulate_counterfactual_decision()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>CounterfactualCausalSimulationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>simulate_counterfactual()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>simulate_counterfactual_decision() node in main.py.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>simulate_invoice_pipeline()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>simulate_invoice_pipeline() node in main.py.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>simulate_sensitivity_matrix()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>FinancialControlSensitivityMatrixEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>ScenarioInput</code><br><small style="color:var(--muted)">schemas.py</small><br><code>simulate_matrix_scenarios()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>simulate_sensitivity_matrix() node in main.py.</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>test_counterfactual_causal_simulation_engine()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>CounterfactualCausalSimulationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>simulate_counterfactual()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>test_multi_variable_financial_control_sensitivity_matrix()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>FinancialControlSensitivityMatrixEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>ScenarioInput</code><br><small style="color:var(--muted)">schemas.py</small><br><code>simulate_matrix_scenarios()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>post</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>post node in project.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>Request</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Request node in project.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>Demonstrates genuine causal reasoning: Mutates one input (e.g. Bank Account…</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Demonstrates genuine causal reasoning: Mutates one input (e.g. Bank Account….</td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><code>Evaluates combinatorial multi-variable scenario spaces for CFOs &amp; Controllers:…</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Evaluates combinatorial multi-variable scenario spaces for CFOs &amp; Controllers:….</td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><code>COUNTERFACTUAL CAUSAL ENGINE: Simulates what happens if one input changes (e.g.…</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for COUNTERFACTUAL CAUSAL ENGINE: Simulates what happens if one input changes (e.g.….</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><code>MULTI-VARIABLE FINANCIAL CONTROL SENSITIVITY MATRIX: Evaluates combinatorial…</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for MULTI-VARIABLE FINANCIAL CONTROL SENSITIVITY MATRIX: Evaluates combinatorial….</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><code>FINANCIAL CONTROL BENCHMARK RUNNER: Executes an autonomous evaluation over a…</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for FINANCIAL CONTROL BENCHMARK RUNNER: Executes an autonomous evaluation over a….</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><code>Simulates the live 7-stage autonomous pipeline for an uploaded invoice: 1. OCR…</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Simulates the live 7-stage autonomous pipeline for an uploaded invoice: 1. OCR….</td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><code>Public zero-login cryptographic proof validator for external auditors and tax…</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Public zero-login cryptographic proof validator for external auditors and tax….</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>CFO AI Copilot: Natural language conversational analysis over risk, tax…</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for CFO AI Copilot: Natural language conversational analysis over risk, tax….</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>inject_copilot.py</code><br><small style="color:var(--muted)">inject_copilot.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in inject_copilot.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>main.py</code></td><td>15 nodes</td></tr>
+<tr><td><code>compliance_engine.py</code></td><td>6 nodes</td></tr>
+<tr><td><code>schemas.py</code></td><td>4 nodes</td></tr>
+<tr><td><code>tests/unit/test_forensic_causal_intelligence.py</code></td><td>2 nodes</td></tr>
+<tr><td><code>inject_copilot.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: references x19, uses x9, calls x8, explains x8. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 5. Ingestion & Updates ====== -->
+<h2 id="ingest-cache-update">5. Ingestion &amp; Updates</h2>
+<p>Ingestion &amp; Updates groups implementation around screenspy, download, build, perfect, mostly in build_perfect_frontend_suite.py, simplify_all_screens.py, update_dropzone_html.py. This section covers 6 nodes and 5 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Ingestion &amp; Updates (6 nodes, 5 edges)
+    subgraph ingest_cache_update_build_perfect_frontend_suite_c404253e["build_perfect_frontend_suite.py"]
+        build_perfect_frontend_suite_get_layout_7d52f6dc("get_layout()<br/><small>build_perfect_frontend_suite.py</small>")
+        build_perfect_frontend_suite_e6531d40("build_perfect_frontend_suite.py")
+    end
+    download_new_screens_0187b765("download_new_screens.py")
+    download_stitch_screens_98b33d9a("download_stitch_screens.py")
+    simplify_all_screens_0969640d("simplify_all_screens.py")
+    update_dropzone_html_8d4e4107("update_dropzone_html.py")
+    simplify_all_screens_0969640d -->|imports| build_perfect_frontend_suite_get_layout_7d52f6dc
+    simplify_all_screens_0969640d -->|imports| build_perfect_frontend_suite_e6531d40
+    update_dropzone_html_8d4e4107 -->|imports| build_perfect_frontend_suite_get_layout_7d52f6dc
+    update_dropzone_html_8d4e4107 -->|imports| build_perfect_frontend_suite_e6531d40
+    class build_perfect_frontend_suite_get_layout_7d52f6dc function;
+    class build_perfect_frontend_suite_e6531d40 module;
+    class download_new_screens_0187b765 module;
+    class download_stitch_screens_98b33d9a module;
+    class simplify_all_screens_0969640d module;
+    class update_dropzone_html_8d4e4107 module;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>get_layout()</code><br><small style="color:var(--muted)">build_perfect_frontend_suite.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>simplify_all_screens.py</code><br><small style="color:var(--muted)">simplify_all_screens.py</small><br><code>update_dropzone_html.py</code><br><small style="color:var(--muted)">update_dropzone_html.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>get_layout() node in build_perfect_frontend_suite.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>build_perfect_frontend_suite.py</code><br><small style="color:var(--muted)">build_perfect_frontend_suite.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>simplify_all_screens.py</code><br><small style="color:var(--muted)">simplify_all_screens.py</small><br><code>update_dropzone_html.py</code><br><small style="color:var(--muted)">update_dropzone_html.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>Module file in build_perfect_frontend_suite.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>simplify_all_screens.py</code><br><small style="color:var(--muted)">simplify_all_screens.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>build_perfect_frontend_suite.py</code><br><small style="color:var(--muted)">build_perfect_frontend_suite.py</small><br><code>get_layout()</code><br><small style="color:var(--muted)">build_perfect_frontend_suite.py</small></td>
+  <td>Module file in simplify_all_screens.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>update_dropzone_html.py</code><br><small style="color:var(--muted)">update_dropzone_html.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>build_perfect_frontend_suite.py</code><br><small style="color:var(--muted)">build_perfect_frontend_suite.py</small><br><code>get_layout()</code><br><small style="color:var(--muted)">build_perfect_frontend_suite.py</small></td>
+  <td>Module file in update_dropzone_html.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>download_new_screens.py</code><br><small style="color:var(--muted)">download_new_screens.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in download_new_screens.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>download_stitch_screens.py</code><br><small style="color:var(--muted)">download_stitch_screens.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in download_stitch_screens.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>build_perfect_frontend_suite.py</code></td><td>2 nodes</td></tr>
+<tr><td><code>download_new_screens.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>download_stitch_screens.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>simplify_all_screens.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>update_dropzone_html.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: imports x2, imports x2, contains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 6. Serving API ====== -->
+<h2 id="serve-api">6. Serving API</h2>
+<p>Serving API groups implementation around upload, add, apipy, test, mostly in add_upload_api.py, test_upload_endpoint.py. This section covers 2 nodes and 0 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Serving API (2 nodes, 0 edges)
+    add_upload_api_b9cdce22("add_upload_api.py")
+    test_upload_endpoint_49ce77b8("test_upload_endpoint.py")
+    class add_upload_api_b9cdce22 api;
+    class test_upload_endpoint_49ce77b8 test;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>add_upload_api.py</code><br><small style="color:var(--muted)">add_upload_api.py</small></td>
+  <td><span class="tag tag-endpoint">API</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in add_upload_api.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>test_upload_endpoint.py</code><br><small style="color:var(--muted)">test_upload_endpoint.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_upload_endpoint.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>add_upload_api.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>test_upload_endpoint.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: No high-confidence call edges detected. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 7. Tests & Fixtures ====== -->
+<h2 id="tests-fixtures">7. Tests &amp; Fixtures</h2>
+<p>Tests &amp; Fixtures groups implementation around test, enginepy, schemaspy, compliance, mostly in schemas.py, compliance_engine.py, test_production_system.py. This section covers 369 nodes and 1168 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Tests &amp; Fixtures (369 nodes, 1168 edges)
+    subgraph tests_fixtures_compliance_engine_py_9970a19b["compliance_engine.py"]
+        compliance_engine_5f742366("compliance_engine.py")
+        compliance_engine_auditorevidencepackservice_c3802ef9("AuditorEvidencePackService<br/><small>compliance_engine.py</small>")
+        compliance_engine_auditorevidencepackservice_gen_f9c0ffb9("generate_manifest()<br/><small>compliance_engine.py</small>")
+        compliance_engine_auditorexecutivereportrenderer_9c4dc391("AuditorExecutiveReportRenderer<br/><small>compliance_engine.py</small>")
+        compliance_engine_auditorexecutivereportrenderer_644be43d("generate_executive_report()<br/><small>compliance_engine.py</small>")
+        compliance_engine_autonomousreconciliationengine_a0c1a145("AutonomousReconciliationEngine<br/><small>compliance_engine.py</small>")
+        compliance_engine_autonomousreconciliationengine_1bc71040("create_reconciliation_record()<br/><small>compliance_engine.py</small>")
+        compliance_engine_continuousvendorriskengine_4e9ac50b("ContinuousVendorRiskEngine<br/><small>compliance_engine.py</small>")
+        compliance_engine_continuousvendorriskengine_eva_24f391d2("evaluate_payment_risk()<br/><small>compliance_engine.py</small>")
+        compliance_engine_contractlineageverificationeng_0a1091bd("ContractLineageVerificationEngine<br/><small>compliance_engine.py</small>")
+        compliance_engine_contractlineageverificationeng_ea9a4b9e("verify_contract_po_lineage()<br/><small>compliance_engine.py</small>")
+        compliance_engine_decisionreplayengine_3afeed39("DecisionReplayEngine<br/><small>compliance_engine.py</small>")
+        compliance_engine_decisionreplayengine_render_de_f6ab8ed5("render_decision_replay()<br/><small>compliance_engine.py</small>")
+    end
+    subgraph tests_fixtures_main_py_2143e86d["main.py"]
+        main_b28b7af6("main.py")
+        main_get_causal_decision_graph_58f9bc09("get_causal_decision_graph()<br/><small>main.py</small>")
+    end
+    test_production_system_cca95006("test_production_system.py")
+    tests_unit_test_five_pillars_6c29c3f1("test_five_pillars.py")
+    tests_unit_test_forensic_causal_intelligence_80de009b("test_forensic_causal_intelligence.py")
+    compliance_engine_auditorevidencepackservice_c3802ef9 -->|method| compliance_engine_auditorevidencepackservice_gen_f9c0ffb9
+    compliance_engine_auditorexecutivereportrenderer_9c4dc391 -->|method| compliance_engine_auditorexecutivereportrenderer_644be43d
+    compliance_engine_autonomousreconciliationengine_a0c1a145 -->|method| compliance_engine_autonomousreconciliationengine_1bc71040
+    compliance_engine_continuousvendorriskengine_4e9ac50b -->|method| compliance_engine_continuousvendorriskengine_eva_24f391d2
+    compliance_engine_contractlineageverificationeng_0a1091bd -->|method| compliance_engine_contractlineageverificationeng_ea9a4b9e
+    compliance_engine_decisionreplayengine_3afeed39 -->|method| compliance_engine_decisionreplayengine_render_de_f6ab8ed5
+    main_b28b7af6 -->|imports| compliance_engine_decisionreplayengine_3afeed39
+    main_b28b7af6 -->|imports| compliance_engine_auditorexecutivereportrenderer_9c4dc391
+    main_b28b7af6 -->|imports| compliance_engine_5f742366
+    tests_unit_test_five_pillars_6c29c3f1 -->|imports| compliance_engine_auditorevidencepackservice_c3802ef9
+    tests_unit_test_five_pillars_6c29c3f1 -->|imports| compliance_engine_autonomousreconciliationengine_a0c1a145
+    tests_unit_test_five_pillars_6c29c3f1 -->|imports| compliance_engine_continuousvendorriskengine_4e9ac50b
+    tests_unit_test_five_pillars_6c29c3f1 -->|imports| compliance_engine_contractlineageverificationeng_0a1091bd
+    tests_unit_test_five_pillars_6c29c3f1 -->|imports| compliance_engine_decisionreplayengine_3afeed39
+    tests_unit_test_five_pillars_6c29c3f1 -->|imports| compliance_engine_5f742366
+    tests_unit_test_forensic_causal_intelligence_80de009b -->|imports| compliance_engine_auditorexecutivereportrenderer_9c4dc391
+    tests_unit_test_forensic_causal_intelligence_80de009b -->|imports| compliance_engine_5f742366
+    test_production_system_cca95006 -->|imports| compliance_engine_5f742366
+    %% Omitted for readability: 351 nodes, 0 edges
+    class compliance_engine_5f742366 module;
+    class compliance_engine_auditorevidencepackservice_c3802ef9 klass;
+    class compliance_engine_auditorevidencepackservice_gen_f9c0ffb9 function;
+    class compliance_engine_auditorexecutivereportrenderer_9c4dc391 klass;
+    class compliance_engine_auditorexecutivereportrenderer_644be43d function;
+    class compliance_engine_autonomousreconciliationengine_a0c1a145 klass;
+    class compliance_engine_autonomousreconciliationengine_1bc71040 function;
+    class compliance_engine_continuousvendorriskengine_4e9ac50b klass;
+    class compliance_engine_continuousvendorriskengine_eva_24f391d2 function;
+    class compliance_engine_contractlineageverificationeng_0a1091bd klass;
+    class compliance_engine_contractlineageverificationeng_ea9a4b9e function;
+    class compliance_engine_decisionreplayengine_3afeed39 klass;
+    class compliance_engine_decisionreplayengine_render_de_f6ab8ed5 function;
+    class main_b28b7af6 module;
+    class main_get_causal_decision_graph_58f9bc09 function;
+    class test_production_system_cca95006 test;
+    class tests_unit_test_five_pillars_6c29c3f1 test;
+    class tests_unit_test_forensic_causal_intelligence_80de009b test;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>AuditorEvidencePackService</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>evidence pack generation()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>test_five_pillars.py</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small></td>
+  <td><code>ApprovalTier</code><br><small style="color:var(--muted)">schemas.py</small><br><code>AuditorEvidenceManifest</code><br><small style="color:var(--muted)">schemas.py</small><br><code>generate_manifest()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+2 more</td>
+  <td>AuditorEvidencePackService node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>AuditorExecutiveReportRenderer</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>get_executive_audit_report()</code><br><small style="color:var(--muted)">main.py</small><br><code>main.py</code><br><small style="color:var(--muted)">main.py</small><br><code>report nine pillars()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br>+1 more</td>
+  <td><code>AuditorExecutiveProofReport</code><br><small style="color:var(--muted)">schemas.py</small><br><code>AuditProofItem</code><br><small style="color:var(--muted)">schemas.py</small><br><code>FinancialDecision</code><br><small style="color:var(--muted)">schemas.py</small><br>+3 more</td>
+  <td>AuditorExecutiveReportRenderer node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>AutonomousReconciliationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>autonomous reconciliation workflow()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>test_five_pillars.py</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small></td>
+  <td><code>AutonomousReconciliationRecord</code><br><small style="color:var(--muted)">schemas.py</small><br><code>create_reconciliation_record()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>ReconciliationStatus</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>AutonomousReconciliationEngine node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>ContinuousVendorRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>risk engine tiers()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>test_five_pillars.py</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small></td>
+  <td><code>evaluate_payment_risk()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>PaymentRiskAssessment</code><br><small style="color:var(--muted)">schemas.py</small><br><code>RiskAction</code><br><small style="color:var(--muted)">schemas.py</small><br>+2 more</td>
+  <td>ContinuousVendorRiskEngine node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>ContractLineageVerificationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>and overbilling blocks()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>test_five_pillars.py</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small></td>
+  <td><code>ContractComplianceStatus</code><br><small style="color:var(--muted)">schemas.py</small><br><code>ContractPOVerificationState</code><br><small style="color:var(--muted)">schemas.py</small><br><code>verify_contract_po_lineage()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>ContractLineageVerificationEngine node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>DecisionReplayEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>in time reconstruction()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>main.py</code><br><small style="color:var(--muted)">main.py</small><br><code>replay_financial_decision()</code><br><small style="color:var(--muted)">main.py</small><br>+1 more</td>
+  <td><code>FinancialDecision</code><br><small style="color:var(--muted)">schemas.py</small><br><code>render_decision_replay()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>DecisionReplayEngine node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>ApprovalTier</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AuditorEvidencePackService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>create_sample_decision()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+13 more</td>
+  <td>No direct outbound edge</td>
+  <td>ApprovalTier node in schemas.py.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>AuditorEvidenceManifest</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AuditorEvidencePackService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>create_sample_decision()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+9 more</td>
+  <td>No direct outbound edge</td>
+  <td>AuditorEvidenceManifest node in schemas.py.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>AuditorExecutiveProofReport</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AuditorExecutiveReportRenderer</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>generate_executive_report()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>AuditorExecutiveProofReport node in schemas.py.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>AuditProofItem</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AuditorExecutiveReportRenderer</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>generate_executive_report()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>AuditProofItem node in schemas.py.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>AutonomousReconciliationRecord</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AutonomousReconciliationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>create_reconciliation_record()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+9 more</td>
+  <td>No direct outbound edge</td>
+  <td>AutonomousReconciliationRecord node in schemas.py.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>ContractComplianceStatus</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>and overbilling blocks()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>ContractLineageVerificationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+9 more</td>
+  <td>No direct outbound edge</td>
+  <td>ContractComplianceStatus node in schemas.py.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>ContractPOVerificationState</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>ContractLineageVerificationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>create_sample_decision()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+9 more</td>
+  <td>No direct outbound edge</td>
+  <td>ContractPOVerificationState node in schemas.py.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>FinancialDecision</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AuditorExecutiveReportRenderer</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>CausalDecisionGraphEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+11 more</td>
+  <td>No direct outbound edge</td>
+  <td>FinancialDecision node in schemas.py.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>OverallVerificationStatus</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AuditorEvidencePackService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>AuditorExecutiveReportRenderer</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+10 more</td>
+  <td>No direct outbound edge</td>
+  <td>OverallVerificationStatus node in schemas.py.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>PaymentRiskAssessment</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-async">Async</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>ContinuousVendorRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>create_sample_decision()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+9 more</td>
+  <td>No direct outbound edge</td>
+  <td>PaymentRiskAssessment node in schemas.py.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>PaymentState</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AuditorExecutiveReportRenderer</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>benchmark_suite.py</code><br><small style="color:var(--muted)">benchmark_suite.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+14 more</td>
+  <td>No direct outbound edge</td>
+  <td>PaymentState node in schemas.py.</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>ReconciliationStatus</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>autonomous reconciliation workflow()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>AutonomousReconciliationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+9 more</td>
+  <td>No direct outbound edge</td>
+  <td>ReconciliationStatus node in schemas.py.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>RiskAction</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>ContinuousVendorRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>create_sample_decision()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+9 more</td>
+  <td>No direct outbound edge</td>
+  <td>RiskAction node in schemas.py.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>RiskFactor</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>ContinuousVendorRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>evaluate_payment_risk()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>RiskFactor node in schemas.py.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>RiskTier</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>AuditorEvidencePackService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>CausalDecisionGraphEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br>+12 more</td>
+  <td>No direct outbound edge</td>
+  <td>RiskTier node in schemas.py.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>VendorPointInTimeSnapshot</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>compliance_engine.py</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>create_sample_decision()</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>create_sample_decision()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small><br>+7 more</td>
+  <td>No direct outbound edge</td>
+  <td>VendorPointInTimeSnapshot node in schemas.py.</td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><code>.generate_manifest()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>AuditorEvidencePackService</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>evidence pack generation()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small></td>
+  <td><code>AuditorEvidenceManifest</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.generate_manifest() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><code>.generate_executive_report()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>AuditorExecutiveReportRenderer</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>get_executive_audit_report()</code><br><small style="color:var(--muted)">main.py</small><br><code>report nine pillars()</code><br><small style="color:var(--muted)">tests/unit/test_forensic_causal_intelligence.py</small></td>
+  <td><code>AuditorExecutiveProofReport</code><br><small style="color:var(--muted)">schemas.py</small><br><code>AuditProofItem</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.generate_executive_report() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><code>.create_reconciliation_record()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>autonomous reconciliation workflow()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>AutonomousReconciliationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><code>AutonomousReconciliationRecord</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.create_reconciliation_record() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><code>.evaluate_payment_risk()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>ContinuousVendorRiskEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>risk engine tiers()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small></td>
+  <td><code>PaymentRiskAssessment</code><br><small style="color:var(--muted)">schemas.py</small><br><code>RiskFactor</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.evaluate_payment_risk() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><code>.verify_contract_po_lineage()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>and overbilling blocks()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>ContractLineageVerificationEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><code>ContractPOVerificationState</code><br><small style="color:var(--muted)">schemas.py</small></td>
+  <td>.verify_contract_po_lineage() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><code>create_sample_decision()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>decision knowledge graph()</code><br><small style="color:var(--muted)">main.py</small><br><code>knowledge graph construction()</code><br><small style="color:var(--muted)">tests/unit/test_knowledge_graph_flywheel.py</small><br><code>main.py</code><br><small style="color:var(--muted)">main.py</small><br>+1 more</td>
+  <td><code>ApprovalTier</code><br><small style="color:var(--muted)">schemas.py</small><br><code>AuditorEvidenceManifest</code><br><small style="color:var(--muted)">schemas.py</small><br><code>AutonomousReconciliationRecord</code><br><small style="color:var(--muted)">schemas.py</small><br>+10 more</td>
+  <td>create_sample_decision() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>.render_decision_replay()</code><br><small style="color:var(--muted)">compliance_engine.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>DecisionReplayEngine</code><br><small style="color:var(--muted)">compliance_engine.py</small><br><code>in time reconstruction()</code><br><small style="color:var(--muted)">tests/unit/test_five_pillars.py</small><br><code>replay_financial_decision()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.render_decision_replay() node in compliance_engine.py.</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>benchmark_matrix_view()</code><br><small style="color:var(--muted)">main.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>benchmark_matrix_view() node in main.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>schemas.py</code></td><td>66 nodes</td></tr>
+<tr><td><code>compliance_engine.py</code></td><td>61 nodes</td></tr>
+<tr><td><code>test_production_system.py</code></td><td>51 nodes</td></tr>
+<tr><td><code>main.py</code></td><td>47 nodes</td></tr>
+<tr><td><code>firestore_store.py</code></td><td>23 nodes</td></tr>
+<tr><td><code>razorpayx_client.py</code></td><td>8 nodes</td></tr>
+<tr><td><code>tests/unit/test_forensic_causal_intelligence.py</code></td><td>7 nodes</td></tr>
+<tr><td><code>slack_service.py</code></td><td>6 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: uses x241, imports x202, calls x181, contains x175. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 8. Demo Invoice Generator ====== -->
+<h2 id="demo-invoice-generator">8. Demo Invoice Generator</h2>
+<p>Demo Invoice Generator groups implementation around generate, demo, invoicepy, create, mostly in generate_demo_invoice.py. This section covers 3 nodes and 2 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Demo Invoice Generator (3 nodes, 2 edges)
+    generate_demo_invoice_ce2d0a91("generate_demo_invoice.py")
+    generate_demo_invoice_trigger_local_ingestion_8a8fe916("trigger_local_ingestion()<br/><small>generate_demo_invoice.py</small>")
+    generate_demo_invoice_create_sample_pdf_ac9f226a("create_sample_pdf()<br/><small>generate_demo_invoice.py</small>")
+    generate_demo_invoice_ce2d0a91 -->|contains| generate_demo_invoice_trigger_local_ingestion_8a8fe916
+    generate_demo_invoice_ce2d0a91 -->|contains| generate_demo_invoice_create_sample_pdf_ac9f226a
+    class generate_demo_invoice_ce2d0a91 module;
+    class generate_demo_invoice_trigger_local_ingestion_8a8fe916 function;
+    class generate_demo_invoice_create_sample_pdf_ac9f226a function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>create_sample_pdf()</code><br><small style="color:var(--muted)">generate_demo_invoice.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>create_sample_pdf() node in generate_demo_invoice.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>trigger_local_ingestion()</code><br><small style="color:var(--muted)">generate_demo_invoice.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Turns a local path or remote repository into analysis context.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>generate_demo_invoice.py</code><br><small style="color:var(--muted)">generate_demo_invoice.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in generate_demo_invoice.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>generate_demo_invoice.py</code></td><td>3 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x2. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 9. Batch Invoice Generation ====== -->
+<h2 id="batch-invoice-generation">9. Batch Invoice Generation</h2>
+<p>Batch Invoice Generation groups implementation around generate, invoicespy, create, invoice, mostly in generate_5_invoices.py. This section covers 2 nodes and 1 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Batch Invoice Generation (2 nodes, 1 edges)
+    generate_5_invoices_e5c9b466("generate_5_invoices.py")
+    generate_5_invoices_create_invoice_pdf_0db0bef5("create_invoice_pdf()<br/><small>generate_5_invoices.py</small>")
+    generate_5_invoices_e5c9b466 -->|contains| generate_5_invoices_create_invoice_pdf_0db0bef5
+    class generate_5_invoices_e5c9b466 module;
+    class generate_5_invoices_create_invoice_pdf_0db0bef5 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>create_invoice_pdf()</code><br><small style="color:var(--muted)">generate_5_invoices.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>create_invoice_pdf() node in generate_5_invoices.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>generate_5_invoices.py</code><br><small style="color:var(--muted)">generate_5_invoices.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in generate_5_invoices.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>generate_5_invoices.py</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 10. Screen Polishing & Master Fixes ====== -->
+<h2 id="screen-polishing-master-fixes">10. Screen Polishing &amp; Master Fixes</h2>
+<p>Screen Polishing &amp; Master Fixes groups implementation around master, fix, all, screenspy, mostly in master_fix_all_screens.py. This section covers 2 nodes and 1 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Screen Polishing &amp; Master Fixes (2 nodes, 1 edges)
+    master_fix_all_screens_95e275e8("master_fix_all_screens.py")
+    master_fix_all_screens_clean_encoding_85076fad("clean_encoding()<br/><small>master_fix_all_screens.py</small>")
+    master_fix_all_screens_95e275e8 -->|contains| master_fix_all_screens_clean_encoding_85076fad
+    class master_fix_all_screens_95e275e8 module;
+    class master_fix_all_screens_clean_encoding_85076fad function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>clean_encoding()</code><br><small style="color:var(--muted)">master_fix_all_screens.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>clean_encoding() node in master_fix_all_screens.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>master_fix_all_screens.py</code><br><small style="color:var(--muted)">master_fix_all_screens.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in master_fix_all_screens.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>master_fix_all_screens.py</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 11. Module & Script Group 15 ====== -->
+<h2 id="module-script-group-15">11. Module &amp; Script Group 15</h2>
+<p>Module &amp; Script Group 15 groups implementation around run, flagship, hostile, demopy, mostly in run_flagship_hostile_demo.py. This section covers 2 nodes and 1 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Module &amp; Script Group 15 (2 nodes, 1 edges)
+    run_flagship_hostile_demo_c10f9c5f("run_flagship_hostile_demo.py")
+    run_flagship_hostile_demo_generate_pdf_30cbfcde("generate_pdf()<br/><small>run_flagship_hostile_demo.py</small>")
+    run_flagship_hostile_demo_c10f9c5f -->|contains| run_flagship_hostile_demo_generate_pdf_30cbfcde
+    class run_flagship_hostile_demo_c10f9c5f module;
+    class run_flagship_hostile_demo_generate_pdf_30cbfcde function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>generate_pdf()</code><br><small style="color:var(--muted)">run_flagship_hostile_demo.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>generate_pdf() node in run_flagship_hostile_demo.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>run_flagship_hostile_demo.py</code><br><small style="color:var(--muted)">run_flagship_hostile_demo.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in run_flagship_hostile_demo.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>run_flagship_hostile_demo.py</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 12. Module & Script Group 18 ====== -->
+<h2 id="module-script-group-18">12. Module &amp; Script Group 18</h2>
+<p>Module &amp; Script Group 18 groups implementation around audit, all, buttonspy, mostly in audit_all_buttons.py. This section covers 1 nodes and 0 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Module &amp; Script Group 18 (1 nodes, 0 edges)
+    audit_all_buttons_6debbabf("audit_all_buttons.py")
+    class audit_all_buttons_6debbabf module;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>audit_all_buttons.py</code><br><small style="color:var(--muted)">audit_all_buttons.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in audit_all_buttons.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>audit_all_buttons.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: No high-confidence call edges detected. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 13. Module & Script Group 19 ====== -->
+<h2 id="module-script-group-19">13. Module &amp; Script Group 19</h2>
+<p>Module &amp; Script Group 19 groups implementation around audit, hostile, resultspy, mostly in audit_hostile_results.py. This section covers 1 nodes and 0 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Module &amp; Script Group 19 (1 nodes, 0 edges)
+    audit_hostile_results_d9c7b81d("audit_hostile_results.py")
+    class audit_hostile_results_d9c7b81d module;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>audit_hostile_results.py</code><br><small style="color:var(--muted)">audit_hostile_results.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in audit_hostile_results.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>audit_hostile_results.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: No high-confidence call edges detected. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 14. Module & Script Group 20 ====== -->
+<h2 id="module-script-group-20">14. Module &amp; Script Group 20</h2>
+<p>Module &amp; Script Group 20 groups implementation around audit, interactive, inputspy, mostly in audit_interactive_inputs.py. This section covers 1 nodes and 0 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Module &amp; Script Group 20 (1 nodes, 0 edges)
+    audit_interactive_inputs_d43e32eb("audit_interactive_inputs.py")
+    class audit_interactive_inputs_d43e32eb module;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>audit_interactive_inputs.py</code><br><small style="color:var(--muted)">audit_interactive_inputs.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in audit_interactive_inputs.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>audit_interactive_inputs.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: No high-confidence call edges detected. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 15. Module & Script Group 21 ====== -->
+<h2 id="module-script-group-21">15. Module &amp; Script Group 21</h2>
+<p>Module &amp; Script Group 21 groups implementation around audit, sensitive, exposurepy, mostly in audit_sensitive_exposure.py. This section covers 1 nodes and 0 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Module &amp; Script Group 21 (1 nodes, 0 edges)
+    audit_sensitive_exposure_bdc1bed1("audit_sensitive_exposure.py")
+    class audit_sensitive_exposure_bdc1bed1 module;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>audit_sensitive_exposure.py</code><br><small style="color:var(--muted)">audit_sensitive_exposure.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in audit_sensitive_exposure.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>audit_sensitive_exposure.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: No high-confidence call edges detected. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 16. Other ====== -->
+<h2 id="other">16. Other</h2>
+<p>Other groups implementation around live, verify, test, invoices, mostly in check_all_ui_wires.py, check_hostile_01.py, check_live_apis.py. This section covers 24 nodes and 0 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Other (24 nodes, 0 edges)
+    check_all_ui_wires_4782d670("check_all_ui_wires.py")
+    check_hostile_01_2c64a0d8("check_hostile_01.py")
+    check_live_apis_ea12cf44("check_live_apis.py")
+    create_new_screens_997005f5("create_new_screens.py")
+    fix_and_enhance_dashboard_930eb0a6("fix_and_enhance_dashboard.py")
+    list_new_screens_15c3ed9b("list_new_screens.py")
+    patch_and_inject_33021f4a("patch_and_inject.py")
+    patch_dropzone_zip_67bc1c85("patch_dropzone_zip.py")
+    patch_zip_support_6b9ff7eb("patch_zip_support.py")
+    polish_all_screens_5a353bc9("polish_all_screens.py")
+    post_hostile_batch_06070b2c("post_hostile_batch.py")
+    run_red_suite_live_665a43bc("run_red_suite_live.py")
+    scan_exposed_secrets_ce714c11("scan_exposed_secrets.py")
+    test_invoices_generate_batch_20_b2950054("generate_batch_20.py")
+    test_invoices_run_cfds_live_verification_ed25967c("run_cfds_live_verification.py")
+    test_invoices_run_ed25519_live_verification_4a66ab20("run_ed25519_live_verification.py")
+    test_invoices_run_live_diagnostics_c5682963("run_live_diagnostics.py")
+    test_invoices_verify_auditor_ed25519_266cadd5("verify_auditor_ed25519.py")
+    %% Omitted for readability: 6 nodes, 0 edges
+    class check_all_ui_wires_4782d670 module;
+    class check_hostile_01_2c64a0d8 module;
+    class check_live_apis_ea12cf44 api;
+    class create_new_screens_997005f5 module;
+    class fix_and_enhance_dashboard_930eb0a6 module;
+    class list_new_screens_15c3ed9b module;
+    class patch_and_inject_33021f4a module;
+    class patch_dropzone_zip_67bc1c85 module;
+    class patch_zip_support_6b9ff7eb module;
+    class polish_all_screens_5a353bc9 module;
+    class post_hostile_batch_06070b2c module;
+    class run_red_suite_live_665a43bc module;
+    class scan_exposed_secrets_ce714c11 module;
+    class test_invoices_generate_batch_20_b2950054 test;
+    class test_invoices_run_cfds_live_verification_ed25967c test;
+    class test_invoices_run_ed25519_live_verification_4a66ab20 test;
+    class test_invoices_run_live_diagnostics_c5682963 test;
+    class test_invoices_verify_auditor_ed25519_266cadd5 test;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>check_all_ui_wires.py</code><br><small style="color:var(--muted)">check_all_ui_wires.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in check_all_ui_wires.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>check_hostile_01.py</code><br><small style="color:var(--muted)">check_hostile_01.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in check_hostile_01.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>check_live_apis.py</code><br><small style="color:var(--muted)">check_live_apis.py</small></td>
+  <td><span class="tag tag-endpoint">API</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in check_live_apis.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>create_new_screens.py</code><br><small style="color:var(--muted)">create_new_screens.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in create_new_screens.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>fix_and_enhance_dashboard.py</code><br><small style="color:var(--muted)">fix_and_enhance_dashboard.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in fix_and_enhance_dashboard.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>list_new_screens.py</code><br><small style="color:var(--muted)">list_new_screens.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in list_new_screens.py.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>patch_and_inject.py</code><br><small style="color:var(--muted)">patch_and_inject.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in patch_and_inject.py.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>patch_dropzone_zip.py</code><br><small style="color:var(--muted)">patch_dropzone_zip.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in patch_dropzone_zip.py.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>patch_zip_support.py</code><br><small style="color:var(--muted)">patch_zip_support.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in patch_zip_support.py.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>polish_all_screens.py</code><br><small style="color:var(--muted)">polish_all_screens.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in polish_all_screens.py.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>post_hostile_batch.py</code><br><small style="color:var(--muted)">post_hostile_batch.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in post_hostile_batch.py.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>run_red_suite_live.py</code><br><small style="color:var(--muted)">run_red_suite_live.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in run_red_suite_live.py.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>scan_exposed_secrets.py</code><br><small style="color:var(--muted)">scan_exposed_secrets.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in scan_exposed_secrets.py.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>generate_batch_20.py</code><br><small style="color:var(--muted)">test_invoices/generate_batch_20.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_invoices/generate_batch_20.py.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>run_cfds_live_verification.py</code><br><small style="color:var(--muted)">test_invoices/run_cfds_live_verification.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_invoices/run_cfds_live_verification.py.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>run_ed25519_live_verification.py</code><br><small style="color:var(--muted)">test_invoices/run_ed25519_live_verification.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_invoices/run_ed25519_live_verification.py.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>run_live_diagnostics.py</code><br><small style="color:var(--muted)">test_invoices/run_live_diagnostics.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_invoices/run_live_diagnostics.py.</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>verify_auditor_ed25519.py</code><br><small style="color:var(--muted)">test_invoices/verify_auditor_ed25519.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_invoices/verify_auditor_ed25519.py.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>verify_batch_20.py</code><br><small style="color:var(--muted)">test_invoices/verify_batch_20.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_invoices/verify_batch_20.py.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>verify_live_provenance.py</code><br><small style="color:var(--muted)">test_invoices/verify_live_provenance.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_invoices/verify_live_provenance.py.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>verify_transition_live.py</code><br><small style="color:var(--muted)">test_invoices/verify_transition_live.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_invoices/verify_transition_live.py.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>verify_transition_live_v2.py</code><br><small style="color:var(--muted)">test_invoices/verify_transition_live_v2.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in test_invoices/verify_transition_live_v2.py.</td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><code>verify_final.py</code><br><small style="color:var(--muted)">verify_final.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in verify_final.py.</td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><code>wire_all_interactive_features.py</code><br><small style="color:var(--muted)">wire_all_interactive_features.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in wire_all_interactive_features.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>check_all_ui_wires.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>check_hostile_01.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>check_live_apis.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>create_new_screens.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>fix_and_enhance_dashboard.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>list_new_screens.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>patch_and_inject.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>patch_dropzone_zip.py</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: No high-confidence call edges detected. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<h2 id="stats">Project Statistics</h2>
+
+<div class="grid">
+  <div class="card">
+    <h4>Graph</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><td>Nodes</td><td>479</td></tr>
+      <tr><td>Edges</td><td>1366</td></tr>
+      <tr><td>Hyperedges</td><td>0</td></tr>
+      <tr><td>Communities</td><td>74</td></tr>
+      <tr><td>Documented Sections</td><td>15</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Edge Confidence</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><td>EXTRACTED</td><td>1094</td></tr>
+      <tr><td>INFERRED</td><td>272</td></tr>
+      <tr><td>AMBIGUOUS</td><td>0</td></tr>
+    </table>
+  </div>
+</div>
+
+<div style="text-align:center; padding:40px 0; color: var(--muted); font-size:0.9rem;">
+  <p>autonomous-finance-agent — Architecture Documentation</p>
+  <p>Generated: 2026-08-25 09:08 UTC · graphify callflow-html</p>
+</div>
+
+</div><!-- .container -->
+
+<script>
+(function () {
+  const mermaidConfig = {
+    startOnLoad: false,
+    theme: 'dark',
+    securityLevel: 'loose',
+    flowchart: { htmlLabels: true, useMaxWidth: true },
+    themeVariables: {
+      primaryColor: '#1e293b',
+      primaryTextColor: '#e2e8f0',
+      primaryBorderColor: '#38bdf8',
+      secondaryColor: '#0f172a',
+      tertiaryColor: '#334155',
+      lineColor: '#64748b',
+      textColor: '#e2e8f0',
+    }
+  };
+
+  mermaid.initialize(mermaidConfig);
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function enhanceMermaidDiagrams() {
+    document.querySelectorAll('.mermaid').forEach((container) => {
+      if (container.dataset.zoomReady === 'true') return;
+      const svg = container.querySelector('svg');
+      if (!svg) return;
+
+      container.dataset.zoomReady = 'true';
+      container.classList.add('is-enhanced');
+
+      const viewport = document.createElement('div');
+      viewport.className = 'mermaid-viewport';
+      svg.parentNode.insertBefore(viewport, svg);
+      viewport.appendChild(svg);
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'mermaid-toolbar';
+      toolbar.innerHTML = [
+        '<button type="button" data-action="zoom-out" title="Zoom out">-</button>',
+        '<span class="zoom-level" data-role="level">100%</span>',
+        '<button type="button" data-action="zoom-in" title="Zoom in">+</button>',
+        '<button type="button" data-action="fit" title="Fit width">Fit</button>',
+        '<button type="button" data-action="reset" title="Reset view">Reset</button>'
+      ].join('');
+      container.insertBefore(toolbar, viewport);
+
+      const state = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0, originX: 0, originY: 0 };
+      const level = toolbar.querySelector('[data-role="level"]');
+
+      function applyTransform() {
+        svg.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale})`;
+        level.textContent = `${Math.round(state.scale * 100)}%`;
+      }
+
+      function zoomBy(delta) {
+        state.scale = clamp(state.scale + delta, 0.25, 3);
+        applyTransform();
+      }
+
+      function reset() {
+        state.scale = 1;
+        state.x = 0;
+        state.y = 0;
+        applyTransform();
+      }
+
+      function fitWidth() {
+        const rawWidth = svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width
+          ? svg.viewBox.baseVal.width
+          : svg.getBoundingClientRect().width / state.scale;
+        if (!rawWidth) {
+          reset();
+          return;
+        }
+        state.scale = clamp((viewport.clientWidth - 48) / rawWidth, 0.25, 1.4);
+        state.x = 0;
+        state.y = 0;
+        applyTransform();
+      }
+
+      toolbar.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const action = button.dataset.action;
+        if (action === 'zoom-in') zoomBy(0.15);
+        if (action === 'zoom-out') zoomBy(-0.15);
+        if (action === 'fit') fitWidth();
+        if (action === 'reset') reset();
+      });
+
+      viewport.addEventListener('wheel', (event) => {
+        if (!event.ctrlKey && !event.metaKey) return;
+        event.preventDefault();
+        zoomBy(event.deltaY < 0 ? 0.1 : -0.1);
+      }, { passive: false });
+
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        state.dragging = true;
+        state.startX = event.clientX;
+        state.startY = event.clientY;
+        state.originX = state.x;
+        state.originY = state.y;
+        viewport.classList.add('is-dragging');
+        viewport.setPointerCapture(event.pointerId);
+      });
+
+      viewport.addEventListener('pointermove', (event) => {
+        if (!state.dragging) return;
+        state.x = state.originX + event.clientX - state.startX;
+        state.y = state.originY + event.clientY - state.startY;
+        applyTransform();
+      });
+
+      function endDrag(event) {
+        if (!state.dragging) return;
+        state.dragging = false;
+        viewport.classList.remove('is-dragging');
+        if (viewport.hasPointerCapture(event.pointerId)) {
+          viewport.releasePointerCapture(event.pointerId);
+        }
+      }
+
+      viewport.addEventListener('pointerup', endDrag);
+      viewport.addEventListener('pointercancel', endDrag);
+      applyTransform();
+    });
+  }
+
+  function renderMermaid() {
+    const result = mermaid.run
+      ? mermaid.run({ querySelector: '.mermaid' })
+      : Promise.resolve();
+    Promise.resolve(result)
+      .then(enhanceMermaidDiagrams)
+      .catch((error) => {
+        console.error('Mermaid render failed:', error);
+        enhanceMermaidDiagrams();
+      });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderMermaid);
+  } else {
+    renderMermaid();
+  }
+})();
+</script>
+
+</body>
+</html>

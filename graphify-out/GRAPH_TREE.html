@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>/ — graphify tree viewer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      margin: 20px 0 0 24px;
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #1e3a56;
+    }
+    .controls {
+      margin: 20px 0 15px 24px;
+    }
+    button {
+      margin-right: 10px;
+      padding: 8px 18px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    button:active {
+      background: #004085;
+    }
+    #tree-container {
+      width: calc(100vw - 48px); /* Adjust for body margin/padding */
+      height: 85vh;
+      overflow: auto;
+      border-radius: 8px;
+      background: #fff;
+      margin-left: 24px;
+      margin-right: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #ddd;
+    }
+    svg {
+      background: #fff;
+      border-radius: 8px;
+      display: block; /* Important for D3 */
+    }
+    .node circle {
+      stroke-width: 2.5px;
+    }
+    .node text { /* Base style for the <text> container */
+      font: 13px 'Segoe UI', sans-serif;
+      paint-order: stroke fill; /* Ensures text is readable over lines */
+      stroke: #fff; /* White halo */
+      stroke-width: 3px; /* Halo thickness */
+      stroke-linejoin: round;
+      stroke-opacity: 0.85; /* Halo opacity */
+    }
+    .link {
+      fill: none;
+      stroke-opacity: 0.7;
+      stroke-width: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h1>/ — Knowledge Graph</h1>
+  <div class="controls">
+    <button onclick="expandAll()">Expand All</button>
+    <button onclick="collapseAll()">Collapse All</button>
+    <button onclick="resetView()">Reset View</button>
+  </div>
+  <div id="tree-container">
+    <svg id="tree-svg" width="6000" height="8000"></svg>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    const initialJsonData = {"name":"/","total_count":420,"children":[{"name":"benchmark_suite.py","total_count":8,"children":[{"name":".execute_benchmark_suite()","total_count":1,"children":[]},{"name":".generate_benchmark_corpus()","total_count":1,"children":[]},{"name":"Autonomous Enterprise Financial Control Benchmark Suite Evaluates a 1,000\u2026","total_count":1,"children":[]},{"name":"BenchmarkExecutionMetrics","total_count":1,"children":[]},{"name":"BenchmarkTransaction","total_count":1,"children":[]},{"name":"BenchmarkVectorType","total_count":1,"children":[]},{"name":"FinancialControlBenchmarkEngine","total_count":1,"children":[]},{"name":"High-Throughput Vectorized Benchmark Simulator. Generates and evaluates a 1,000\u2026","total_count":1,"children":[]}]},{"name":"build_perfect_frontend_suite.py","total_count":1,"children":[{"name":"get_layout()","total_count":1,"children":[]}]},{"name":"compliance_engine.py","total_count":75,"children":[{"name":".adjudicate_compromise()","total_count":1,"children":[]},{"name":".apply_credits_and_advances()","total_count":1,"children":[]},{"name":".build_causal_graph()","total_count":1,"children":[]},{"name":".build_immutable_decision_record()","total_count":1,"children":[]},{"name":".build_knowledge_graph()","total_count":1,"children":[]},{"name":".create_reconciliation_record()","total_count":1,"children":[]},{"name":".diagnose_exception()","total_count":1,"children":[]},{"name":".evaluate_behavioral_baseline()","total_count":1,"children":[]},{"name":".evaluate_contract_clauses()","total_count":1,"children":[]},{"name":".evaluate_evidence_quality()","total_count":1,"children":[]},{"name":".evaluate_payment_risk()","total_count":1,"children":[]},{"name":".execute_self_healing_recovery()","total_count":1,"children":[]},{"name":".format_money()","total_count":1,"children":[]},{"name":".format_rate()","total_count":1,"children":[]},{"name":".generate_accounting_records()","total_count":1,"children":[]},{"name":".generate_executive_report()","total_count":1,"children":[]},{"name":".generate_manifest()","total_count":1,"children":[]},{"name":".generate_reversal_records()","total_count":1,"children":[]},{"name":".get_challan_due_date()","total_count":1,"children":[]},{"name":".get_key()","total_count":1,"children":[]},{"name":".get_vendor_intelligence()","total_count":1,"children":[]},{"name":".ingest_feedback()","total_count":1,"children":[]},{"name":".list_keys()","total_count":1,"children":[]},{"name":".register_key()","total_count":1,"children":[]},{"name":".render_decision_replay()","total_count":1,"children":[]},{"name":".serialize()","total_count":1,"children":[]},{"name":".simulate_counterfactual()","total_count":1,"children":[]},{"name":".simulate_matrix_scenarios()","total_count":1,"children":[]},{"name":".verify_contract_po_lineage()","total_count":1,"children":[]},{"name":".verify_cumulative_three_way_match()","total_count":1,"children":[]},{"name":".verify_vendor_bank_account_security()","total_count":1,"children":[]},{"name":"AdaptiveBehavioralRiskEngine","total_count":1,"children":[]},{"name":"AuditorEvidencePackService","total_count":1,"children":[]},{"name":"AuditorExecutiveReportRenderer","total_count":1,"children":[]},{"name":"AutonomousLearningFlywheelService","total_count":1,"children":[]},{"name":"AutonomousReconciliationEngine","total_count":1,"children":[]},{"name":"AutonomousSelfHealingReconciliationService","total_count":1,"children":[]},{"name":"Builds the complete Causal Directed Acyclic Graph (DAG) tracing every decision:\u2026","total_count":1,"children":[]},{"name":"Canonical Financial Decision Serialization Profile v1 (CFDS-v1) Component\u2026","total_count":1,"children":[]},{"name":"CanonicalFinancialDecisionSerializer","total_count":1,"children":[]},{"name":"CausalDecisionGraphEngine","total_count":1,"children":[]},{"name":"Classifies and executes autonomous self-healing for safe reconciliation\u2026","total_count":1,"children":[]},{"name":"Closed-loop Autonomous Reconciliation Engine. Links Invoice -> Payment -> Bank\u2026","total_count":1,"children":[]},{"name":"Constructs the 10-Stage Financial Decision Knowledge Graph: Vendor -> Contract\u2026","total_count":1,"children":[]},{"name":"Continuous Vendor & Payment Risk Engine. Evaluates: - Bank account modification\u2026","total_count":1,"children":[]},{"name":"ContinuousVendorRiskEngine","total_count":1,"children":[]},{"name":"Contract -> PO -> GRN/Timesheet -> Invoice 4-Way Lineage Engine. Protects\u2026","total_count":1,"children":[]},{"name":"ContractClauseIntelligenceEngine","total_count":1,"children":[]},{"name":"ContractLineageVerificationEngine","total_count":1,"children":[]},{"name":"CounterfactualCausalSimulationEngine","total_count":1,"children":[]},{"name":"create_sample_decision()","total_count":1,"children":[]},{"name":"DecisionEngine","total_count":1,"children":[]},{"name":"DecisionReplayEngine","total_count":1,"children":[]},{"name":"Demonstrates genuine causal reasoning: Mutates one input (e.g. Bank Account\u2026","total_count":1,"children":[]},{"name":"Distinguishes Cryptographic Validity ('Was the record altered?') from\u2026","total_count":1,"children":[]},{"name":"Enforces commercial agreement clauses: - PAYMENT_ONLY_AFTER_ACCEPTANCE_SIGNOFF\u2026","total_count":1,"children":[]},{"name":"EnterpriseKeyRegistry","total_count":1,"children":[]},{"name":"Evaluates combinatorial multi-variable scenario spaces for CFOs & Controllers:\u2026","total_count":1,"children":[]},{"name":"EvidenceQualityScoringEngine","total_count":1,"children":[]},{"name":"Explains every reconciliation exception with causal root attribution and\u2026","total_count":1,"children":[]},{"name":"FinancialControlSensitivityMatrixEngine","total_count":1,"children":[]},{"name":"FinancialDecisionKnowledgeGraphEngine","total_count":1,"children":[]},{"name":"Forensic Point-in-Time Decision Replay Engine. Answers: \"Why did we pay this\u2026","total_count":1,"children":[]},{"name":"Generates sealed, multi-artifact forensic evidence packages for external\u2026","total_count":1,"children":[]},{"name":"HardenedReconciliationEngine","total_count":1,"children":[]},{"name":"HardenedStatutoryLedgerEngine","total_count":1,"children":[]},{"name":"Independent Root-of-Trust and Time-Bound Key Registry. Tracks active, retired,\u2026","total_count":1,"children":[]},{"name":"IntelligentReconciliationDiagnosticEngine","total_count":1,"children":[]},{"name":"Learns vendor-specific behavioral baselines: - Normal amount band (e.g. \u20b980,000\u2026","total_count":1,"children":[]},{"name":"LedgerNettingEngine","total_count":1,"children":[]},{"name":"Maintains and evolves learned vendor intelligence, behavioral baselines, and\u2026","total_count":1,"children":[]},{"name":"NettingResult","total_count":1,"children":[]},{"name":"Renders human-friendly, auditor-facing executive compliance proof reports.","total_count":1,"children":[]},{"name":"Root-of-Trust Auditor Signature Verifier: Decouples Mathematical Cryptographic\u2026","total_count":1,"children":[]},{"name":"verify_external_auditor_signature()","total_count":1,"children":[]}]},{"name":"firestore_store.py","total_count":22,"children":[{"name":".__init__()","total_count":1,"children":[]},{"name":".acquire_lock()","total_count":1,"children":[]},{"name":".delete_pending_approval()","total_count":1,"children":[]},{"name":".get_cumulative_po_billed()","total_count":1,"children":[]},{"name":".get_decision_record()","total_count":1,"children":[]},{"name":".get_financial_decision()","total_count":1,"children":[]},{"name":".get_pending_approval()","total_count":1,"children":[]},{"name":".get_reconciliation_dashboard()","total_count":1,"children":[]},{"name":".get_vendor_open_credits()","total_count":1,"children":[]},{"name":".is_already_processed()","total_count":1,"children":[]},{"name":".is_invoice_already_processed()","total_count":1,"children":[]},{"name":".mark_processed()","total_count":1,"children":[]},{"name":".persist_financial_decision()","total_count":1,"children":[]},{"name":".persist_general_ledger()","total_count":1,"children":[]},{"name":".persist_immutable_decision_record()","total_count":1,"children":[]},{"name":".record_po_billed_quantities()","total_count":1,"children":[]},{"name":".release_lock()","total_count":1,"children":[]},{"name":".save_pending_approval()","total_count":1,"children":[]},{"name":".set_vendor_open_credits()","total_count":1,"children":[]},{"name":"Check if invoice business key (PAN_INV_FY) or raw PDF content hash was already\u2026","total_count":1,"children":[]},{"name":"FirestoreStateStore","total_count":1,"children":[]},{"name":"sanitize_for_firestore()","total_count":1,"children":[]}]},{"name":"generate_5_invoices.py","total_count":1,"children":[{"name":"create_invoice_pdf()","total_count":1,"children":[]}]},{"name":"generate_demo_invoice.py","total_count":2,"children":[{"name":"create_sample_pdf()","total_count":1,"children":[]},{"name":"trigger_local_ingestion()","total_count":1,"children":[]}]},{"name":"main.py","total_count":63,"children":[{"name":"1. DECISION REPLAY: Point-in-Time State Reconstruction. Answers: 'Why did we\u2026","total_count":1,"children":[]},{"name":"1. FORENSIC CAUSAL GRAPH: Answers: 'Show me every fact, rule, policy, approval,\u2026","total_count":1,"children":[]},{"name":"4. AUTONOMOUS RECONCILIATION DASHBOARD: Reports closed-loop reconciliation\u2026","total_count":1,"children":[]},{"name":"4. INTELLIGENT RECONCILIATION EXCEPTION DIAGNOSTIC: Explains every unreconciled\u2026","total_count":1,"children":[]},{"name":"5. AUDITOR EVIDENCE PACK: Single-Click Cryptographic Audit Manifest. Bundles\u2026","total_count":1,"children":[]},{"name":"5. AUDITOR-FACING EXECUTIVE PROOF REPORT: Presents the 9-Pillar Forensic Proof\u2026","total_count":1,"children":[]},{"name":"AUTONOMOUS SELF-HEALING RECONCILIATION: Auto-recovers safe exceptions (Bank\u2026","total_count":1,"children":[]},{"name":"benchmark_matrix_view()","total_count":1,"children":[]},{"name":"CFO AI Copilot: Natural language conversational analysis over risk, tax\u2026","total_count":1,"children":[]},{"name":"cfo_ai_copilot_chat()","total_count":1,"children":[]},{"name":"CLOSED-LOOP LEARNING FLYWHEEL: Ingests real-world outcomes (Bank UTR\u2026","total_count":1,"children":[]},{"name":"COUNTERFACTUAL CAUSAL ENGINE: Simulates what happens if one input changes (e.g.\u2026","total_count":1,"children":[]},{"name":"dashboard_view()","total_count":1,"children":[]},{"name":"Direct Ingestion Endpoint: Accepts Single PDF Invoice or ZIP Archive (Invoice +\u2026","total_count":1,"children":[]},{"name":"dropzone_view()","total_count":1,"children":[]},{"name":"EVIDENCE QUALITY SCORING: Answers: 'Is the underlying evidence authentic,\u2026","total_count":1,"children":[]},{"name":"evidence_tree_view()","total_count":1,"children":[]},{"name":"execute_self_healing_reconciliation()","total_count":1,"children":[]},{"name":"EXECUTIVE BENCHMARK SCORECARD: Returns the high-level KPI scorecard answering:\u2026","total_count":1,"children":[]},{"name":"External Auditor Endpoint: Verifies the authenticity and validity window of any\u2026","total_count":1,"children":[]},{"name":"extract_invoice_number()","total_count":1,"children":[]},{"name":"extract_subtotal()","total_count":1,"children":[]},{"name":"extract_vendor_from_text_or_filename()","total_count":1,"children":[]},{"name":"FINANCIAL CONTROL BENCHMARK RUNNER: Executes an autonomous evaluation over a\u2026","total_count":1,"children":[]},{"name":"FINANCIAL DECISION KNOWLEDGE GRAPH (10-STAGE DAG): Vendor -> Contract ->\u2026","total_count":1,"children":[]},{"name":"get_auditor_evidence_pack()","total_count":1,"children":[]},{"name":"get_benchmark_executive_summary()","total_count":1,"children":[]},{"name":"get_causal_decision_graph()","total_count":1,"children":[]},{"name":"get_decision_evidence_quality()","total_count":1,"children":[]},{"name":"get_decision_knowledge_graph()","total_count":1,"children":[]},{"name":"get_decision_record()","total_count":1,"children":[]},{"name":"get_executive_audit_report()","total_count":1,"children":[]},{"name":"get_public_keys()","total_count":1,"children":[]},{"name":"get_reconciliation_dashboard()","total_count":1,"children":[]},{"name":"get_reconciliation_exceptions()","total_count":1,"children":[]},{"name":"get_runtime_secrets()","total_count":1,"children":[]},{"name":"get_vendor_credits()","total_count":1,"children":[]},{"name":"get_vendor_intelligence()","total_count":1,"children":[]},{"name":"handle_gcs_pubsub_event()","total_count":1,"children":[]},{"name":"handle_razorpayx_webhook()","total_count":1,"children":[]},{"name":"handle_slack_callback_atomic()","total_count":1,"children":[]},{"name":"health_check()","total_count":1,"children":[]},{"name":"health_check_full()","total_count":1,"children":[]},{"name":"ingest_closed_loop_feedback()","total_count":1,"children":[]},{"name":"LEARNED VENDOR INTELLIGENCE: Returns the accumulated priors, reliability score,\u2026","total_count":1,"children":[]},{"name":"legacy_calculator_view()","total_count":1,"children":[]},{"name":"MULTI-VARIABLE FINANCIAL CONTROL SENSITIVITY MATRIX: Evaluates combinatorial\u2026","total_count":1,"children":[]},{"name":"Public zero-login cryptographic proof validator for external auditors and tax\u2026","total_count":1,"children":[]},{"name":"public_auditor_verification()","total_count":1,"children":[]},{"name":"replay_financial_decision()","total_count":1,"children":[]},{"name":"Returns the versioned Root-of-Trust Ed25519 Key Registry for independent\u2026","total_count":1,"children":[]},{"name":"root_view()","total_count":1,"children":[]},{"name":"run_financial_control_benchmark()","total_count":1,"children":[]},{"name":"seed_vendor_credits()","total_count":1,"children":[]},{"name":"simulate_counterfactual_decision()","total_count":1,"children":[]},{"name":"simulate_invoice_pipeline()","total_count":1,"children":[]},{"name":"simulate_sensitivity_matrix()","total_count":1,"children":[]},{"name":"Simulates the live 7-stage autonomous pipeline for an uploaded invoice: 1. OCR\u2026","total_count":1,"children":[]},{"name":"upload_invoice_pdf()","total_count":1,"children":[]},{"name":"vendor_intel_view()","total_count":1,"children":[]},{"name":"verifier_portal_view()","total_count":1,"children":[]},{"name":"verify_decision()","total_count":1,"children":[]},{"name":"what_if_view()","total_count":1,"children":[]}]},{"name":"master_fix_all_screens.py","total_count":1,"children":[{"name":"clean_encoding()","total_count":1,"children":[]}]},{"name":"razorpayx_client.py","total_count":7,"children":[{"name":".__init__()","total_count":1,"children":[]},{"name":".compute_idempotency_key()","total_count":1,"children":[]},{"name":".reconcile_payout_status()","total_count":1,"children":[]},{"name":".sanitize_narration()","total_count":1,"children":[]},{"name":".stage_payout()","total_count":1,"children":[]},{"name":"RazorpayXBankingClient","total_count":1,"children":[]},{"name":"Treasury Reconciliation: Polls gateway by reference_id or idempotency_key\u2026","total_count":1,"children":[]}]},{"name":"run_flagship_hostile_demo.py","total_count":1,"children":[{"name":"generate_pdf()","total_count":1,"children":[]}]},{"name":"schemas.py","total_count":72,"children":[{"name":".normalize_gstin()","total_count":1,"children":[]},{"name":".normalize_pan()","total_count":1,"children":[]},{"name":".normalize_sku()","total_count":1,"children":[]},{"name":".validate_document_math()","total_count":1,"children":[]},{"name":".validate_line_total()","total_count":1,"children":[]},{"name":".verify_ledger_balance()","total_count":1,"children":[]},{"name":"AdjudicatingAuthoritySignature","total_count":1,"children":[]},{"name":"ApprovalTier","total_count":1,"children":[]},{"name":"AuditorEvidenceManifest","total_count":1,"children":[]},{"name":"AuditorExecutiveProofReport","total_count":1,"children":[]},{"name":"AuditProofItem","total_count":1,"children":[]},{"name":"AutonomousReconciliationRecord","total_count":1,"children":[]},{"name":"CanonicalTDSRule","total_count":1,"children":[]},{"name":"CausalDecisionGraph","total_count":1,"children":[]},{"name":"CausalGraphEdge","total_count":1,"children":[]},{"name":"CausalGraphNode","total_count":1,"children":[]},{"name":"CausalNodeType","total_count":1,"children":[]},{"name":"Challan281Entry","total_count":1,"children":[]},{"name":"ClosedLoopLearningFeedback","total_count":1,"children":[]},{"name":"CompromiseAdjudicationCertificate","total_count":1,"children":[]},{"name":"ContractClauseType","total_count":1,"children":[]},{"name":"ContractClauseVerification","total_count":1,"children":[]},{"name":"ContractComplianceStatus","total_count":1,"children":[]},{"name":"ContractPOVerificationState","total_count":1,"children":[]},{"name":"CounterfactualSimulationRequest","total_count":1,"children":[]},{"name":"CounterfactualSimulationResult","total_count":1,"children":[]},{"name":"CryptographicVerificationReport","total_count":1,"children":[]},{"name":"DecisionRecord","total_count":1,"children":[]},{"name":"DoubleEntryJournal","total_count":1,"children":[]},{"name":"EvidenceDrillDownLeaf","total_count":1,"children":[]},{"name":"EvidenceQualityGrade","total_count":1,"children":[]},{"name":"EvidenceQualityScore","total_count":1,"children":[]},{"name":"ExceptionDisposition","total_count":1,"children":[]},{"name":"ExtractedInvoicePayload","total_count":1,"children":[]},{"name":"FeedbackOutcomeType","total_count":1,"children":[]},{"name":"FinancialAdmissibility","total_count":1,"children":[]},{"name":"FinancialDecision","total_count":1,"children":[]},{"name":"FinancialDecisionKnowledgeGraph","total_count":1,"children":[]},{"name":"FinancialKnowledgeGraphEdge","total_count":1,"children":[]},{"name":"FinancialKnowledgeGraphNode","total_count":1,"children":[]},{"name":"InvoiceLineItem","total_count":1,"children":[]},{"name":"JournalEntryType","total_count":1,"children":[]},{"name":"KeyCompromiseOutcome","total_count":1,"children":[]},{"name":"KeyRegistryEntry","total_count":1,"children":[]},{"name":"KeyRegistryStatus","total_count":1,"children":[]},{"name":"KnowledgeGraphEdgeType","total_count":1,"children":[]},{"name":"KnowledgeGraphNodeType","total_count":1,"children":[]},{"name":"LearnedVendorIntelligence","total_count":1,"children":[]},{"name":"LedgerPosting","total_count":1,"children":[]},{"name":"MultiVariableSensitivityReport","total_count":1,"children":[]},{"name":"MultiVariableSensitivityRequest","total_count":1,"children":[]},{"name":"OpenCreditRecord","total_count":1,"children":[]},{"name":"OverallVerificationStatus","total_count":1,"children":[]},{"name":"PaymentInstruction","total_count":1,"children":[]},{"name":"PaymentRiskAssessment","total_count":1,"children":[]},{"name":"PaymentState","total_count":1,"children":[]},{"name":"ReconciliationExceptionDiagnostic","total_count":1,"children":[]},{"name":"ReconciliationStatus","total_count":1,"children":[]},{"name":"RiskAction","total_count":1,"children":[]},{"name":"RiskFactor","total_count":1,"children":[]},{"name":"RiskTier","total_count":1,"children":[]},{"name":"ScenarioInput","total_count":1,"children":[]},{"name":"ScenarioOutcome","total_count":1,"children":[]},{"name":"SelfHealingReconciliationAction","total_count":1,"children":[]},{"name":"StatutoryRuleDefinition","total_count":1,"children":[]},{"name":"TaxCalculationResult","total_count":1,"children":[]},{"name":"TaxFramework","total_count":1,"children":[]},{"name":"TDSSection","total_count":1,"children":[]},{"name":"THE MASTER ENTERPRISE FINANCIAL DECISION OBJECT A single immutable point-in-\u2026","total_count":1,"children":[]},{"name":"VendorBankSecurityStatus","total_count":1,"children":[]},{"name":"VendorBehavioralBaseline","total_count":1,"children":[]},{"name":"VendorPointInTimeSnapshot","total_count":1,"children":[]}]},{"name":"slack_service.py","total_count":5,"children":[{"name":".__init__()","total_count":1,"children":[]},{"name":".dispatch_tiered_alert()","total_count":1,"children":[]},{"name":".generate_action_token()","total_count":1,"children":[]},{"name":".verify_action_token()","total_count":1,"children":[]},{"name":"HardenedSlackService","total_count":1,"children":[]}]},{"name":"tax_engine.py","total_count":5,"children":[{"name":".compute_statutory_tax()","total_count":1,"children":[]},{"name":".parse_statutory_date()","total_count":1,"children":[]},{"name":".resolve_statutory_framework()","total_count":1,"children":[]},{"name":".validate_pan_format()","total_count":1,"children":[]},{"name":"StatutoryComplianceTaxEngine","total_count":1,"children":[]}]},{"name":"test_invoices","total_count":15,"children":[{"name":"generate_batch_20.py","total_count":1,"children":[]},{"name":"run_5_legacy_invoices_test.py","total_count":1,"children":[]},{"name":"run_5_legacy_invoices_test_v2.py","total_count":1,"children":[]},{"name":"run_5_stress_test_final.py","total_count":1,"children":[]},{"name":"run_cfds_live_verification.py","total_count":1,"children":[]},{"name":"run_decoupled_report_test.py","total_count":1,"children":[]},{"name":"run_ed25519_live_verification.py","total_count":1,"children":[]},{"name":"run_live_diagnostics.py","total_count":1,"children":[]},{"name":"run_root_trust_live_test.py","total_count":1,"children":[]},{"name":"run_taxonomy_live_test.py","total_count":1,"children":[]},{"name":"verify_auditor_ed25519.py","total_count":1,"children":[]},{"name":"verify_batch_20.py","total_count":1,"children":[]},{"name":"verify_live_provenance.py","total_count":1,"children":[]},{"name":"verify_transition_live.py","total_count":1,"children":[]},{"name":"verify_transition_live_v2.py","total_count":1,"children":[]}]},{"name":"test_production_system.py","total_count":50,"children":[{"name":"Asserts 100% credit netting yields 0 paise and client blocks zero calls.","total_count":1,"children":[]},{"name":"Asserts 20% penal rate is NOT applied on a \u20b910,000 contractor bill under\u2026","total_count":1,"children":[]},{"name":"Asserts Section 194J is exempt below \u20b930,000 threshold.","total_count":1,"children":[]},{"name":"Asserts Section 194Q 206AB non-filer rate is 5% strictly on marginal excess\u2026","total_count":1,"children":[]},{"name":"Asserts stale worker cannot delete active lock held by another lease.","total_count":1,"children":[]},{"name":"Asserts tax engine supports legacy and aliased keyword arguments without\u2026","total_count":1,"children":[]},{"name":"CARM SPEC TEST: Verifies the full lifecycle of compromise investigation, dual-\u2026","total_count":1,"children":[]},{"name":"CBDT 23/2017: 10% TDS strictly on 1,00,000 subtotal, excluding 18,000 GST.","total_count":1,"children":[]},{"name":"CFDS-v1 SPEC TEST: Verifies cross-platform byte-level determinism with\u2026","total_count":1,"children":[]},{"name":"CRITICAL STATUTORY TEST: Verifies 31 March 2026 uses Income-tax Act 1961 and 1\u2026","total_count":1,"children":[]},{"name":"DIAGNOSTIC TEST: Asserts expired or mismatched Section 197 certificates fall\u2026","total_count":1,"children":[]},{"name":"DIAGNOSTIC TEST: Verifies Indian DD/MM/YYYY, DD-Mon-YYYY, and ISO date strings\u2026","total_count":1,"children":[]},{"name":"KEY ROTATION AUDIT TEST: Verifies historical signatures pass if signed within\u2026","total_count":1,"children":[]},{"name":"LIFECYCLE & REVOCATION TEST: Pre-revocation signatures are preserved, post-\u2026","total_count":1,"children":[]},{"name":"MATHEMATICAL INVARIANT: Sum(Original) == Sum(Consumed) + Sum(Remaining) across\u2026","total_count":1,"children":[]},{"name":"PILLAR 1 PRECISION CRYPTOGRAPHY: Explicitly tests Ed25519 asymmetric key\u2026","total_count":1,"children":[]},{"name":"PILLAR 1: Explicitly distinguishes Government Act, Statutory Section, Return\u2026","total_count":1,"children":[]},{"name":"PILLAR 2 EDGE CASE: Rapid multiple bank changes in rolling 7 days triggers hard\u2026","total_count":1,"children":[]},{"name":"PILLAR 2: Bank Account Change triggers mandatory quarantine cooling-off and\u2026","total_count":1,"children":[]},{"name":"PILLAR 3: Network Timeouts & Gateway 5xx transition to UNKNOWN state without\u2026","total_count":1,"children":[]},{"name":"PROVENANCE INVARIANT: Verifies DecisionRecord produces cryptographically\u2026","total_count":1,"children":[]},{"name":"ROOT-OF-TRUST TEST: Verifies that if an attacker embeds a rogue public key, the\u2026","total_count":1,"children":[]},{"name":"STATUTORY AUDIT TEST: Verifies lower deduction certificates map to Section\u2026","total_count":1,"children":[]},{"name":"STATUTORY AUDIT TEST: Verifies Section 206AB non-filer surcharge is omitted for\u2026","total_count":1,"children":[]},{"name":"TAMPER-EVIDENT INVARIANT: Verifies DecisionRecord produces deterministic\u2026","total_count":1,"children":[]},{"name":"test_206aa_not_applied_below_threshold()","total_count":1,"children":[]},{"name":"test_canonical_decision_record_digest()","total_count":1,"children":[]},{"name":"test_cfds_v1_deterministic_canonicalization()","total_count":1,"children":[]},{"name":"test_compromise_adjudication_state_machine()","total_count":1,"children":[]},{"name":"test_credit_conservation_invariant()","total_count":1,"children":[]},{"name":"test_decision_record_hash_chain()","total_count":1,"children":[]},{"name":"test_fenced_lease_release()","total_count":1,"children":[]},{"name":"test_government_backed_tax_rule_registry()","total_count":1,"children":[]},{"name":"test_historical_key_rotation_validity_window()","total_count":1,"children":[]},{"name":"test_payment_unknown_state_and_reconciliation()","total_count":1,"children":[]},{"name":"test_precision_cryptographic_signature_and_canonical_hash()","total_count":1,"children":[]},{"name":"test_resilient_statutory_date_formats()","total_count":1,"children":[]},{"name":"test_revocation_lifecycle_and_compromise_semantics()","total_count":1,"children":[]},{"name":"test_root_of_trust_key_tamper_rejection()","total_count":1,"children":[]},{"name":"test_section_194j_happy_path()","total_count":1,"children":[]},{"name":"test_section_194j_statutory_threshold()","total_count":1,"children":[]},{"name":"test_section_194q_penal_rate_capped_at_5_percent()","total_count":1,"children":[]},{"name":"test_section_197_certificate_expiration_and_section_mismatch()","total_count":1,"children":[]},{"name":"test_section_206ab_omission_post_april_2025()","total_count":1,"children":[]},{"name":"test_section_395_1_lower_deduction_certificate()","total_count":1,"children":[]},{"name":"test_statutory_transition_act_1961_vs_act_2025()","total_count":1,"children":[]},{"name":"test_tax_engine_signature_resilience_legacy_keywords()","total_count":1,"children":[]},{"name":"test_vendor_bank_account_fraud_protection()","total_count":1,"children":[]},{"name":"test_vendor_bank_account_velocity_lock()","total_count":1,"children":[]},{"name":"test_zero_amount_payout_bypass()","total_count":1,"children":[]}]},{"name":"tests","total_count":38,"children":[{"name":"adversarial","total_count":6,"children":[{"name":"test_compromise_window.py","total_count":1,"children":[{"name":"test_compromise_boundary_matrix()","total_count":1,"children":[]}]},{"name":"test_concurrency.py","total_count":1,"children":[{"name":"test_concurrent_canonical_serialization_race_free()","total_count":1,"children":[]}]},{"name":"test_key_injection.py","total_count":1,"children":[{"name":"test_key_injection_attacks()","total_count":1,"children":[]}]},{"name":"test_registry_tampering.py","total_count":1,"children":[{"name":"test_registry_tampering_mismatch()","total_count":1,"children":[]}]},{"name":"test_replay.py","total_count":1,"children":[{"name":"test_payout_idempotency_fencing()","total_count":1,"children":[]}]},{"name":"test_signature_tampering.py","total_count":1,"children":[{"name":"test_signature_tampering_mutations()","total_count":1,"children":[]}]}]},{"name":"integration","total_count":4,"children":[{"name":"test_firestore.py","total_count":1,"children":[{"name":"test_firestore_ledger_and_decision_persistence()","total_count":1,"children":[]}]},{"name":"test_gcs_pubsub_pipeline.py","total_count":1,"children":[{"name":"test_pubsub_at_least_once_deduplication()","total_count":1,"children":[]}]},{"name":"test_razorpay_unknown.py","total_count":1,"children":[{"name":"test_razorpay_unknown_reconciliation_workflow()","total_count":1,"children":[]}]},{"name":"test_slack_approval.py","total_count":1,"children":[{"name":"test_slack_hmac_token_and_tier_routing()","total_count":1,"children":[]}]}]},{"name":"unit","total_count":28,"children":[{"name":"test_cfds.py","total_count":3,"children":[{"name":"test_cfds_cross_platform_determinism()","total_count":1,"children":[]},{"name":"test_cfds_fixed_scale_and_mutation_detection()","total_count":1,"children":[]},{"name":"test_cfds_golden_vector_reproducibility()","total_count":1,"children":[]}]},{"name":"test_credit_conservation.py","total_count":1,"children":[{"name":"test_credit_conservation_property_invariant()","total_count":1,"children":[]}]},{"name":"test_financial_benchmark.py","total_count":2,"children":[{"name":"test_financial_control_benchmark_corpus_generation()","total_count":1,"children":[]},{"name":"test_financial_control_benchmark_execution_and_invariants()","total_count":1,"children":[]}]},{"name":"test_five_pillars.py","total_count":5,"children":[{"name":"test_auditor_evidence_pack_generation()","total_count":1,"children":[]},{"name":"test_autonomous_reconciliation_workflow()","total_count":1,"children":[]},{"name":"test_continuous_vendor_risk_engine_tiers()","total_count":1,"children":[]},{"name":"test_contract_po_variance_and_overbilling_blocks()","total_count":1,"children":[]},{"name":"test_decision_replay_point_in_time_reconstruction()","total_count":1,"children":[]}]},{"name":"test_forensic_causal_intelligence.py","total_count":11,"children":[{"name":"create_sample_decision()","total_count":1,"children":[]},{"name":"test_adaptive_behavioral_risk_engine_baselines()","total_count":1,"children":[]},{"name":"test_auditor_executive_proof_report_nine_pillars()","total_count":1,"children":[]},{"name":"test_autonomous_self_healing_reconciliation_service()","total_count":1,"children":[]},{"name":"test_causal_decision_graph_dag_construction()","total_count":1,"children":[]},{"name":"test_contract_clause_acceptance_and_rate_cap_enforcement()","total_count":1,"children":[]},{"name":"test_counterfactual_causal_simulation_engine()","total_count":1,"children":[]},{"name":"test_evidence_quality_drill_down_tree()","total_count":1,"children":[]},{"name":"test_evidence_quality_scoring_engine()","total_count":1,"children":[]},{"name":"test_intelligent_reconciliation_diagnostic()","total_count":1,"children":[]},{"name":"test_multi_variable_financial_control_sensitivity_matrix()","total_count":1,"children":[]}]},{"name":"test_knowledge_graph_flywheel.py","total_count":2,"children":[{"name":"test_10_stage_knowledge_graph_construction()","total_count":1,"children":[]},{"name":"test_closed_loop_learning_flywheel_feedback()","total_count":1,"children":[]}]},{"name":"test_ledger.py","total_count":1,"children":[{"name":"test_double_entry_balance_invariant()","total_count":1,"children":[]}]},{"name":"test_state_machine.py","total_count":1,"children":[{"name":"test_payment_unknown_state_transition()","total_count":1,"children":[]}]},{"name":"test_tax_engine.py","total_count":2,"children":[{"name":"test_dual_act_boundary_transition()","total_count":1,"children":[]},{"name":"test_section_197_certificate_and_fallback()","total_count":1,"children":[]}]}]}]},{"name":"verify_ui_elements.py","total_count":1,"children":[{"name":"assert_test()","total_count":1,"children":[]}]},{"name":"vertex_agent.py","total_count":5,"children":[{"name":".__init__()","total_count":1,"children":[]},{"name":".execute_pipeline()","total_count":1,"children":[]},{"name":"AutonomousFinanceAgent","total_count":1,"children":[]},{"name":"extract_clean_json()","total_count":1,"children":[]},{"name":"normalize_fiscal_year()","total_count":1,"children":[]}]},{"name":"add_upload_api.py","total_count":1,"children":[]},{"name":"audit_all_buttons.py","total_count":1,"children":[]},{"name":"audit_hostile_results.py","total_count":1,"children":[]},{"name":"audit_interactive_inputs.py","total_count":1,"children":[]},{"name":"audit_sensitive_exposure.py","total_count":1,"children":[]},{"name":"check_all_ui_wires.py","total_count":1,"children":[]},{"name":"check_hostile_01.py","total_count":1,"children":[]},{"name":"check_live_apis.py","total_count":1,"children":[]},{"name":"comprehensive_system_audit.py","total_count":1,"children":[]},{"name":"create_new_screens.py","total_count":1,"children":[]},{"name":"download_new_screens.py","total_count":1,"children":[]},{"name":"download_stitch_screens.py","total_count":1,"children":[]},{"name":"fix_and_enhance_dashboard.py","total_count":1,"children":[]},{"name":"generate_adversarial_tests.py","total_count":1,"children":[]},{"name":"generate_five_pillars_tests.py","total_count":1,"children":[]},{"name":"generate_forensic_tests.py","total_count":1,"children":[]},{"name":"generate_integration_tests.py","total_count":1,"children":[]},{"name":"generate_unit_tests.py","total_count":1,"children":[]},{"name":"inject_copilot.py","total_count":1,"children":[]},{"name":"list_new_screens.py","total_count":1,"children":[]},{"name":"patch_and_inject.py","total_count":1,"children":[]},{"name":"patch_dropzone_zip.py","total_count":1,"children":[]},{"name":"patch_html_links.py","total_count":1,"children":[]},{"name":"patch_zip_support.py","total_count":1,"children":[]},{"name":"polish_all_screens.py","total_count":1,"children":[]},{"name":"post_hostile_batch.py","total_count":1,"children":[]},{"name":"run_red_suite_live.py","total_count":1,"children":[]},{"name":"scan_exposed_secrets.py","total_count":1,"children":[]},{"name":"setup_golden_vectors.py","total_count":1,"children":[]},{"name":"simplify_all_screens.py","total_count":1,"children":[]},{"name":"test_full_production_suite.py","total_count":1,"children":[]},{"name":"test_live_benchmark_breakdown.py","total_count":1,"children":[]},{"name":"test_live_benchmark_run.py","total_count":1,"children":[]},{"name":"test_live_drilldown_matrix.py","total_count":1,"children":[]},{"name":"test_live_evidentiary_trust.py","total_count":1,"children":[]},{"name":"test_live_five_pillars.py","total_count":1,"children":[]},{"name":"test_live_forensic_intelligence.py","total_count":1,"children":[]},{"name":"test_live_knowledge_flywheel.py","total_count":1,"children":[]},{"name":"test_live_screens.py","total_count":1,"children":[]},{"name":"test_upload_endpoint.py","total_count":1,"children":[]},{"name":"test_verified.py","total_count":1,"children":[]},{"name":"test_verified_features.py","total_count":1,"children":[]},{"name":"test_zip_parity.py","total_count":1,"children":[]},{"name":"update_dropzone_html.py","total_count":1,"children":[]},{"name":"verify_final.py","total_count":1,"children":[]},{"name":"verify_tax_cert.py","total_count":1,"children":[]},{"name":"verify_tax_engine_live.py","total_count":1,"children":[]},{"name":"wire_all_interactive_features.py","total_count":1,"children":[]}]};
+
+    function transformData(jsonData) {
+        // Helper function to recursively build the children structure
+        function processNode(node, parentL1StageName) {
+            let displayName = node.name;
+            // Append total_count if it exists and is not already in the name
+            if (node.total_count !== undefined) {
+                if (!/\(Total Count: \d+\)$/.test(displayName)) {
+                    displayName += ` (Total Count: ${node.total_count})`;
+                }
+            }
+
+            const newNode = { name: displayName };
+
+            if (parentL1StageName === "Root") {
+                 newNode.originalStageName = node.name;
+            } else {
+                newNode.originalStageName = parentL1StageName;
+            }
+
+            if (node.children && node.children.length > 0) {
+                const stageNameToPass = (parentL1StageName === "Root") ? node.name : parentL1StageName;
+                newNode.children = node.children.map(child => processNode(child, stageNameToPass));
+            }
+
+            return newNode;
+        }
+
+        let rootDisplayName = jsonData.name;
+        if (jsonData.total_count !== undefined && !/\(Total Count: \d+\)$/.test(rootDisplayName)) {
+            rootDisplayName += ` (Total Count: ${jsonData.total_count})`;
+        }
+
+        return {
+            name: rootDisplayName,
+            originalStageName: "Root",
+            children: (jsonData.children || []).map(child => processNode(child, "Root"))
+        };
+    }
+
+    const treeData = transformData(initialJsonData);
+
+    // Auto-populated phaseColors: every depth-1 child of the root gets
+    // a stable colour from a bigger palette so all top-level dirs are
+    // distinguishable.
+    const PALETTE = [
+      ["#3498DB","#2980B9","#AED6F1"], ["#2ECC71","#27AE60","#A9DFBF"],
+      ["#E74C3C","#C0392B","#F5B7B1"], ["#9B59B6","#8E44AD","#D7BDE2"],
+      ["#F39C12","#D68910","#FAD7A0"], ["#1ABC9C","#117864","#A2D9CE"],
+      ["#34495E","#1B2631","#ABB2B9"], ["#E67E22","#BA4A00","#F5CBA7"],
+      ["#16A085","#0E6655","#A2D9CE"], ["#D35400","#A04000","#EDBB99"],
+      ["#7F8C8D","#566573","#D5DBDB"], ["#C0392B","#7B241C","#F5B7B1"],
+      ["#2E86C1","#1B4F72","#A9CCE3"], ["#28B463","#196F3D","#A9DFBF"],
+      ["#AF7AC5","#6C3483","#D2B4DE"],
+    ];
+    const phaseColors = { "Root": { fill: "#4A4A4A", stroke: "#333333", collapsedFill: "#6C757D" },
+                          "Default": { fill: "#BDC3C7", stroke: "#95A5A6", collapsedFill: "#ECF0F1" } };
+    (initialJsonData.children || []).forEach((c, i) => {
+      const pal = PALETTE[i % PALETTE.length];
+      phaseColors[c.name] = { fill: pal[0], stroke: pal[1], collapsedFill: pal[2] };
+    });
+
+    const levelSpecificPalettes = {
+      0: { fill: "#4A4A4A", stroke: "#333333", collapsedFill: "#6C757D" },
+      2: { fill: "#6ab04c", stroke: "#508a38", collapsedFill: "#a3d391" },
+      3: { fill: "#f0932b", stroke: "#d0730f", collapsedFill: "#f6c07e" },
+      4: { fill: "#be2edd", stroke: "#a01cb3", collapsedFill: "#e08bf2" },
+      5: { fill: "#00a8ff", stroke: "#007ac1", collapsedFill: "#74d2ff" },
+      6: { fill: "#e55039", stroke: "#c23620", collapsedFill: "#f09a8d" },
+      default: { fill: "#747d8c", stroke: "#57606f", collapsedFill: "#a4b0be" }
+    };
+
+    const svgElement = d3.select("#tree-svg");
+    const initialSvgWidth = +svgElement.attr("width");
+    const initialSvgHeight = +svgElement.attr("height");
+    const margin = { top: 40, right: 120, bottom: 80, left: 450 };
+    let width = initialSvgWidth - margin.left - margin.right;
+    let height = initialSvgHeight - margin.top - margin.bottom;
+    const duration = 500;
+    let nodeCounter = 0;
+    const g = svgElement.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    const treemap = d3.tree().nodeSize([40, 0]);
+    let rootNode = d3.hierarchy(treeData, d => d.children);
+    rootNode.x0 = 0;
+    rootNode.y0 = 0;
+
+    if (rootNode.children) {
+      rootNode.children.forEach(d_child => {
+        if (d_child.children) { collapseBranch(d_child); }
+      });
+    }
+    updateTree(rootNode);
+
+    function collapseBranch(d) { if (d.children) { d._children = d.children; d._children.forEach(collapseBranch); d.children = null; } }
+    function expandBranch(d) { if (d._children) { d.children = d._children; d._children = null; } if (d.children) { d.children.forEach(expandBranch); } }
+    window.expandAll = () => { expandBranch(rootNode); updateTree(rootNode); };
+    window.collapseAll = () => { if (rootNode.children) { rootNode.children.forEach(collapseBranch); } updateTree(rootNode); };
+    window.resetView = () => { if (rootNode.children) { rootNode.children.forEach(d_child => { if (d_child.children || d_child._children) { collapseBranch(d_child); } }); } if (rootNode._children && !rootNode.children) { rootNode.children = rootNode._children; rootNode._children = null; } updateTree(rootNode); };
+
+    function updateTree(source) {
+      const treeLayoutData = treemap(rootNode);
+      let nodes = treeLayoutData.descendants();
+      let links = treeLayoutData.descendants().slice(1);
+
+      let minX = 0;
+      let maxX = 0;
+      if (nodes.length > 0) {
+        minX = d3.min(nodes, d => d.x);
+        maxX = d3.max(nodes, d => d.x);
+      }
+
+      let neededHeight = Math.max(initialSvgHeight, maxX - minX + margin.top + margin.bottom + 100);
+      svgElement.transition().duration(duration / 2).attr("height", neededHeight);
+      g.transition().duration(duration / 2).attr("transform", `translate(${margin.left},${margin.top - minX + 40})`);
+
+      nodes.forEach(d => { d.y = d.depth * 400; }); // Adjust horizontal separation if needed
+
+      const node = g.selectAll('g.node').data(nodes, d => d.id || (d.id = ++nodeCounter));
+      const nodeEnter = node.enter().append('g')
+        .attr('class', d => "node" + (d.children || d._children ? " node--internal" : " node--leaf") + (d._children ? " _children" : ""))
+        .attr('transform', d => `translate(${source.y0},${source.x0})`)
+        .on('click', (event, d) => { if (d.children) { d._children = d.children; d.children = null; } else if (d._children) { d.children = d._children; d._children = null; } updateTree(d); })
+        .style('cursor', d => (d.children || d._children) ? 'pointer' : 'default');
+
+      nodeEnter.append('circle').attr('r', 1e-6);
+
+      nodeEnter.append('text')
+        .attr('dy', '.35em')
+        .attr('x', d => d.children || d._children ? -14 : 14)
+        .attr('text-anchor', d => d.children || d._children ? 'end' : 'start')
+        .style("fill-opacity", 1e-6)
+        .call(wrapText, 380);
+
+      const nodeUpdate = nodeEnter.merge(node);
+      nodeUpdate.transition().duration(duration)
+        .attr('transform', d => `translate(${d.y},${d.x})`)
+        .attr('class', d => "node" + (d.children ? " node--internal" : " node--leaf") + (d._children ? " node--internal _children" : ""));
+
+      nodeUpdate.select('circle').attr('r', 8.5)
+        .style('fill', d => {
+            let palette;
+            if (d.depth === 0) {
+                palette = levelSpecificPalettes[0];
+            } else if (d.depth === 1) {
+                palette = phaseColors[d.data.originalStageName] || phaseColors.Default;
+            } else {
+                palette = levelSpecificPalettes[d.depth] || levelSpecificPalettes.default;
+            }
+            if (d._children) return palette.collapsedFill;
+            if (d.children) return palette.fill;
+            return "#fff";
+        })
+        .style('stroke', d => {
+            let palette;
+            if (d.depth === 0) {
+                palette = levelSpecificPalettes[0];
+            } else if (d.depth === 1) {
+                palette = phaseColors[d.data.originalStageName] || phaseColors.Default;
+            } else {
+                palette = levelSpecificPalettes[d.depth] || levelSpecificPalettes.default;
+            }
+            return palette.stroke;
+        });
+      nodeUpdate.select('text').style("fill-opacity", 1).call(wrapText, 380);
+
+      const nodeExit = node.exit().transition().duration(duration).attr('transform', d => `translate(${source.y},${source.x})`).remove();
+      nodeExit.select('circle').attr('r', 1e-6);
+      nodeExit.select('text').style('fill-opacity', 1e-6);
+
+      const link = g.selectAll('path.link').data(links, d => d.id);
+      const linkEnter = link.enter().insert('path', "g").attr('class', 'link').attr('d', d => { const o = { x: source.x0, y: source.y0 }; return diagonal(o, o); });
+
+      linkEnter.merge(link).transition().duration(duration).attr('d', d => diagonal(d, d.parent))
+        .style('stroke', d => {
+            const sourceNode = d.parent;
+            if (!sourceNode) return phaseColors.Default.stroke;
+            const l1AncestorName = sourceNode.data.originalStageName;
+            const colorPalette = phaseColors[l1AncestorName] || phaseColors.Default;
+            return colorPalette.stroke;
+        });
+      link.exit().transition().duration(duration).attr('d', d => { const o = { x: source.x, y: source.y }; return diagonal(o, o); }).remove();
+      nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
+    }
+
+    function diagonal(s, d) { return `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${(s.y + d.y) / 2} ${d.x}, ${d.y} ${d.x}`; }
+
+    function wrapText(textElements, maxWidth) {
+        const textPartColors = {
+            name: '#343a40',
+            count: '#0056b3'
+        };
+        const countRegex = /(\s\(Total Count: \d+\))$/;
+
+        textElements.each(function () {
+            const textD3 = d3.select(this);
+            const originalNodeText = textD3.datum().data.name;
+            const x = parseFloat(textD3.attr("x") || 0);
+            const initialDy = textD3.attr("dy");
+            const textAnchor = textD3.attr("text-anchor");
+            const lineHeight = 1.1;
+
+            textD3.text(null);
+
+            let namePart = originalNodeText;
+            let countPartText = "";
+
+            const countMatch = originalNodeText.match(countRegex);
+            if (countMatch && originalNodeText.endsWith(countMatch[0])) {
+                namePart = originalNodeText.substring(0, originalNodeText.length - countMatch[0].length).trim();
+                countPartText = countMatch[0].trim();
+            }
+
+            const tokens = [];
+            namePart.split(/\s+/).filter(Boolean).forEach(word => {
+                tokens.push({ text: word, type: 'name' });
+            });
+            if (countPartText) {
+                tokens.push({ text: countPartText, type: 'count' });
+            }
+
+            if (tokens.length === 0 && originalNodeText) {
+                tokens.push({ text: originalNodeText, type: 'name' });
+            }
+
+            let currentTspan = textD3.append("tspan").attr("x", x).attr("dy", initialDy);
+            if (textAnchor === "end") currentTspan.attr("text-anchor", "end");
+
+            let lineTokens = [];
+
+            for (let i = 0; i < tokens.length; i++) {
+                const tokenObj = tokens[i];
+
+                lineTokens.push(tokenObj);
+                currentTspan.text(lineTokens.map(t => t.text).join(" "));
+
+                if (currentTspan.node().getComputedTextLength() > maxWidth && lineTokens.length > 1) {
+                    lineTokens.pop();
+
+                    currentTspan.text(null);
+                    lineTokens.forEach((prevToken, idx) => {
+                        currentTspan.append("tspan")
+                            .text((idx > 0 ? " " : "") + prevToken.text)
+                            .style("fill", textPartColors[prevToken.type] || textPartColors.name)
+                            .style("font-weight", prevToken.type === 'count' ? "bold" : "normal");
+                    });
+
+                    lineTokens = [tokenObj];
+                    currentTspan = textD3.append("tspan").attr("x", x).attr("dy", lineHeight + "em");
+                    if (textAnchor === "end") currentTspan.attr("text-anchor", "end");
+                }
+            }
+
+            currentTspan.text(null);
+            lineTokens.forEach((token, idx) => {
+                currentTspan.append("tspan")
+                    .text((idx > 0 ? " " : "") + token.text)
+                    .style("fill", textPartColors[token.type] || textPartColors.name)
+                    .style("font-weight", token.type === 'count' ? "bold" : "normal");
+            });
+
+            if (textD3.selectAll("tspan > tspan").empty() && textD3.select("tspan").text().length === 0 && originalNodeText) {
+                let t = textD3.select("tspan");
+                let displayText = originalNodeText;
+                t.text(displayText).style("fill", textPartColors.name);
+                if (t.node() && t.node().getComputedTextLength() > maxWidth && displayText.length > 20) {
+                    let estimatedChars = Math.floor(maxWidth / (t.node().getComputedTextLength()/displayText.length) );
+                    displayText = displayText.substring(0, Math.max(0, estimatedChars - 3)) + "...";
+                    t.text(displayText);
+                }
+            }
+        });
+    }
+  </script>
+</body>
+</html>
