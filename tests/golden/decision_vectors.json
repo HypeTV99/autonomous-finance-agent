@@ -1,0 +1,51 @@
+{
+  "vectors": [
+    {
+      "payload": {
+        "invoice_number": "INV-2026-0001",
+        "vendor_id": "VEND-ALPHA-01",
+        "gross_amount": "118000.00",
+        "tds_deducted": "2000.00",
+        "net_payable": "98000.00",
+        "policy_action": "AUTO_SCHEDULED_STP"
+      },
+      "canonical_json": "{\"gross_amount\":\"118000.00\",\"invoice_number\":\"INV-2026-0001\",\"net_payable\":\"98000.00\",\"policy_action\":\"AUTO_SCHEDULED_STP\",\"tds_deducted\":\"2000.00\",\"vendor_id\":\"VEND-ALPHA-01\"}",
+      "sha256": "8bf0ba31eb21c41226b70e87452388da0ab4db7bed7d12f132c7021ce47a23b2",
+      "signature": "e07d47a08badfdcbc462b82d1c27bf242d8d2bf17e327e757ef96089bff9594cba84be36104f3524084c746e35629894acce7d88502d768c9f0b16438bb59300",
+      "public_key_hex": "2697d137c7d8a51a567a9a20b2ee4fa37b75d070830b3bf065b482063c65b87a",
+      "signing_key_id": "kms://asia-south1/finance-decision-signer-ed25519-v1"
+    },
+    {
+      "payload": {
+        "invoice_number": "INV-2026-0002",
+        "vendor_id": "VEND-BETA-02",
+        "gross_amount": "59000.00",
+        "tds_deducted": "590.00",
+        "net_payable": "57820.00",
+        "policy_action": "AUTO_SCHEDULED_STP"
+      },
+      "canonical_json": "{\"gross_amount\":\"59000.00\",\"invoice_number\":\"INV-2026-0002\",\"net_payable\":\"57820.00\",\"policy_action\":\"AUTO_SCHEDULED_STP\",\"tds_deducted\":\"590.00\",\"vendor_id\":\"VEND-BETA-02\"}",
+      "sha256": "ea9a004aa71abae22bc26be84cefefac53dd7a69b69d6565ec4f9df3a1078221",
+      "signature": "7728b23c6d8c542b8ceddd40b4ec433fca1752a4397387e6c4e59abbbcbf20716bd8f237bfddaf42514e55bcc4ccfc9def5e04a175c8a6d09b533532a17ada07",
+      "public_key_hex": "2697d137c7d8a51a567a9a20b2ee4fa37b75d070830b3bf065b482063c65b87a",
+      "signing_key_id": "kms://asia-south1/finance-decision-signer-ed25519-v1"
+    },
+    {
+      "payload": {
+        "invoice_number": "INV-2026-0003",
+        "vendor_id": "VEND-GAMMA-03",
+        "gross_amount": "250000.00",
+        "tds_deducted": "25000.00",
+        "net_payable": "207000.00",
+        "policy_action": "ACTION_REQUIRED"
+      },
+      "canonical_json": "{\"gross_amount\":\"250000.00\",\"invoice_number\":\"INV-2026-0003\",\"net_payable\":\"207000.00\",\"policy_action\":\"ACTION_REQUIRED\",\"tds_deducted\":\"25000.00\",\"vendor_id\":\"VEND-GAMMA-03\"}",
+      "sha256": "663fd3d7f3629e468e4d35e669c08f04f2b35a38791e2d7bc238ee2aced26379",
+      "signature": "ba3fe79b2dd562b9acb4b81d50125e2941456270f6dc1f579334bfda04351c6665dc25be169cd5e3e0d485ac96cc6f4b263e212e443785280dfe8dd3b643010a",
+      "public_key_hex": "2697d137c7d8a51a567a9a20b2ee4fa37b75d070830b3bf065b482063c65b87a",
+      "signing_key_id": "kms://asia-south1/finance-decision-signer-ed25519-v1"
+    }
+  ],
+  "minted_from": "deterministic seed FINANCE_AGENT_KMS_HSM_ED25519_ROOT_KEY_2026",
+  "note": "File never existed in history; minted to pin current canonical behavior."
+}

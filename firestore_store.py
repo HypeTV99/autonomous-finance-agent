@@ -843,6 +843,54 @@ class FirestoreStateStore:
             return
         self.db.collection("pending_approvals").document(invoice_number).delete()
 
+    def save_purchase_order(self, po_number: str, entry: Dict[str, Any]) -> None:
+        def _str(v):
+            from decimal import Decimal as _D
+            if isinstance(v, _D):
+                return str(v)
+            if isinstance(v, dict):
+                return {kk: _str(vv) for kk, vv in v.items()}
+            if isinstance(v, list):
+                return [_str(vv) for vv in v]
+            return v
+        payload = sanitize_for_firestore({"entry": _str(entry), "updated_at": datetime.now(timezone.utc).isoformat()})
+        key = (po_number or "").strip().upper()
+        if self._is_mock:
+            self._mock_db.setdefault("purchase_orders", {})[key] = payload
+            return
+        self.db.collection("purchase_orders").document(key).set(payload)
+
+    def get_purchase_order(self, po_number: str) -> Optional[Dict[str, Any]]:
+        from decimal import Decimal as _D
+        key = (po_number or "").strip().upper()
+        if not key:
+            return None
+        if self._is_mock:
+            data = self._mock_db.setdefault("purchase_orders", {}).get(key, {})
+        else:
+            snap = self.db.collection("purchase_orders").document(key).get()
+            data = snap.to_dict() or {} if snap.exists else {}
+        entry = (data or {}).get("entry")
+        if not entry:
+            return None
+        out = dict(entry)
+        for fk in ("authorized_ceiling",):
+            if fk in out:
+                try:
+                    out[fk] = _D(str(out[fk]))
+                except Exception:
+                    pass
+        for dk in ("rates", "authorized_quantities", "grn_verified_quantities"):
+            if isinstance(out.get(dk), dict):
+                conv = {}
+                for kk, vv in out[dk].items():
+                    try:
+                        conv[kk] = _D(str(vv))
+                    except Exception:
+                        conv[kk] = vv
+                out[dk] = conv
+        return out
+
     def get_vendor_open_credits(self, vendor_id: str) -> List[Any]:
         from schemas import OpenCreditRecord
         if self._is_mock:

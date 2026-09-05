@@ -9,6 +9,7 @@
 !requirements.txt
 !package.json
 !tsconfig.json
+!tests/golden/*.json
 
 # Python
 __pycache__/

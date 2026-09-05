@@ -71,12 +71,22 @@ class PoRegistry:
         return ThreeWayPOMatchingEngine.DEFAULT_PO_REGISTRY.get(vendor_id)
 
     @classmethod
-    def get_purchase_order_by_number(cls, po_number: str) -> Optional[Dict[str, Any]]:
+    def get_purchase_order_by_number(cls, po_number: str, store: Optional[Any] = None) -> Optional[Dict[str, Any]]:
         cls._init_defaults()
-        clean_po = po_number.strip().upper()
+        clean_po = (po_number or "").strip().upper()
+        if not clean_po:
+            return None
         entry = cls._PO_BY_NUMBER.get(clean_po)
         if entry:
             return entry
+        if store is not None:
+            try:
+                stored = store.get_purchase_order(clean_po)
+            except Exception:
+                stored = None
+            if stored:
+                cls._PO_BY_NUMBER[clean_po] = stored
+                return stored
         for p in ThreeWayPOMatchingEngine.DEFAULT_PO_REGISTRY.values():
             if p.get("po_number", "").strip().upper() == clean_po:
                 return p

@@ -343,7 +343,7 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Invoice / CN Number
 
-            inv_match = re.search(r"( - :Invoice\s*( - :No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
+            inv_match = re.search(r"(?:Invoice\s*(?:No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
 
             inv_num = inv_match.group(1).strip() if inv_match else f"INV-{doc_name.replace('.pdf', '')}"
 
@@ -367,13 +367,13 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Document Type Classification
 
-            has_tax_invoice = bool(re.search(r"( - :TAX\s*INVOICE|COMMERCIAL\s*INVOICE|BILL\s*OF\s*SUPPLY)", text, re.I))
+            has_tax_invoice = bool(re.search(r"(?:TAX\s*INVOICE|COMMERCIAL\s*INVOICE|BILL\s*OF\s*SUPPLY)", text, re.I))
 
             has_credit_note_title = bool(re.search(r"^\s*CREDIT\s*NOTE", text, re.I | re.M) or re.search(r"\n\s*CREDIT\s*NOTE", text, re.I))
 
-            has_cn_number = bool(re.search(r"( - :Credit\s*Note\s*( - :No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
+            has_cn_number = bool(re.search(r"(?:Credit\s*Note\s*(?:No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
 
-            has_inv_number = bool(re.search(r"( - :Invoice\s*( - :No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
+            has_inv_number = bool(re.search(r"(?:Invoice\s*(?:No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
 
             is_credit_note = False
 
@@ -393,11 +393,11 @@ async def handle_gcs_pubsub_event(request: Request):
 
             if is_credit_note:
 
-                cn_match = re.search(r"( - :Credit\s*Note\s*( - :No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
+                cn_match = re.search(r"(?:Credit\s*Note\s*(?:No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
 
                 cn_id = cn_match.group(1).strip() if cn_match else f"CN-{doc_name.replace('.pdf', '')}"
 
-                cn_amt_match = re.search(r"( - :Total Credit Value|Total Credit Available|Credit Amount|Total Amount|Total|Subtotal)[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+                cn_amt_match = re.search(r"(?:Total Credit Value|Total Credit Available|Credit Amount|Total Amount|Total|Subtotal)[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
                 credit_amount = Decimal(cn_amt_match.group(1).replace(",", "")) if cn_amt_match else Decimal("0.00")
 
@@ -437,15 +437,15 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Subtotal & Tax
 
-            sub_match = re.search(r"Subtotal[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+            sub_match = re.search(r"Subtotal[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
             subtotal_val = Decimal(sub_match.group(1).replace(",", "")) if sub_match else Decimal("0.00")
 
-            total_match = re.search(r"Total Invoice Value[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+            total_match = re.search(r"Total Invoice Value[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
             if not total_match:
 
-                total_match = re.search(r"( - :Grand Total|Total Amount|Total Value|Total)[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+                total_match = re.search(r"(?:Grand Total|Total Amount|Total Value|Total)[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
             if total_match:
 
@@ -1084,6 +1084,10 @@ async def create_purchase_order(payload: Dict[str, Any] = Body(...)):
         rates=rates,
         grn_quantities=grn_qtys
     )
+    try:
+        store.save_purchase_order(po_num, entry)
+    except Exception as e:
+        logger.warning(f"PO Firestore persist skipped: {e}")
     return {
         "status": "SUCCESS",
         "vendor_id": vendor_id,
@@ -1766,8 +1770,9 @@ def record_live_decision_state(
 
     erp_voucher: Optional[Dict[str, Any]] = None,
 
-    override_audit: Optional[Dict[str, Any]] = None
-
+    override_audit: Optional[Dict[str, Any]] = None,
+    tds_label: str = "",
+    vendor_pan: str = "",
 ):
 
     try:
@@ -1804,7 +1809,8 @@ def record_live_decision_state(
 
         v_id_safe = str(vendor_id or "VEND-ALPHA-01")
 
-        pan = " -  -  -  -  -  - 1234K" if "alpha" in v_name_safe.lower() else (" -  -  -  -  -  - 5678L" if "beta" in v_name_safe.lower() else " -  -  -  -  -  - 9012M")
+        _pan_tail = vendor_pan[-5:] if isinstance(vendor_pan, str) and len(vendor_pan) >= 5 else ""
+        pan = ("XXXXXX" + _pan_tail) if _pan_tail else (" -  -  -  -  -  - 1234K" if "alpha" in v_name_safe.lower() else (" -  -  -  -  -  - 5678L" if "beta" in v_name_safe.lower() else " -  -  -  -  -  - 9012M"))
 
         sub = float(subtotal)
 
@@ -1946,7 +1952,7 @@ def record_live_decision_state(
 
             "tds_formatted": f"-INR {tds:,.2f}",
 
-            "tds_rate_text": f"{int(crate * 100)}% TDS ({'Sec 194J' if crate >= 0.05 else 'Sec 194C'})",
+            "tds_rate_text": tds_label or f"{int(crate * 100)}% TDS ({'Sec  194J' if crate >= 0.05 else 'Sec 194C'})",
 
             "credit_deducted": cred,
 
@@ -5061,7 +5067,7 @@ def extract_vendor_from_text_or_filename(text: str, filename: str) -> str:
 
         if any(kw in line.lower() for kw in ["pvt ltd", "private limited", "llp", "ltd", "technologies", "infotech", "robotics", "labs", "systems", "logistics", "corporation", "enterprises", "contractor", "services", "automation", "studio", "advisors", "consulting", "solutions"]):
 
-            cleaned = re.sub(r'^( - :Account Name|Vendor|From|Billed By|For|Beneficiary)\s*[:] - \s*', '', line, flags=re.I).strip()
+            cleaned = re.sub(r'^(?:Account Name|Vendor|From|Billed By|For|Beneficiary)\s*[:]?\s*', '', line, flags=re.I).strip()
 
             cleaned = re.sub(r'^\([^\)]*\)\s*', '', cleaned).strip()
 
@@ -5083,7 +5089,7 @@ def extract_vendor_from_text_or_filename(text: str, filename: str) -> str:
 
     clean_name = os.path.splitext(filename)[0]
 
-    clean_name = re.sub(r'^( - :INV|CN)[-_0-9]*_', '', clean_name)
+    clean_name = re.sub(r'^(?:INV|CN)[-_0-9]*_', '', clean_name)
 
     clean_name = clean_name.replace('_', ' ').replace('-', ' ').strip()
 
@@ -5094,59 +5100,32 @@ def extract_vendor_from_text_or_filename(text: str, filename: str) -> str:
     return "Alpha Tech Labs Pvt Ltd"
 
 def extract_invoice_number(text: str, filename: str) -> str:
-
-    inv_match = re.search(r'\b( - :Invoice\s*( - :No|Number|#)|INV\s*NO|Invoice\s*ID)\s*[:.\s]+([A-Za-z0-9\-_/]+)', text, re.I)
-
+    inv_match = re.search(r'\b(?:Invoice\s*(?:No|Number|#)|INV\s*NO|Invoice\s*ID)\s*[:.\s]+([A-Za-z0-9\-_/]+)', text, re.I)
     if inv_match:
-
         val = inv_match.group(1).strip()
-
         if val.upper() not in ["TAX", "INVOICE", "DATE", "NO", "NUMBER", "DETAILS", "TO", "BUYER"]:
-
             return val
-
     inv_pattern = re.search(r'\b(INV[-_][A-Za-z0-9\-_]+)\b', text, re.I)
-
     if inv_pattern:
-
         return inv_pattern.group(1).strip().replace('_', '-')
-
-    f_match = re.search(r'(INV[-_0-9]+)', filename, re.I)
-
+    f_match = re.search(r'(INV[-_][A-Za-z0-9\-_]+)', filename, re.I)
     if f_match:
-
         return f_match.group(1).replace('_', '-')
-
     return f"INV-{uuid.uuid4().hex[:6].upper()}"
-
 def extract_subtotal(text: str) -> float:
-
-    amt_match = re.search(r'( - :Subtotal\s*( - :\([^\)]*\)) - |Taxable Value|Total Amount|Sub Total)\s*[:.] - \s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.[0-9]{2}) - )', text, re.I)
-
+    amt_match = re.search(r'(?:Subtotal\s*(?:\([^\)]*\))?|Taxable Value|Total Amount|Sub Total)\s*[:.]?\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]{2})?)', text, re.I)
     if amt_match:
-
         try:
-
             return float(amt_match.group(1).replace(',', ''))
-
         except ValueError:
-
             pass
-
-    amt_match = re.search(r'( - :Total|Amount|INR|Rs\. - |INR )\s*[:.] - \s*([0-9,]+( - :\.[0-9]{2}) - )', text, re.I)
-
+    amt_match = re.search(r'(?:Total|Amount|INR|Rs\.?|₹)\s*[:.]?\s*([0-9,]+(?:\.[0-9]{2})?)', text, re.I)
     if amt_match:
-
         try:
-
             return float(amt_match.group(1).replace(',', ''))
-
         except ValueError:
-
             pass
-
     return 100000.0
-
 def extract_credit_note_details(p_text: str, filename: str) -> tuple[str, float]:
     cn_match = re.search(r"(?:Credit\s*Note\s*(?:No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", p_text, re.I)
     cn_id = cn_match.group(1).strip() if cn_match else f"CN-{filename.replace('.pdf', '')}"
@@ -5157,7 +5136,12 @@ def extract_credit_note_details(p_text: str, filename: str) -> tuple[str, float]
 @app.post("/api/v1/invoices/upload", status_code=status.HTTP_200_OK)
 async def upload_invoice_pdf(
     file: Optional[UploadFile] = File(None),
-    files: Optional[List[UploadFile]] = File(None)
+    files: Optional[List[UploadFile]] = File(None),
+    tds_section: Optional[str] = Form(None),
+    vendor_206ab: Optional[bool] = Form(None),
+    bank_age_hours: Optional[int] = Form(None),
+    po_unit_rate: Optional[str] = Form(None),
+    po_number: Optional[str] = Form(None)
 ):
     """
     Direct Ingestion Endpoint:
@@ -5179,8 +5163,19 @@ async def upload_invoice_pdf(
     credit_notes_found = []
     total_credit_applied = 0.0
     invoice_num = f"INV-{uuid.uuid4().hex[:6].upper()}"
+    filename = "invoice.pdf"
+    file_sha256 = ""
+    content = b""
     vendor_name = "Alpha Tech Labs Pvt Ltd"
-    bank_age_hours = 720
+    if bank_age_hours is None:
+        bank_age_hours = 720
+    else:
+        try:
+            bank_age_hours = int(bank_age_hours)
+            if not (0 <= bank_age_hours <= 87600):
+                bank_age_hours = 720
+        except (TypeError, ValueError):
+            bank_age_hours = 720
     import io
     import zipfile
 
@@ -5200,6 +5195,8 @@ async def upload_invoice_pdf(
             else:
                 extracted_text += p_text + " "
                 invoice_num = extract_invoice_number(p_text, f_name)
+                filename = f_name
+                content = f_bytes
                 vendor_name = extract_vendor_from_text_or_filename(p_text, f_name)
                 subtotal = extract_subtotal(p_text)
                 file_sha256 = hashlib.sha256(f_bytes).hexdigest()
@@ -5213,6 +5210,7 @@ async def upload_invoice_pdf(
             raise HTTPException(status_code=400, detail="Empty file uploaded. Please upload a valid invoice PDF or ZIP.")
 
         if filename.lower().endswith(".zip"):
+            file_sha256 = hashlib.sha256(content).hexdigest()
             try:
                 with zipfile.ZipFile(io.BytesIO(content)) as z:
                     pdf_names = [f for f in z.namelist() if f.lower().endswith(".pdf") and not f.startswith("__MACOSX")]
@@ -5257,11 +5255,64 @@ async def upload_invoice_pdf(
         else:
             raise HTTPException(status_code=400, detail=f"Unsupported file format '{filename}'. Only .pdf and .zip are accepted.")
 
-    # Statutory Calculations (ITA 2025 Sec 393(1) 2% Pre-GST TDS + 18% GST - Credit Netting)
-
-    tds_rate = 0.02
-
-    tds_deducted = subtotal * tds_rate
+    # Statutory Calculations via canonical engine (section + 206AB aware;
+    # falls back to legacy flat 2% only if the engine itself errors)
+    _sec_alias = {
+        "194J_PROF": TDSSection.SECTION_194J_PROF, "194J": TDSSection.SECTION_194J_PROF,
+        "194J_TECH": TDSSection.SECTION_194J_TECH,
+        "194C_CORP": TDSSection.SECTION_194C_COMPANY, "194C": TDSSection.SECTION_194C_COMPANY,
+        "194C_IND": TDSSection.SECTION_194C_INDIVIDUAL,
+        "194Q": TDSSection.SECTION_194Q_GOODS, "194Q_GOODS": TDSSection.SECTION_194Q_GOODS,
+        "NONE": TDSSection.NONE,
+    }
+    try:
+        _sec_key = str(tds_section or "").strip().upper()
+    except Exception:
+        _sec_key = ""
+    _nominated = _sec_alias.get(_sec_key)
+    _pan_m = re.search(r"\b([A-Z]{5}[0-9]{4}[A-Z]{1})\b", extracted_text or "")
+    extracted_pan = _pan_m.group(1) if _pan_m else ""
+    _date_m = re.search(r"Date[:.\s]*(\d{4}-\d{2}-\d{2})", extracted_text or "", re.I)
+    _inv_date_str = _date_m.group(1) if _date_m else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if _nominated is None:
+        _doc_sec = re.search(r"TDS Section:\s*(194[A-Z_]+|194Q)", extracted_text or "", re.I)
+        _doc_key = _doc_sec.group(1).upper() if _doc_sec else ""
+        _nominated = _sec_alias.get(_doc_key)
+    if _nominated is None:
+        _tl = (extracted_text or "").lower()
+        if any(w in _tl for w in ["legal", "advisory", "audit", "retainer"]):
+            _nominated = TDSSection.SECTION_194J_PROF
+        elif any(w in _tl for w in ["software", "cloud", "tech", "devops"]):
+            _nominated = TDSSection.SECTION_194J_TECH
+        elif any(w in _tl for w in ["transport", "freight", "logistics", "courier", "decor", "interior", "facility"]):
+            _nominated = TDSSection.SECTION_194C_COMPANY if extracted_pan[3:4] == "C" else TDSSection.SECTION_194C_INDIVIDUAL
+        elif any(w in _tl for w in ["steel", "goods", "materials", "hardware", "supply"]):
+            _nominated = TDSSection.SECTION_194Q_GOODS
+        else:
+            _nominated = TDSSection.SECTION_194C_COMPANY
+    if isinstance(vendor_206ab, str):
+        is_206ab = vendor_206ab.strip().lower() in ("1", "true", "yes", "y")
+    else:
+        is_206ab = bool(vendor_206ab)
+    try:
+        _tax_res = StatutoryComplianceTaxEngine.compute_statutory_tax(
+            subtotal_excluding_gst=Decimal(str(subtotal)),
+            nominated_section=_nominated,
+            vendor_pan=extracted_pan,
+            is_206ab_non_filer=is_206ab,
+            transaction_date=_inv_date_str,
+        )
+        tds_rate = float(_tax_res.tds_rate)
+        tds_deducted = float(_tax_res.tds_deducted)
+        _sec_short = str(_tax_res.applied_section).split(".")[-1].replace("SECTION_", "").replace("_", " ")
+        section_label = f"{int(Decimal(str(_tax_res.tds_rate)) * 100)}% TDS (Sec {_sec_short})"
+        if getattr(_tax_res, "is_penal_rate_applied", False):
+            section_label += " + 206AB penal"
+    except Exception:
+        logger.warning("Statutory engine fallback to flat 2% TDS")
+        tds_rate = 0.02
+        tds_deducted = subtotal * tds_rate
+        section_label = "2% TDS (Sec 194C)"
 
     gst_rate = 0.18
 
@@ -5306,6 +5357,23 @@ async def upload_invoice_pdf(
 
     # 2. 3-Way PO & GRN Line-Item Rate Matcher
 
+    try:
+        _po_rate_override = Decimal(str(po_unit_rate)) if po_unit_rate is not None else None
+        if _po_rate_override is not None and _po_rate_override <= 0:
+            _po_rate_override = None
+    except Exception:
+        _po_rate_override = None
+    _po_ref = po_number.strip() if isinstance(po_number, str) and po_number.strip() else ""
+    if not _po_ref:
+        _po_m = re.search(r"\bPO\s*(?:(?:Number|No\.?|#)\s*[:.]?|:)\s*([A-Za-z0-9\-_/]+)", extracted_text or "", re.I)
+        if _po_m:
+            _po_ref = _po_m.group(1).strip()
+    if _po_ref:
+        try:
+            from services.po_registry import PoRegistry
+            PoRegistry.get_purchase_order_by_number(_po_ref, store=store)
+        except Exception as e:
+            logger.warning(f"PO registry warm skipped: {e}")
     mock_items = [
 
         InvoiceLineItem(
@@ -5316,7 +5384,7 @@ async def upload_invoice_pdf(
 
             quantity=Decimal("100.00"),
 
-            unit_price=Decimal(str(round(subtotal / 100.0, 2))),
+            unit_price=(_po_rate_override if _po_rate_override is not None else Decimal(str(round(subtotal / 100.0, 2)))),
 
             line_total=Decimal(str(round(subtotal, 2)))
 
@@ -5327,8 +5395,15 @@ async def upload_invoice_pdf(
     po_matches, po_compliant, po_overage = ThreeWayPOMatchingEngine.evaluate_line_items(
 
         vendor_id=f"VEND-{vendor_name[:5].upper()}",
+        line_items=mock_items,
 
-        line_items=mock_items
+        po_number=(_po_ref or None),
+
+        store=store,
+
+        auto_allocate=True,
+
+        invoice_number=invoice_num,
 
     )
 
@@ -5485,6 +5560,10 @@ async def upload_invoice_pdf(
         tds_deducted=float(tds_deducted),
 
         tds_rate=float(tds_rate),
+
+        tds_label=section_label,
+
+        vendor_pan=extracted_pan,
 
         credit_applied=float(total_credit_applied),
 
