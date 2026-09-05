@@ -5368,9 +5368,15 @@ async def upload_invoice_pdf(
     po_matches, po_compliant, po_overage = ThreeWayPOMatchingEngine.evaluate_line_items(
 
         vendor_id=f"VEND-{vendor_name[:5].upper()}",
-
         line_items=mock_items,
+
         po_number=(_po_ref or None),
+
+        store=store,
+
+        auto_allocate=True,
+
+        invoice_number=invoice_num,
 
     )
 
