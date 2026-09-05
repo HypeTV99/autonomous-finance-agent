@@ -5127,6 +5127,7 @@ async def upload_invoice_pdf(
     invoice_num = f"INV-{uuid.uuid4().hex[:6].upper()}"
     filename = "invoice.pdf"
     file_sha256 = ""
+    content = b""
     vendor_name = "Alpha Tech Labs Pvt Ltd"
     bank_age_hours = 720
     import io
@@ -5149,6 +5150,7 @@ async def upload_invoice_pdf(
                 extracted_text += p_text + " "
                 invoice_num = extract_invoice_number(p_text, f_name)
                 filename = f_name
+                content = f_bytes
                 vendor_name = extract_vendor_from_text_or_filename(p_text, f_name)
                 subtotal = extract_subtotal(p_text)
                 file_sha256 = hashlib.sha256(f_bytes).hexdigest()
