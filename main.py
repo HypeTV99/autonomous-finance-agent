@@ -1682,6 +1682,7 @@ DECISION_HISTORY_FILE = os.environ.get("DECISION_HISTORY_FILE", os.path.join(tem
 DEFAULT_LATEST_DECISION = None
 
 GLOBAL_DECISION_HISTORY = []
+_HISTORY_MERGE_AT = None
 
 @app.post("/api/v1/treasury/reset", status_code=status.HTTP_200_OK)
 
@@ -1749,6 +1750,39 @@ def load_decision_history():
 
                 pass
 
+    global _HISTORY_MERGE_AT
+    try:
+        _merge_now = datetime.now(timezone.utc)
+        _stale = (_HISTORY_MERGE_AT is None or
+                  (_merge_now - _HISTORY_MERGE_AT).total_seconds() > 30)
+    except Exception:
+        _stale = True
+    if _stale:
+        try:
+            _HISTORY_MERGE_AT = datetime.now(timezone.utc)
+        except Exception:
+            pass
+        try:
+            _remote = store.list_financial_decisions(limit=500)
+        except Exception as _e:
+            logger.warning(f"Decision history merge skipped: {_e}")
+            _remote = []
+        if _remote:
+            _by_inv = {}
+            for _d in GLOBAL_DECISION_HISTORY:
+                if isinstance(_d, dict) and _d.get("invoice_number"):
+                    _by_inv[_d["invoice_number"]] = _d
+            for _r in _remote:
+                if not isinstance(_r, dict):
+                    continue
+                _inv = _r.get("invoice_number")
+                if not _inv:
+                    continue
+                _cur = _by_inv.get(_inv)
+                if _cur is None or str(_r.get("updated_at", "")) >= str(_cur.get("updated_at", "")):
+                    _by_inv[_inv] = _r
+            GLOBAL_DECISION_HISTORY = sorted(
+                _by_inv.values(), key=lambda _d: str(_d.get("updated_at", "")), reverse=True)
     return GLOBAL_DECISION_HISTORY
 
 def save_decision_history():
@@ -1975,6 +2009,7 @@ def record_live_decision_state(
 
         item = {
 
+            "updated_at": datetime.now(timezone.utc).isoformat(),
             "invoice_number": str(inv_num),
 
             "vendor_id": v_id_safe,
@@ -2201,6 +2236,11 @@ def record_live_decision_state(
 
         GLOBAL_DECISION_HISTORY.insert(0, item)
 
+        try:
+            store.save_financial_decision(inv_num, item)
+        except Exception as _e:
+            logger.warning(f"Decision mirror skipped: {_e}")
+
         save_decision_history()
 
         return item
@@ -2415,6 +2455,11 @@ async def resolve_invoice_exception(
 
         raise HTTPException(status_code=400, detail=f"Unsupported resolution action '{action}'. Use OVERRIDE, SHORT_PAY, or REJECT.")
 
+    target["updated_at"] = now_ts
+    try:
+        store.save_financial_decision(invoice_number, target)
+    except Exception as _e:
+        logger.warning(f"Decision mirror skipped: {_e}")
     save_decision_history()
 
     return {

@@ -1025,6 +1025,52 @@ class FirestoreStateStore:
 
         return None
 
+    def save_financial_decision(self, invoice_number: str, item: Dict[str, Any]) -> None:
+        doc = dict(item or {})
+        doc["updated_at"] = doc.get("updated_at") or datetime.now(timezone.utc).isoformat()
+        payload = sanitize_for_firestore(doc)
+        clean_id = (invoice_number or "").replace("/", "_").replace(" ", "_").upper()
+        if self._is_mock:
+            self._mock_db.setdefault("financial_decisions", {})[invoice_number] = payload
+            self._mock_db.setdefault("financial_decisions_by_invoice", {})[clean_id] = payload
+            return
+        self.db.collection("financial_decisions").document(invoice_number).set(payload)
+        self.db.collection("financial_decisions_by_invoice").document(clean_id).set(payload)
+
+    def list_financial_decisions(self, limit: int = 500) -> list:
+        if self._is_mock:
+            vals = list(self._mock_db.setdefault("financial_decisions", {}).values())
+            vals.sort(key=lambda d: str((d or {}).get("updated_at", "")), reverse=True)
+            return vals[: max(1, int(limit or 500))]
+        out = []
+        for snap in self.db.collection("financial_decisions").order_by(
+                "updated_at", direction="DESCENDING").limit(max(1, int(limit or 500))).stream():
+            out.append(snap.to_dict())
+        return out
+
+    def save_financial_decision(self, invoice_number: str, item: Dict[str, Any]) -> None:
+        doc = dict(item or {})
+        doc["updated_at"] = doc.get("updated_at") or datetime.now(timezone.utc).isoformat()
+        payload = sanitize_for_firestore(doc)
+        clean_id = (invoice_number or "").replace("/", "_").replace(" ", "_").upper()
+        if self._is_mock:
+            self._mock_db.setdefault("financial_decisions", {})[invoice_number] = payload
+            self._mock_db.setdefault("financial_decisions_by_invoice", {})[clean_id] = payload
+            return
+        self.db.collection("financial_decisions").document(invoice_number).set(payload)
+        self.db.collection("financial_decisions_by_invoice").document(clean_id).set(payload)
+
+    def list_financial_decisions(self, limit: int = 500) -> list:
+        if self._is_mock:
+            vals = list(self._mock_db.setdefault("financial_decisions", {}).values())
+            vals.sort(key=lambda d: str((d or {}).get("updated_at", "")), reverse=True)
+            return vals[: max(1, int(limit or 500))]
+        out = []
+        for snap in self.db.collection("financial_decisions").order_by(
+                "updated_at", direction="DESCENDING").limit(max(1, int(limit or 500))).stream():
+            out.append(snap.to_dict())
+        return out
+
     def get_reconciliation_dashboard(self) -> Dict[str, Any]:
         if self._is_mock:
             decisions = list(self._mock_db.get("financial_decisions", {}).values())
