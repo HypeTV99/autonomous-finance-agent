@@ -1739,8 +1739,9 @@ def record_live_decision_state(
 
     erp_voucher: Optional[Dict[str, Any]] = None,
 
-    override_audit: Optional[Dict[str, Any]] = None
-
+    override_audit: Optional[Dict[str, Any]] = None,
+    tds_label: str = "",
+    vendor_pan: str = "",
 ):
 
     try:
@@ -1777,7 +1778,8 @@ def record_live_decision_state(
 
         v_id_safe = str(vendor_id or "VEND-ALPHA-01")
 
-        pan = " -  -  -  -  -  - 1234K" if "alpha" in v_name_safe.lower() else (" -  -  -  -  -  - 5678L" if "beta" in v_name_safe.lower() else " -  -  -  -  -  - 9012M")
+        _pan_tail = vendor_pan[-5:] if isinstance(vendor_pan, str) and len(vendor_pan) >= 5 else ""
+        pan = ("XXXXXX" + _pan_tail) if _pan_tail else (" -  -  -  -  -  - 1234K" if "alpha" in v_name_safe.lower() else (" -  -  -  -  -  - 5678L" if "beta" in v_name_safe.lower() else " -  -  -  -  -  - 9012M"))
 
         sub = float(subtotal)
 
@@ -1919,7 +1921,7 @@ def record_live_decision_state(
 
             "tds_formatted": f"-INR {tds:,.2f}",
 
-            "tds_rate_text": f"{int(crate * 100)}% TDS ({'Sec 194J' if crate >= 0.05 else 'Sec 194C'})",
+            "tds_rate_text": tds_label or f"{int(crate * 100)}% TDS ({'Sec  194J' if crate >= 0.05 else 'Sec 194C'})",
 
             "credit_deducted": cred,
 
@@ -5103,7 +5105,12 @@ def extract_credit_note_details(p_text: str, filename: str) -> tuple[str, float]
 @app.post("/api/v1/invoices/upload", status_code=status.HTTP_200_OK)
 async def upload_invoice_pdf(
     file: Optional[UploadFile] = File(None),
-    files: Optional[List[UploadFile]] = File(None)
+    files: Optional[List[UploadFile]] = File(None),
+    tds_section: Optional[str] = Form(None),
+    vendor_206ab: Optional[bool] = Form(None),
+    bank_age_hours: Optional[int] = Form(None),
+    po_unit_rate: Optional[str] = Form(None),
+    po_number: Optional[str] = Form(None)
 ):
     """
     Direct Ingestion Endpoint:
@@ -5129,7 +5136,15 @@ async def upload_invoice_pdf(
     file_sha256 = ""
     content = b""
     vendor_name = "Alpha Tech Labs Pvt Ltd"
-    bank_age_hours = 720
+    if bank_age_hours is None:
+        bank_age_hours = 720
+    else:
+        try:
+            bank_age_hours = int(bank_age_hours)
+            if not (0 <= bank_age_hours <= 87600):
+                bank_age_hours = 720
+        except (TypeError, ValueError):
+            bank_age_hours = 720
     import io
     import zipfile
 
@@ -5209,11 +5224,64 @@ async def upload_invoice_pdf(
         else:
             raise HTTPException(status_code=400, detail=f"Unsupported file format '{filename}'. Only .pdf and .zip are accepted.")
 
-    # Statutory Calculations (ITA 2025 Sec 393(1) 2% Pre-GST TDS + 18% GST - Credit Netting)
-
-    tds_rate = 0.02
-
-    tds_deducted = subtotal * tds_rate
+    # Statutory Calculations via canonical engine (section + 206AB aware;
+    # falls back to legacy flat 2% only if the engine itself errors)
+    _sec_alias = {
+        "194J_PROF": TDSSection.SECTION_194J_PROF, "194J": TDSSection.SECTION_194J_PROF,
+        "194J_TECH": TDSSection.SECTION_194J_TECH,
+        "194C_CORP": TDSSection.SECTION_194C_COMPANY, "194C": TDSSection.SECTION_194C_COMPANY,
+        "194C_IND": TDSSection.SECTION_194C_INDIVIDUAL,
+        "194Q": TDSSection.SECTION_194Q_GOODS, "194Q_GOODS": TDSSection.SECTION_194Q_GOODS,
+        "NONE": TDSSection.NONE,
+    }
+    try:
+        _sec_key = str(tds_section or "").strip().upper()
+    except Exception:
+        _sec_key = ""
+    _nominated = _sec_alias.get(_sec_key)
+    _pan_m = re.search(r"\b([A-Z]{5}[0-9]{4}[A-Z]{1})\b", extracted_text or "")
+    extracted_pan = _pan_m.group(1) if _pan_m else ""
+    _date_m = re.search(r"Date[:.\s]*(\d{4}-\d{2}-\d{2})", extracted_text or "", re.I)
+    _inv_date_str = _date_m.group(1) if _date_m else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if _nominated is None:
+        _doc_sec = re.search(r"TDS Section:\s*(194[A-Z_]+|194Q)", extracted_text or "", re.I)
+        _doc_key = _doc_sec.group(1).upper() if _doc_sec else ""
+        _nominated = _sec_alias.get(_doc_key)
+    if _nominated is None:
+        _tl = (extracted_text or "").lower()
+        if any(w in _tl for w in ["legal", "advisory", "audit", "retainer"]):
+            _nominated = TDSSection.SECTION_194J_PROF
+        elif any(w in _tl for w in ["software", "cloud", "tech", "devops"]):
+            _nominated = TDSSection.SECTION_194J_TECH
+        elif any(w in _tl for w in ["transport", "freight", "logistics", "courier", "decor", "interior", "facility"]):
+            _nominated = TDSSection.SECTION_194C_COMPANY if extracted_pan[3:4] == "C" else TDSSection.SECTION_194C_INDIVIDUAL
+        elif any(w in _tl for w in ["steel", "goods", "materials", "hardware", "supply"]):
+            _nominated = TDSSection.SECTION_194Q_GOODS
+        else:
+            _nominated = TDSSection.SECTION_194C_COMPANY
+    if isinstance(vendor_206ab, str):
+        is_206ab = vendor_206ab.strip().lower() in ("1", "true", "yes", "y")
+    else:
+        is_206ab = bool(vendor_206ab)
+    try:
+        _tax_res = StatutoryComplianceTaxEngine.compute_statutory_tax(
+            subtotal_excluding_gst=Decimal(str(subtotal)),
+            nominated_section=_nominated,
+            vendor_pan=extracted_pan,
+            is_206ab_non_filer=is_206ab,
+            transaction_date=_inv_date_str,
+        )
+        tds_rate = float(_tax_res.tds_rate)
+        tds_deducted = float(_tax_res.tds_deducted)
+        _sec_short = str(_tax_res.applied_section).split(".")[-1].replace("SECTION_", "").replace("_", " ")
+        section_label = f"{int(Decimal(str(_tax_res.tds_rate)) * 100)}% TDS (Sec {_sec_short})"
+        if getattr(_tax_res, "is_penal_rate_applied", False):
+            section_label += " + 206AB penal"
+    except Exception:
+        logger.warning("Statutory engine fallback to flat 2% TDS")
+        tds_rate = 0.02
+        tds_deducted = subtotal * tds_rate
+        section_label = "2% TDS (Sec 194C)"
 
     gst_rate = 0.18
 
@@ -5258,6 +5326,17 @@ async def upload_invoice_pdf(
 
     # 2. 3-Way PO & GRN Line-Item Rate Matcher
 
+    try:
+        _po_rate_override = Decimal(str(po_unit_rate)) if po_unit_rate is not None else None
+        if _po_rate_override is not None and _po_rate_override <= 0:
+            _po_rate_override = None
+    except Exception:
+        _po_rate_override = None
+    _po_ref = po_number.strip() if isinstance(po_number, str) and po_number.strip() else ""
+    if not _po_ref:
+        _po_m = re.search(r"\bPO\s*(?:Number|No\.?|#)?\s*[:.]?\s*([A-Za-z0-9\-_/]+)", extracted_text or "", re.I)
+        if _po_m:
+            _po_ref = _po_m.group(1).strip()
     mock_items = [
 
         InvoiceLineItem(
@@ -5268,7 +5347,7 @@ async def upload_invoice_pdf(
 
             quantity=Decimal("100.00"),
 
-            unit_price=Decimal(str(round(subtotal / 100.0, 2))),
+            unit_price=(_po_rate_override if _po_rate_override is not None else Decimal(str(round(subtotal / 100.0, 2)))),
 
             line_total=Decimal(str(round(subtotal, 2)))
 
@@ -5280,7 +5359,8 @@ async def upload_invoice_pdf(
 
         vendor_id=f"VEND-{vendor_name[:5].upper()}",
 
-        line_items=mock_items
+        line_items=mock_items,
+        po_number=(_po_ref or None),
 
     )
 
@@ -5437,6 +5517,10 @@ async def upload_invoice_pdf(
         tds_deducted=float(tds_deducted),
 
         tds_rate=float(tds_rate),
+
+        tds_label=section_label,
+
+        vendor_pan=extracted_pan,
 
         credit_applied=float(total_credit_applied),
 
