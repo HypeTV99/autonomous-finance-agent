@@ -12,3 +12,6 @@ bandit_report.txt
 stitch_raw/
 tests/
 sample_invoice.pdf
+node_modules/
+**/node_modules/
+mock/react/node_modules/

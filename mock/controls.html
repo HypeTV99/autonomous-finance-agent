@@ -56,20 +56,75 @@ main{animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
 <div class="divider"></div>
 </main>
 <script>
-const A=[
+let A=[
 {t:'Today 11:42',b:'INV-2026-104',w:'Approved',who:'Meera · Pay',n:'Over-threshold · Treasurer countersign recorded.',c:'do'},
 {t:'Today 11:20',b:'INV-2026-104',w:'Paid',who:'Meera · Pay',n:'Cleared. Settlement locked.',c:'ok'},
-{t:'Today 10:05',b:'INV-2026-102',w:'Under reviewXX',who:'Arjun · Check',n:'Enhanced withholding. Beneficiary hold.',c:'do'},
+{t:'Today 10:05',b:'INV-2026-102',w:'Under review',who:'Arjun · Check',n:'Enhanced withholding. Beneficiary hold.',c:'do'},
 {t:'Yesterday 16:40',b:'INV-2026-099',w:'Declined',who:'Arjun · Check',n:'Rate variance above tolerance.',c:'no'},
 {t:'Yesterday 15:12',b:'INV-2026-103',w:'Paid',who:'Meera · Pay',n:'Settled. Bank ref RZX8K2P4Q9A1.',c:'ok'},
 {t:'Yesterday 11:02',b:'INV-2026-101',w:'Registered',who:'Kabir · Add',n:'Registered. Adjustments applied.',c:'do'}];
 let fq='';
+
 function render(){const r=A.filter(x=>JSON.stringify(x).toLowerCase().includes(fq));
 document.getElementById('rows').innerHTML=r.map(x=>`<tr style="border-bottom:1px solid #e5edf5"><td class="py-3 pr-3" style="color:#50617a">${x.t}</td><td class="py-3 pr-3">${x.b}</td><td class="py-3 pr-3"><span class="tag ${x.c==='ok'?'tag-ok':x.c==='do'?'tag-do':'tag-no'}">${x.w}</span></td><td class="py-3 pr-3">${x.who}</td><td class="py-3 pr-3" style="color:#50617a">${x.n}</td></tr>`).join('');}
-function initRole(){const s=document.getElementById('rolepick');try{s.value=localStorage.getItem('yire-role')||'CHECK';}catch(e){}s.onchange=()=>{try{localStorage.setItem('yire-role',s.value);}catch(e){}}}
+
+function showToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#061b31;color:#fff;padding:12px 24px;border-radius:9999px;font-size:13px;border:1px solid #334155;box-shadow:0 8px 24px rgba(0,0,0,0.2);transition:all .3s;opacity:0;transform:translateY(10px)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'none';
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>{ t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 3500);
+}
+
+function initRole(){
+  const s=document.getElementById('rolepick');
+  try{s.value=localStorage.getItem('yire-role')||'CHECK';}catch(e){}
+  s.onchange=()=>{
+    try{
+      localStorage.setItem('yire-role',s.value);
+      window.dispatchEvent(new Event('storage'));
+      showToast('Active role updated to ' + s.value);
+    }catch(e){}
+  }
+}
+
+async function syncActivity(){
+  try {
+    const res = await fetch('/api/v1/decisions/history');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.history && data.history.length > 0) {
+      const liveItems = data.history.map(d => {
+        const isSettled = (d.status === 'SETTLED' || d.stage_7_status === 'DISBURSED');
+        const dt = (d.payout_telemetry && d.payout_telemetry.timestamp) ? new Date(d.payout_telemetry.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
+        return {
+          t: 'Today ' + dt,
+          b: d.invoice_number || 'INV',
+          w: isSettled ? 'Settled' : (d.status || 'Processed'),
+          who: isSettled ? 'Treasurer · Pay' : 'Controller · Check',
+          n: isSettled ? `IMPS cleared. UTR: ${(d.payout_telemetry && d.payout_telemetry.utr) || 'Confirmed'}.` : (d.decision_title || 'Audit trail recorded.'),
+          c: isSettled ? 'ok' : 'do'
+        };
+      });
+      A = [...liveItems, ...A];
+      render();
+    }
+  } catch(e) {
+    console.warn('Controls activity sync error:', e);
+  }
+}
+
 document.getElementById('q').addEventListener('input',e=>{fq=e.target.value.toLowerCase();render()});
 initRole();
 render();
+syncActivity();
 </script>
 </body>
 </html>

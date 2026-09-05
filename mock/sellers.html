@@ -44,14 +44,14 @@ main{animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
 <div class="text-xs uppercase" style="color:#64748d;letter-spacing:.5px">Sellers</div>
 <h1 style="font-size:48px;line-height:1.03;letter-spacing:-0.96px">Vendors</h1>
 <section class="grid grid-cols-3 gap-6 py-10">
-<div><div class="text-xs uppercase" style="color:#64748d">Sellers</div><div style="font-size:48px">4</div></div>
-<div><div class="text-xs uppercase" style="color:#64748d">Safe to pay</div><div style="font-size:48px;color:#533afd">3</div></div>
-<div><div class="text-xs uppercase" style="color:#64748d">Wait</div><div style="font-size:48px">1</div></div>
+<div><div class="text-xs uppercase" style="color:#64748d">Sellers</div><div id="stat-total" style="font-size:48px">4</div></div>
+<div><div class="text-xs uppercase" style="color:#64748d">Safe to pay</div><div id="stat-safe" style="font-size:48px;color:#533afd">3</div></div>
+<div><div class="text-xs uppercase" style="color:#64748d">Wait</div><div id="stat-wait" style="font-size:48px">1</div></div>
 </section>
 <div class="divider"></div>
 <section class="py-10">
 <div class="flex gap-2 items-center"><h2 style="font-size:32px">Sellers</h2><input id="q" class="ml-auto text-sm px-4 py-2 w-72" style="padding:14.5px 16px" placeholder="Search seller…"/></div>
-<table class="w-full text-sm mt-6"><thead class="text-left text-xs uppercase" style="color:#64748d;border-bottom:1px solid #e5edf5"><tr><th class="py-3 pr-3">Seller</th><th class=\"py-3 pr-3\">State</th><th class=\"py-3 pr-3\">Tax</th><th class=\"py-3 pr-3 text-right\">Paid so far</th><th class="py-3 pr-3">Bank</th><th class="py-3"></th></tr></thead><tbody id="rows"></tbody></table>
+<table class="w-full text-sm mt-6"><thead class="text-left text-xs uppercase" style="color:#64748d;border-bottom:1px solid #e5edf5"><tr><th class="py-3 pr-3">Seller</th><th class="py-3 pr-3">State</th><th class="py-3 pr-3">Tax</th><th class="py-3 pr-3 text-right">Paid so far</th><th class="py-3 pr-3">Bank</th><th class="py-3"></th></tr></thead><tbody id="rows"></tbody></table>
 </section>
 <div class="divider"></div>
 </main>
@@ -60,13 +60,74 @@ main{animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
 <div id="d-body" class="text-sm mt-4 space-y-3"></div>
 </div></dialog>
 <script>
-const S=[{n:'Zenith Robotics',st:'SAFE',tx:'2%',paid:'Rs.4,20,000',bank:'HDFC ••4021',note:'Verified. No holds.'},{n:'Apex Security',st:'WAIT',tx:'2%',paid:'Rs.1,10,000',bank:'ICICI ••8814',note:'Beneficiary changed. Payouts frozen for 2 days.'},{n:'CloudCore Tech',st:'SAFE',tx:'20%',paid:'Rs.6,80,000',bank:'SBI ••3302',note:'Verified. Enhanced withholding applied.'},{n:'Bharat Steels',st:'SAFE',tx:'2%',paid:'Rs.2,40,000',bank:'Axis ••7745',note:'Verified. No holds.'}];
+let S=[{n:'Zenith Robotics',st:'SAFE',tx:'2%',paid:'Rs.4,20,000',bank:'HDFC ••4021',note:'Verified. No holds.'},{n:'Apex Security',st:'WAIT',tx:'2%',paid:'Rs.1,10,000',bank:'ICICI ••8814',note:'Beneficiary changed. Payouts frozen for 2 days.'},{n:'CloudCore Tech',st:'SAFE',tx:'20%',paid:'Rs.6,80,000',bank:'SBI ••3302',note:'Verified. Enhanced withholding applied.'},{n:'Bharat Steels',st:'SAFE',tx:'2%',paid:'Rs.2,40,000',bank:'Axis ••7745',note:'Verified. No holds.'}];
 let fq='';
+
+function updateStats(){
+  const total = S.length;
+  const safe = S.filter(x=>x.st==='SAFE').length;
+  const wait = total - safe;
+  const tEl = document.getElementById('stat-total');
+  const sEl = document.getElementById('stat-safe');
+  const wEl = document.getElementById('stat-wait');
+  if (tEl) tEl.textContent = total;
+  if (sEl) sEl.textContent = safe;
+  if (wEl) wEl.textContent = wait;
+}
+
 function render(){const r=S.filter(x=>(x.n+x.st).toLowerCase().includes(fq));
-document.getElementById('rows').innerHTML=r.map(x=>`<tr style="border-bottom:1px solid #e5edf5"><td class="py-3 pr-3">${x.n}</td><td class="py-3 pr-3"><span class="tag ${x.st==='SAFE'?'tag-safe':'tag-wait'}">${x.st==='SAFE'?'Safe to pay':'Wait 2 days'}</span></td><td class=\"py-3 pr-3\"><span class=\"tag ${x.tx==='20%'?'tag-wait':'tag-safe'}\">TDS ${x.tx}</span></td><td class="py-3 pr-3 text-right">${x.paid}</td><td class="py-3 pr-3" style="color:#50617a">${x.bank}</td><td class="py-3 text-right"><button class="btn btn-tert" onclick='openD(${JSON.stringify(x.n)})'>View ›</button></td></tr>`).join('');}
-function openD(n){const x=S.find(a=>a.n===n);document.getElementById('d-name').textContent=x.n;document.getElementById('d-sub').textContent=x.st==='SAFE'?'Safe to pay':'Please wait';document.getElementById('d-body').innerHTML=`<div style="border:1px solid #e5edf5;border-radius:4px;padding:12px"><b>Paid so far:</b> ${x.paid}</div><div style="border:1px solid #e5edf5;border-radius:4px;padding:12px"><b>Bank:</b> ${x.bank} (masked)</div><div style="border:1px solid #b9b9f9;background:#e8e9ff;border-radius:4px;padding:12px">${x.note}</div>`;document.getElementById('box').showModal();}
+document.getElementById('rows').innerHTML=r.map(x=>`<tr style="border-bottom:1px solid #e5edf5"><td class="py-3 pr-3">${x.n}</td><td class="py-3 pr-3"><span class="tag ${x.st==='SAFE'?'tag-safe':'tag-wait'}">${x.st==='SAFE'?'Safe to pay':'Wait 2 days'}</span></td><td class="py-3 pr-3"><span class="tag ${x.tx==='20%'?'tag-wait':'tag-safe'}">TDS ${x.tx}</span></td><td class="py-3 pr-3 text-right">${x.paid}</td><td class="py-3 pr-3" style="color:#50617a">${x.bank}</td><td class="py-3 text-right"><button class="btn btn-tert" onclick='openD(${JSON.stringify(x.n)})'>View ›</button></td></tr>`).join('');}
+
+function openD(n){
+  const x=S.find(a=>a.n===n);
+  if(!x) return;
+  document.getElementById('d-name').textContent=x.n;
+  document.getElementById('d-sub').textContent=x.st==='SAFE'?'Safe to pay':'Please wait';
+  let trustHtml = x.trust ? `<div style="border:1px solid #e5edf5;border-radius:4px;padding:12px"><b>Trust Score:</b> ${x.trust}</div>` : '';
+  document.getElementById('d-body').innerHTML=`<div style="border:1px solid #e5edf5;border-radius:4px;padding:12px"><b>Paid so far:</b> ${x.paid}</div><div style="border:1px solid #e5edf5;border-radius:4px;padding:12px"><b>Bank:</b> ${x.bank} (masked)</div>${trustHtml}<div style="border:1px solid #b9b9f9;background:#e8e9ff;border-radius:4px;padding:12px">${x.note}</div>`;
+  document.getElementById('box').showModal();
+}
+
+async function syncVendors(){
+  try {
+    const res = await fetch('/api/v1/vendors/all');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.vendors && data.vendors.length > 0) {
+      S = data.vendors.map(v => {
+        const bankDesc = (v.bank || '').toLowerCase();
+        const statDesc = (v.status || '').toLowerCase();
+        const isWait = bankDesc.includes('cool') || bankDesc.includes('wait') || statDesc.includes('wait') || statDesc.includes('freeze') || (v.heldCount > 0);
+        const tdsMatch = (v.tax || '').match(/(\d+)%/);
+        const tdsRate = tdsMatch ? tdsMatch[1] + '%' : (v.default_tds_rate ? v.default_tds_rate + '%' : '10%');
+        const settledVal = typeof v.totalSettled === 'number' ? v.totalSettled : parseFloat(v.totalSettled || 0);
+        const paidStr = 'Rs.' + Math.round(settledVal).toLocaleString('en-IN');
+        const bAcc = v.bankAcc || '••••';
+        const ifscPrefix = (v.bankIfsc && v.bankIfsc.length >= 4) ? v.bankIfsc.slice(0, 4) + ' ' : '';
+        const bankStr = (v.bankName ? v.bankName.slice(0, 10) + ' ' : ifscPrefix) + bAcc;
+        return {
+          n: v.name || v.vendor_name || 'Vendor',
+          st: isWait ? 'WAIT' : 'SAFE',
+          tx: tdsRate,
+          paid: paidStr,
+          bank: bankStr,
+          note: v.whyBank || v.whyKyc || (isWait ? 'Cooling-off lock active. Disbursements held.' : 'Verified. No holds.'),
+          trust: v.trustScoreDisplay || (v.trustScore ? v.trustScore + ' / 100' : null),
+          raw: v
+        };
+      });
+      updateStats();
+      render();
+    }
+  } catch(e) {
+    console.warn('Vendor backend sync error:', e);
+  }
+}
+
 document.getElementById('q').addEventListener('input',e=>{fq=e.target.value.toLowerCase();render()});
+updateStats();
 render();
+syncVendors();
 </script>
 </body>
 </html>

@@ -114,33 +114,60 @@ app = FastAPI(title="Autonomous Finance Agent Production Server", version="21.0.
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 if os.path.exists("static"):
-
     app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
+if os.path.exists("mock"):
+    app.mount("/mock", StaticFiles(directory="mock", html=True), name="mock")
+
+if os.path.exists(os.path.join("mock", "react", "dist")):
+    app.mount("/app", StaticFiles(directory=os.path.join("mock", "react", "dist"), html=True), name="react_app")
+
+@app.get("/app", response_class=HTMLResponse)
+async def react_app_root():
+    react_index = os.path.join("mock", "react", "dist", "index.html")
+    if os.path.exists(react_index):
+        return FileResponse(react_index)
+    return HTMLResponse("<h1>React app build pending</h1>")
+
 def serve_static_page(filename: str):
-
     path = os.path.join("static", filename)
-
     if os.path.exists(path):
-
         return FileResponse(path)
+    return HTMLResponse(f"<h1>View '{filename}' under initialization</h1>")
 
+def serve_mock_page(filename: str):
+    path = os.path.join("mock", filename)
+    if os.path.exists(path):
+        return FileResponse(path)
     return HTMLResponse(f"<h1>View '{filename}' under initialization</h1>")
 
 @app.get("/", response_class=HTMLResponse)
+@app.get("/bills", response_class=HTMLResponse)
+@app.get("/index.html", response_class=HTMLResponse)
+async def mock_bills_view():
+    return serve_mock_page("index.html")
+
+@app.get("/sellers", response_class=HTMLResponse)
+@app.get("/sellers.html", response_class=HTMLResponse)
+async def mock_sellers_view():
+    return serve_mock_page("sellers.html")
+
+@app.get("/records", response_class=HTMLResponse)
+@app.get("/records.html", response_class=HTMLResponse)
+async def mock_records_view():
+    return serve_mock_page("records.html")
+
+@app.get("/controls", response_class=HTMLResponse)
+@app.get("/controls.html", response_class=HTMLResponse)
+async def mock_controls_view():
+    return serve_mock_page("controls.html")
 
 @app.get("/dashboard", response_class=HTMLResponse)
-
 @app.get("/dag", response_class=HTMLResponse)
-
 @app.get("/dropzone", response_class=HTMLResponse)
-
 @app.get("/dashboard/v2", response_class=HTMLResponse)
-
 @app.get("/overview", response_class=HTMLResponse)
-
 async def treasury_hub_view():
-
     return serve_static_page("dag.html")
 
 @app.get("/vendors", response_class=HTMLResponse)

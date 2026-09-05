@@ -4,16 +4,18 @@ import { Check, Download } from 'lucide-react';
 
 interface DownloadButtonProps {
   label?: string;
+  onClick?: () => void;
 }
 
 // Port of Amicro item 21 "Download" (morph interaction): Download icon morphs
 // into a Check icon on hover. Styled to the Yire Stripe ledger theme.
-export function DownloadButton({ label = 'Download' }: DownloadButtonProps) {
+export function DownloadButton({ label = 'Download', onClick }: DownloadButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <motion.button
       type="button"
+      onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocus={() => setIsHovered(true)}

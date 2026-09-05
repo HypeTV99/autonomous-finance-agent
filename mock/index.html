@@ -139,7 +139,7 @@ main{animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
 </div></div></dialog>
 <script>
 const CASH_LEFT = 500000;
-let balance=500000;
+let balance = 500000;
 const SELLER_STATE = {'Zenith Robotics':'SAFE','Apex Security':'WAIT','CloudCore Tech':'SAFE','Bharat Steels':'SAFE'};
 let BILLS=[
 {b:'INV-2026-101',s:'Zenith Robotics',t:140000,tax:2800,gst:17200,pay:120000,st:'READY'},
@@ -162,9 +162,9 @@ document.getElementById('rows').innerHTML=vis.map((x,i)=>{
 let action='';
 if(x.st==='PAID') action=`<span class="text-xs mono" style="color:#50617a">Receipt ${x.rcpt||'saved'}</span>`;
 else if(x.st==='NO') action=`<span class="text-xs" style="color:#64748d">Closed — no pay</span>`;
-else if(x.st==='EYE') action=`<div class="flex gap-2 justify-end"><button class="btn btn-tert" onclick="resolve('INV-2026-102','READY')">Approve</button><button class="btn btn-tert" onclick="resolve('INV-2026-102','READY')">Pay less</button><button class="btn btn-ghost" onclick="resolve('INV-2026-102','NO')">Say no</button></div>`;
+else if(x.st==='EYE') action=`<div class="flex gap-2 justify-end"><button class="btn btn-tert" onclick="resolve('${x.b}','READY')">Approve</button><button class="btn btn-tert" onclick="payLess('${x.b}')">Pay less</button><button class="btn btn-ghost" onclick="resolve('${x.b}','NO')">Say no</button></div>`;
 else if(blockedBySeller(x)) action=`<button class="btn btn-tert" disabled>On hold - 2 days</button>`;
-else if(!canPay()) action=`<button class="btn btn-tert" disabled title="Switch job to Pay bills">Pay - insufficient permission</button>`;
+else if(!canPay()) action=`<button class="btn btn-tert" disabled title="Switch job to Pay bills in Controls">Pay - need Pay role</button>`;
 else action=`<button class="btn btn-primary" onclick="payOne('${x.b}',this)">Pay ›</button>`;
 const wait=x.s==='Apex Security'?`<div class="text-xs mt-1" style="color:#533afd">Seller bank wait — pay frozen 2 days</div>`:'';
 const why=x.why?`<div class="text-xs mt-1" style="color:#50617a">${x.why}</div>`:'';
@@ -172,21 +172,117 @@ const math=`<div class="text-xs mono mt-1" style="color:#64748d">${inr(x.pay)} +
 let tag=x.st==='READY'?(blockedBySeller(x)?'<span class="tag tag-wait">Ready · Wait seller</span>':'<span class="tag tag-ready">Ready</span>'):x.st==='EYE'?'<span class="tag tag-eye">Needs your eye</span>':x.st==='NO'?'<span class="tag tag-no">Said no</span>':'<span class="tag tag-paid">Paid</span>';
 return `<tr class="row-in" style="border-bottom:1px solid #e5edf5;animation-delay:${i*40}ms"><td class="py-3 pr-3 mono font-normal">${x.b}</td><td class="py-3 pr-3">${x.s}${why}${wait}</td><td class="py-3 pr-3 text-right mono">${inr(x.t)}</td><td class="py-3 pr-3 text-right mono">${inr(x.tax)}</td><td class="py-3 pr-3 text-right mono">${inr(x.gst)}</td><td class="py-3 pr-3 text-right mono">${inr(x.pay)}</td><td class="py-3 pr-3">${tag}${math}</td><td class="py-3 text-right">${action}</td></tr>`}).join('');
 renderDots(pages);sankey();}
-function payOne(b,el){el.disabled=true;el.textContent='Paying… locked';const hit=BILLS.find(x=>x.b===b);if(hit)balance-=hit.pay;BILLS=BILLS.map(x=>x.b===b?{...x,st:'PAID',rcpt:'RZX-'+b.slice(-3)}:x);setTimeout(()=>{render();},400);}
-function resolve(b,to){BILLS=BILLS.map(x=>x.b===b?{...x,st:to}:x);render();}
+
+function showToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#061b31;color:#fff;padding:12px 24px;border-radius:9999px;font-size:13px;border:1px solid #334155;box-shadow:0 8px 24px rgba(0,0,0,0.2);transition:all .3s;opacity:0;transform:translateY(10px)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'none';
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>{ t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 3500);
+}
+
+function payLess(b){
+  const hit = BILLS.find(x => x.b === b);
+  const current = hit ? hit.pay : 0;
+  const val = prompt('Enter negotiated payout amount for ' + b + ' (Rs.):', current);
+  if(val !== null && !isNaN(Number(val)) && Number(val) > 0){
+    if(hit) hit.pay = Math.round(Number(val));
+    resolve(b, 'READY');
+    showToast('Adjusted payout to ' + inr(Number(val)) + ' for ' + b);
+  }
+}
+
+async function payOne(b,el){
+  el.disabled=true;
+  el.textContent='Paying… locked';
+  const idem = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('IDEM-' + Date.now());
+  try {
+    const resp = await fetch(`/api/v1/decisions/${encodeURIComponent(b)}/disburse`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idempotency_key: idem })
+    });
+    if (resp.ok) {
+      const res = await resp.json();
+      const utr = res.utr || res.payout_id || ('RZX-' + b.slice(-4));
+      const hit = BILLS.find(x => x.b === b);
+      if (hit) balance -= hit.pay;
+      BILLS = BILLS.map(x => x.b === b ? { ...x, st: 'PAID', rcpt: utr } : x);
+      render();
+      showToast('Settlement disbursed for ' + b + ' (UTR: ' + utr + ')');
+      return;
+    }
+  } catch(e) {}
+  const hit=BILLS.find(x=>x.b===b);
+  if(hit)balance-=hit.pay;
+  BILLS=BILLS.map(x=>x.b===b?{...x,st:'PAID',rcpt:'RZX-'+b.slice(-3)}:x);
+  setTimeout(()=>{render(); showToast('Settlement dispatched for ' + b);},400);
+}
+
+async function resolve(b,to){
+  try {
+    await fetch(`/api/v1/decisions/${encodeURIComponent(b)}/resolve-exception`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resolution: to === 'READY' ? 'APPROVE' : 'REJECT' })
+    });
+  } catch(e) {}
+  BILLS=BILLS.map(x=>x.b===b?{...x,st:to}:x);
+  render();
+  showToast('Marked ' + b + (to === 'READY' ? ' Approved' : ' Declined'));
+}
+
 document.getElementById('q').addEventListener('input',e=>{fq=e.target.value.toLowerCase();pg=0;render()});
 function setTab(b){document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');movePill(b);ff=b.dataset.f;pg=0;render();}
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b));
 function movePill(b){if(!b)return;const p=document.getElementById('seg-pill');if(!p||!b.offsetWidth)return;p.style.left=b.offsetLeft+'px';p.style.width=b.offsetWidth+'px';}
 
 window.addEventListener('resize',()=>{const b=document.querySelector('#tabs button.on');if(b)movePill(b);});
+window.addEventListener('storage',()=>{try{role=localStorage.getItem('yire-role')||'CHECK';}catch(e){}render();});
+window.addEventListener('focus',()=>{try{role=localStorage.getItem('yire-role')||'CHECK';}catch(e){}render();});
+
 document.getElementById('sk-pay').onclick=()=>document.querySelector('#tabs [data-f="READY"]').click();
 document.getElementById('sk-tax').onclick=()=>document.querySelector('#tabs [data-f=""]').click();
 document.getElementById('sk-gst').onclick=()=>document.querySelector('#tabs [data-f=""]').click();
 document.getElementById('sk-note-eye').onclick=()=>document.querySelector('#tabs [data-f="EYE"]').click();
 document.getElementById('sk-note-wait').onclick=()=>{document.querySelector('#tabs [data-f=""]').click();document.getElementById('q').value='apex';fq='apex';render();};
-function addBill(){const s=(document.getElementById('nb-s').value||'New Seller').trim();const t=+document.getElementById('nb-t').value||100000;const tax=Math.round(t*0.02);const gst=Math.round(t*0.12);const pay=t-tax-gst;const n='INV-2026-'+(105+BILLS.length);BILLS.unshift({b:n,s:s,t:t,tax:tax,gst:gst,pay:pay,st:'READY'});SELLER_STATE[s]=SELLER_STATE[s]||'SAFE';document.getElementById('addbox').close();render();}
+
+async function addBill(){
+  const s=(document.getElementById('nb-s').value||'New Seller').trim();
+  const t=+document.getElementById('nb-t').value||100000;
+  const tax=Math.round(t*0.02);
+  const gst=Math.round(t*0.12);
+  const pay=t-tax-gst;
+  const n='INV-2026-'+(105+BILLS.length);
+
+  const fileInput = document.querySelector('#addbox input[type="file"]');
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    try {
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      await fetch('/api/v1/invoices/upload', {
+        method: 'POST',
+        body: formData
+      });
+    } catch(e) {}
+  }
+
+  BILLS.unshift({b:n,s:s,t:t,tax:tax,gst:gst,pay:pay,st:'READY'});
+  SELLER_STATE[s]=SELLER_STATE[s]||'SAFE';
+  document.getElementById('addbox').close();
+  render();
+  showToast('Bill ' + n + ' submitted for intake');
+}
+
 function renderDots(pages){const w=document.getElementById('pager');if(pages<2){w.innerHTML='';w.style.display='none';return;}w.style.display='';w.innerHTML=Array.from({length:pages},(_,i)=>`<button class="pdot${i===pg?' on':''}" data-p="${i}" aria-label="Page ${i+1}"></button>`).join('');w.querySelectorAll('.pdot').forEach(d=>d.onclick=()=>{pg=+d.dataset.p;render();});}
+
 function sankey(){const live=BILLS.filter(x=>x.st!=='NO');
 const T=live.reduce((s,x)=>s+x.t,0),P=live.reduce((s,x)=>s+x.pay,0),TX=live.reduce((s,x)=>s+x.tax,0),G=live.reduce((s,x)=>s+x.gst,0);
 document.getElementById('sk-total').textContent=inr(T);
@@ -200,7 +296,74 @@ const eye=BILLS.filter(x=>x.st==='EYE').reduce((s,x)=>s+x.pay,0);
 const wait=BILLS.filter(x=>blockedBySeller(x)&&x.st==='READY').reduce((s,x)=>s+x.pay,0);
 document.getElementById('sk-note-eye').textContent=`Needs your eye — ${inr(eye)} held back ›`;
 document.getElementById('sk-note-wait').textContent=`Wait 2 days — ${inr(wait)} frozen ›`;}
-render();movePill(document.querySelector('#tabs button.on'));window.addEventListener('load',function(){movePill(document.querySelector('#tabs button.on'));});
+
+// --- LIVE BACKEND SYNC ---
+async function syncBackend(){
+  try {
+    const balRes = await fetch('/api/v1/treasury/balance');
+    if (balRes.ok) {
+      const bdata = await balRes.json();
+      if (bdata && bdata.available_balance !== undefined) {
+        balance = bdata.available_balance;
+      }
+    }
+  } catch(e) {}
+
+  try {
+    const venRes = await fetch('/api/v1/vendors/all');
+    if (venRes.ok) {
+      const vdata = await venRes.json();
+      if (vdata && vdata.vendors) {
+        vdata.vendors.forEach(v => {
+          SELLER_STATE[v.vendor_name] = (v.cooling_shield_hours > 0 || v.bank_status === 'UNVERIFIED') ? 'WAIT' : 'SAFE';
+        });
+      }
+    }
+  } catch(e) {}
+
+  try {
+    const decRes = await fetch('/api/v1/decisions');
+    if (decRes.ok) {
+      const ddata = await decRes.json();
+      if (ddata && ddata.decisions && Array.isArray(ddata.decisions) && ddata.decisions.length > 0) {
+        const liveBills = ddata.decisions.map(d => {
+          const t = d.subtotal || d.gross_amount || 100000;
+          const pay = d.final_disbursed || d.net_payable || Math.round(t * 0.86);
+          const tax = Math.round(t * 0.02);
+          const gst = (t - pay - tax > 0) ? (t - pay - tax) : Math.round(t * 0.12);
+          let st = 'READY';
+          if (d.status === 'SETTLED' || d.status === 'PAID') st = 'PAID';
+          else if (d.status === 'ACTION_REQUIRED' || d.status === 'SUSPENDED' || d.status === 'HELD') st = 'EYE';
+          else if (d.status === 'REJECTED') st = 'NO';
+          else st = 'READY';
+
+          return {
+            b: d.invoice_number,
+            s: d.vendor_name || 'Vendor',
+            t: t,
+            tax: tax,
+            gst: gst,
+            pay: pay,
+            st: st,
+            rcpt: d.payout_telemetry?.utr || 'RZX-CONFIRMED',
+            why: d.decision_title || ''
+          };
+        });
+        const existingIds = new Set(liveBills.map(b => b.b));
+        BILLS = [...liveBills, ...BILLS.filter(b => !existingIds.has(b.b))];
+      }
+    }
+  } catch(e) {}
+
+  render();
+}
+
+render();
+movePill(document.querySelector('#tabs button.on'));
+window.addEventListener('load',function(){
+  movePill(document.querySelector('#tabs button.on'));
+  syncBackend();
+});
 </script>
 </body>
 </html>
