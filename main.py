@@ -1057,6 +1057,10 @@ async def create_purchase_order(payload: Dict[str, Any] = Body(...)):
         rates=rates,
         grn_quantities=grn_qtys
     )
+    try:
+        store.save_purchase_order(po_num, entry)
+    except Exception as e:
+        logger.warning(f"PO Firestore persist skipped: {e}")
     return {
         "status": "SUCCESS",
         "vendor_id": vendor_id,
@@ -5337,6 +5341,12 @@ async def upload_invoice_pdf(
         _po_m = re.search(r"\bPO\s*(?:(?:Number|No\.?|#)\s*[:.]?|:)\s*([A-Za-z0-9\-_/]+)", extracted_text or "", re.I)
         if _po_m:
             _po_ref = _po_m.group(1).strip()
+    if _po_ref:
+        try:
+            from services.po_registry import PoRegistry
+            PoRegistry.get_purchase_order_by_number(_po_ref, store=store)
+        except Exception as e:
+            logger.warning(f"PO registry warm skipped: {e}")
     mock_items = [
 
         InvoiceLineItem(
