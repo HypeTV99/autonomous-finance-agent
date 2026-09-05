@@ -776,8 +776,6 @@ async def handle_gcs_pubsub_event(request: Request):
 
         if name.lower().endswith(".zip"):
 
-            import io
-
             import zipfile
 
             with zipfile.ZipFile(io.BytesIO(file_bytes)) as z:
