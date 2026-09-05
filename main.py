@@ -316,7 +316,7 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Invoice / CN Number
 
-            inv_match = re.search(r"( - :Invoice\s*( - :No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
+            inv_match = re.search(r"(?:Invoice\s*(?:No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
 
             inv_num = inv_match.group(1).strip() if inv_match else f"INV-{doc_name.replace('.pdf', '')}"
 
@@ -340,13 +340,13 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Document Type Classification
 
-            has_tax_invoice = bool(re.search(r"( - :TAX\s*INVOICE|COMMERCIAL\s*INVOICE|BILL\s*OF\s*SUPPLY)", text, re.I))
+            has_tax_invoice = bool(re.search(r"(?:TAX\s*INVOICE|COMMERCIAL\s*INVOICE|BILL\s*OF\s*SUPPLY)", text, re.I))
 
             has_credit_note_title = bool(re.search(r"^\s*CREDIT\s*NOTE", text, re.I | re.M) or re.search(r"\n\s*CREDIT\s*NOTE", text, re.I))
 
-            has_cn_number = bool(re.search(r"( - :Credit\s*Note\s*( - :No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
+            has_cn_number = bool(re.search(r"(?:Credit\s*Note\s*(?:No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
 
-            has_inv_number = bool(re.search(r"( - :Invoice\s*( - :No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
+            has_inv_number = bool(re.search(r"(?:Invoice\s*(?:No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
 
             is_credit_note = False
 
@@ -366,11 +366,11 @@ async def handle_gcs_pubsub_event(request: Request):
 
             if is_credit_note:
 
-                cn_match = re.search(r"( - :Credit\s*Note\s*( - :No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
+                cn_match = re.search(r"(?:Credit\s*Note\s*(?:No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
 
                 cn_id = cn_match.group(1).strip() if cn_match else f"CN-{doc_name.replace('.pdf', '')}"
 
-                cn_amt_match = re.search(r"( - :Total Credit Value|Total Credit Available|Credit Amount|Total Amount|Total|Subtotal)[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+                cn_amt_match = re.search(r"(?:Total Credit Value|Total Credit Available|Credit Amount|Total Amount|Total|Subtotal)[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
                 credit_amount = Decimal(cn_amt_match.group(1).replace(",", "")) if cn_amt_match else Decimal("0.00")
 
@@ -410,15 +410,15 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Subtotal & Tax
 
-            sub_match = re.search(r"Subtotal[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+            sub_match = re.search(r"Subtotal[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
             subtotal_val = Decimal(sub_match.group(1).replace(",", "")) if sub_match else Decimal("0.00")
 
-            total_match = re.search(r"Total Invoice Value[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+            total_match = re.search(r"Total Invoice Value[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
             if not total_match:
 
-                total_match = re.search(r"( - :Grand Total|Total Amount|Total Value|Total)[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+                total_match = re.search(r"(?:Grand Total|Total Amount|Total Value|Total)[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
             if total_match:
 
@@ -5034,7 +5034,7 @@ def extract_vendor_from_text_or_filename(text: str, filename: str) -> str:
 
         if any(kw in line.lower() for kw in ["pvt ltd", "private limited", "llp", "ltd", "technologies", "infotech", "robotics", "labs", "systems", "logistics", "corporation", "enterprises", "contractor", "services", "automation", "studio", "advisors", "consulting", "solutions"]):
 
-            cleaned = re.sub(r'^( - :Account Name|Vendor|From|Billed By|For|Beneficiary)\s*[:] - \s*', '', line, flags=re.I).strip()
+            cleaned = re.sub(r'^(?:Account Name|Vendor|From|Billed By|For|Beneficiary)\s*[:]?\s*', '', line, flags=re.I).strip()
 
             cleaned = re.sub(r'^\([^\)]*\)\s*', '', cleaned).strip()
 
@@ -5056,7 +5056,7 @@ def extract_vendor_from_text_or_filename(text: str, filename: str) -> str:
 
     clean_name = os.path.splitext(filename)[0]
 
-    clean_name = re.sub(r'^( - :INV|CN)[-_0-9]*_', '', clean_name)
+    clean_name = re.sub(r'^(?:INV|CN)[-_0-9]*_', '', clean_name)
 
     clean_name = clean_name.replace('_', ' ').replace('-', ' ').strip()
 
@@ -5067,59 +5067,32 @@ def extract_vendor_from_text_or_filename(text: str, filename: str) -> str:
     return "Alpha Tech Labs Pvt Ltd"
 
 def extract_invoice_number(text: str, filename: str) -> str:
-
-    inv_match = re.search(r'\b( - :Invoice\s*( - :No|Number|#)|INV\s*NO|Invoice\s*ID)\s*[:.\s]+([A-Za-z0-9\-_/]+)', text, re.I)
-
+    inv_match = re.search(r'\b(?:Invoice\s*(?:No|Number|#)|INV\s*NO|Invoice\s*ID)\s*[:.\s]+([A-Za-z0-9\-_/]+)', text, re.I)
     if inv_match:
-
         val = inv_match.group(1).strip()
-
         if val.upper() not in ["TAX", "INVOICE", "DATE", "NO", "NUMBER", "DETAILS", "TO", "BUYER"]:
-
             return val
-
     inv_pattern = re.search(r'\b(INV[-_][A-Za-z0-9\-_]+)\b', text, re.I)
-
     if inv_pattern:
-
         return inv_pattern.group(1).strip().replace('_', '-')
-
     f_match = re.search(r'(INV[-_0-9]+)', filename, re.I)
-
     if f_match:
-
         return f_match.group(1).replace('_', '-')
-
     return f"INV-{uuid.uuid4().hex[:6].upper()}"
-
 def extract_subtotal(text: str) -> float:
-
-    amt_match = re.search(r'( - :Subtotal\s*( - :\([^\)]*\)) - |Taxable Value|Total Amount|Sub Total)\s*[:.] - \s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.[0-9]{2}) - )', text, re.I)
-
+    amt_match = re.search(r'(?:Subtotal\s*(?:\([^\)]*\))?|Taxable Value|Total Amount|Sub Total)\s*[:.]?\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]{2})?)', text, re.I)
     if amt_match:
-
         try:
-
             return float(amt_match.group(1).replace(',', ''))
-
         except ValueError:
-
             pass
-
-    amt_match = re.search(r'( - :Total|Amount|INR|Rs\. - |INR )\s*[:.] - \s*([0-9,]+( - :\.[0-9]{2}) - )', text, re.I)
-
+    amt_match = re.search(r'(?:Total|Amount|INR|Rs\.?|₹)\s*[:.]?\s*([0-9,]+(?:\.[0-9]{2})?)', text, re.I)
     if amt_match:
-
         try:
-
             return float(amt_match.group(1).replace(',', ''))
-
         except ValueError:
-
             pass
-
     return 100000.0
-
 def extract_credit_note_details(p_text: str, filename: str) -> tuple[str, float]:
     cn_match = re.search(r"(?:Credit\s*Note\s*(?:No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", p_text, re.I)
     cn_id = cn_match.group(1).strip() if cn_match else f"CN-{filename.replace('.pdf', '')}"
@@ -5152,6 +5125,8 @@ async def upload_invoice_pdf(
     credit_notes_found = []
     total_credit_applied = 0.0
     invoice_num = f"INV-{uuid.uuid4().hex[:6].upper()}"
+    filename = "invoice.pdf"
+    file_sha256 = ""
     vendor_name = "Alpha Tech Labs Pvt Ltd"
     bank_age_hours = 720
     import io
@@ -5173,6 +5148,7 @@ async def upload_invoice_pdf(
             else:
                 extracted_text += p_text + " "
                 invoice_num = extract_invoice_number(p_text, f_name)
+                filename = f_name
                 vendor_name = extract_vendor_from_text_or_filename(p_text, f_name)
                 subtotal = extract_subtotal(p_text)
                 file_sha256 = hashlib.sha256(f_bytes).hexdigest()
@@ -5186,6 +5162,7 @@ async def upload_invoice_pdf(
             raise HTTPException(status_code=400, detail="Empty file uploaded. Please upload a valid invoice PDF or ZIP.")
 
         if filename.lower().endswith(".zip"):
+            file_sha256 = hashlib.sha256(content).hexdigest()
             try:
                 with zipfile.ZipFile(io.BytesIO(content)) as z:
                     pdf_names = [f for f in z.namelist() if f.lower().endswith(".pdf") and not f.startswith("__MACOSX")]
