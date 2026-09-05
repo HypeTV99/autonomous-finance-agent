@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Yire — Sellers</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{ink:'#061b31'},fontFamily:{sans:['Inter Tight','system-ui','sans-serif']}}}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+<style>
+*{box-shadow:none!important}
+body{font-family:'Inter Tight',system-ui,sans-serif;font-weight:300;color:#061b31;background:#fff;font-feature-settings:"ss01" on,"tnum" on}
+h1,h2{font-weight:300;letter-spacing:-0.02em}
+.card{background:#fff;border:1px solid #e5edf5;border-radius:4px}
+.btn{display:inline-flex;align-items:center;gap:.5rem;font-weight:400;font-size:14px;padding:14.5px 24px;border-radius:9999px;border:1px solid transparent;cursor:pointer;text-decoration:none;color:#061b31}
+.btn-primary{background:#533afd;color:#fff}.btn-ghost{background:transparent;color:#533afd;border-color:#b9b9f9}.btn-tert{background:transparent;color:#533afd;border-color:#d6d9fc;padding:10px 16px}
+.nav-a{font-weight:400;font-size:14px;color:#061b31;text-decoration:none;padding:8px 4px;margin-right:8px}.nav-a.on{color:#533afd;border-bottom:2px solid #533afd}
+.tag{display:inline-block;font-size:12px;font-weight:400;padding:4px 12px;border-radius:9999px;border:1px solid #e5edf5}
+.tag-safe{background:#533afd;color:#fff;border-color:#533afd}.tag-wait{background:#fff;color:#533afd;border-color:#b9b9f9}
+.divider{border-top:1px solid #e5edf5}
+input{border:1px solid #e5edf5!important;border-radius:4px!important}
+.material-symbols-outlined{color:#533afd}
+.seg button,.seg a{position:relative;z-index:1;border:0;background:transparent;font:400 13px 'Inter Tight',sans-serif;padding:8px 16px;color:#64748d;cursor:pointer;border-radius:9999px;white-space:nowrap;text-decoration:none}
+.seg button.on,.seg a.on{color:#fff}
+.seg-pill{position:absolute;top:4px;left:0;height:calc(100% - 8px);width:0;background:#533afd;border-radius:9999px;pointer-events:none;transition:left .35s cubic-bezier(.34,1.3,.64,1),width .35s cubic-bezier(.34,1.3,.64,1)}
+dialog::backdrop{background:rgba(6,27,49,.45)}
+@view-transition{navigation:auto}
+main{animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pageOut{to{opacity:0;transform:translateY(-6px)}}
+::view-transition-old(root){animation:pageOut .25s ease both}
+::view-transition-new(root){animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
+@media(prefers-reduced-motion:reduce){main{animation:none}::view-transition-old(root),::view-transition-new(root){animation:none}}
+</style>
+</head>
+<body>
+<header class="sticky top-0 z-40 bg-white" style="border-bottom:1px solid #e5edf5;height:76px">
+<div class="mx-auto px-6 flex items-center gap-3" style="max-width:1320px;height:76px">
+<div class="font-bold" style="font-size:18px">Yire</div>
+<div class="text-xs" style="color:#64748d">Vendor directory</div>
+<nav class="ml-6 flex"><a class="nav-a" href="index.html">Bills</a><a class="nav-a on" href="sellers.html">Sellers</a><a class="nav-a" href="records.html">Records</a><a class="nav-a" href="controls.html">Controls</a></nav>
+</div></header>
+<main class="mx-auto px-6 py-10" style="max-width:1320px">
+<div class="text-xs uppercase" style="color:#64748d;letter-spacing:.5px">Sellers</div>
+<h1 style="font-size:48px;line-height:1.03;letter-spacing:-0.96px">Vendors</h1>
+<section class="grid grid-cols-3 gap-6 py-10">
+<div><div class="text-xs uppercase" style="color:#64748d">Sellers</div><div style="font-size:48px">4</div></div>
+<div><div class="text-xs uppercase" style="color:#64748d">Safe to pay</div><div style="font-size:48px;color:#533afd">3</div></div>
+<div><div class="text-xs uppercase" style="color:#64748d">Wait</div><div style="font-size:48px">1</div></div>
+</section>
+<div class="divider"></div>
+<section class="py-10">
+<div class="flex gap-2 items-center"><h2 style="font-size:32px">Sellers</h2><input id="q" class="ml-auto text-sm px-4 py-2 w-72" style="padding:14.5px 16px" placeholder="Search seller…"/></div>
+<table class="w-full text-sm mt-6"><thead class="text-left text-xs uppercase" style="color:#64748d;border-bottom:1px solid #e5edf5"><tr><th class="py-3 pr-3">Seller</th><th class=\"py-3 pr-3\">State</th><th class=\"py-3 pr-3\">Tax</th><th class=\"py-3 pr-3 text-right\">Paid so far</th><th class="py-3 pr-3">Bank</th><th class="py-3"></th></tr></thead><tbody id="rows"></tbody></table>
+</section>
+<div class="divider"></div>
+</main>
+<dialog id="box" class="card p-0 w-full max-w-md"><div class="p-8">
+<div class="flex items-start justify-between"><div><div id="d-name" style="font-size:26px">Seller</div><div id="d-sub" class="text-sm" style="color:#64748d">Details</div></div><button class="btn btn-tert" onclick="document.getElementById('box').close()">Close</button></div>
+<div id="d-body" class="text-sm mt-4 space-y-3"></div>
+</div></dialog>
+<script>
+const S=[{n:'Zenith Robotics',st:'SAFE',tx:'2%',paid:'Rs.4,20,000',bank:'HDFC ••4021',note:'Verified. No holds.'},{n:'Apex Security',st:'WAIT',tx:'2%',paid:'Rs.1,10,000',bank:'ICICI ••8814',note:'Beneficiary changed. Payouts frozen for 2 days.'},{n:'CloudCore Tech',st:'SAFE',tx:'20%',paid:'Rs.6,80,000',bank:'SBI ••3302',note:'Verified. Enhanced withholding applied.'},{n:'Bharat Steels',st:'SAFE',tx:'2%',paid:'Rs.2,40,000',bank:'Axis ••7745',note:'Verified. No holds.'}];
+let fq='';
+function render(){const r=S.filter(x=>(x.n+x.st).toLowerCase().includes(fq));
+document.getElementById('rows').innerHTML=r.map(x=>`<tr style="border-bottom:1px solid #e5edf5"><td class="py-3 pr-3">${x.n}</td><td class="py-3 pr-3"><span class="tag ${x.st==='SAFE'?'tag-safe':'tag-wait'}">${x.st==='SAFE'?'Safe to pay':'Wait 2 days'}</span></td><td class=\"py-3 pr-3\"><span class=\"tag ${x.tx==='20%'?'tag-wait':'tag-safe'}\">TDS ${x.tx}</span></td><td class="py-3 pr-3 text-right">${x.paid}</td><td class="py-3 pr-3" style="color:#50617a">${x.bank}</td><td class="py-3 text-right"><button class="btn btn-tert" onclick='openD(${JSON.stringify(x.n)})'>View ›</button></td></tr>`).join('');}
+function openD(n){const x=S.find(a=>a.n===n);document.getElementById('d-name').textContent=x.n;document.getElementById('d-sub').textContent=x.st==='SAFE'?'Safe to pay':'Please wait';document.getElementById('d-body').innerHTML=`<div style="border:1px solid #e5edf5;border-radius:4px;padding:12px"><b>Paid so far:</b> ${x.paid}</div><div style="border:1px solid #e5edf5;border-radius:4px;padding:12px"><b>Bank:</b> ${x.bank} (masked)</div><div style="border:1px solid #b9b9f9;background:#e8e9ff;border-radius:4px;padding:12px">${x.note}</div>`;document.getElementById('box').showModal();}
+document.getElementById('q').addEventListener('input',e=>{fq=e.target.value.toLowerCase();render()});
+render();
+</script>
+</body>
+</html>
