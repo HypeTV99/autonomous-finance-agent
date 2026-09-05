@@ -50,9 +50,11 @@ function switchAppScreen(screenId) {
     }
     if (navBtn) {
       if (s === screenId) {
-        navBtn.className = "nav-app-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left";
+        navBtn.className = "nav-app-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left shadow-sm";
+        navBtn.style.cssText = "";
       } else {
-        navBtn.className = "nav-app-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left";
+        navBtn.className = "nav-app-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-semibold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left";
+        navBtn.style.cssText = "";
       }
     }
   });
@@ -89,9 +91,11 @@ function switchManualTab(tab) {
     const form = document.getElementById(`form-manual-${t}`);
     if (btn) {
       if (t === tab) {
-        btn.className = "focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-lg bg-white text-slate-900 font-bold shadow-2xs transition-smooth";
+        btn.className = "focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-lg font-bold transition-smooth bg-slate-900 text-white";
+        btn.style.cssText = "";
       } else {
         btn.className = "focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth";
+        btn.style.cssText = "";
       }
     }
     if (form) {
@@ -597,7 +601,7 @@ function renderDetailModalContent() {
           </div>
           <div class="grid grid-cols-2 gap-2 text-[11px] font-mono pt-1">
             <div><span class="text-slate-400 font-sans block">Bank Entity:</span>HDFC Bank Limited</div>
-            <div><span class="text-slate-400 font-sans block">Account Mask:</span>••••••••4021</div>
+            <div><span class="text-slate-400 font-sans block">Account Mask:</span>********4021</div>
             <div><span class="text-slate-400 font-sans block">IFSC:</span>HDFC0000060</div>
             <div><span class="text-slate-400 font-sans block">UTR Status:</span>${inv.status === 'SETTLED' ? 'RZX20260827184001A8F' : 'Ready for Clearing'}</div>
           </div>
