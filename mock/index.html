@@ -1,372 +1,377 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Yire — Bills</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config={theme:{extend:{colors:{ink:'#061b31',slate2:'#64748d',steel:'#50617a',smoke:'#839bc8',mist:'#f8fafd',frost:'#e5edf5',indigoink:'#533afd',indigohover:'#7389ff',lav:'#b9b9f9',lilac:'#d6d9fc',wash:'#e8e9ff'},fontFamily:{sans:['Inter Tight','sohne-var','system-ui','sans-serif'],mono:['Inter Tight','system-ui','sans-serif']}}}}</script>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
-<style>
-:root{--color-indigo-ink:#533afd;--color-midnight-ink:#061b31;--color-slate:#64748d;--color-frost:#e5edf5;--color-mist:#f8fafd;--color-wash:#e8e9ff;--color-lav:#b9b9f9;--color-lilac:#d6d9fc}
-*{box-shadow:none!important}
-body{font-family:'Inter Tight','sohne-var',system-ui,sans-serif;font-weight:300;color:#061b31;background:#fff;font-feature-settings:"ss01" on,"tnum" on}
-h1,h2{font-weight:300;letter-spacing:-0.02em;color:#061b31}
-.stat{font-weight:300;letter-spacing:-0.02em;font-feature-settings:"tnum" on}
-.mono{font-feature-settings:"tnum" on;letter-spacing:-0.01em}
-.card{background:#fff;border:1px solid #e5edf5;border-radius:4px}
-.btn{display:inline-flex;align-items:center;gap:.5rem;font-weight:400;font-size:14px;padding:14.5px 24px;border-radius:9999px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:background .15s}
-.btn-primary{background:#533afd;color:#fff}
-.btn-primary:hover:not(:disabled){background:#7389ff}
-.btn-ghost{background:transparent;color:#533afd;border-color:#b9b9f9}
-.btn-ghost:hover:not(:disabled){background:#e5edf5}
-.btn-tert{background:transparent;color:#533afd;border-color:#d6d9fc;padding:10px 16px}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.nav-a{font-weight:400;font-size:14px;color:#061b31;text-decoration:none;padding:8px 4px;margin-right:8px}
-.nav-a.on{color:#533afd;border-bottom:2px solid #533afd}
-.tag{display:inline-block;font-size:12px;font-weight:400;padding:4px 12px;border-radius:9999px;border:1px solid #e5edf5}
-.tag-ready{background:#533afd;color:#fff;border-color:#533afd}
-.tag-eye{background:#e8e9ff;color:#533afd;border-color:#b9b9f9}
-.tag-wait{background:#fff;color:#533afd;border-color:#b9b9f9}
-.tag-paid{background:#f8fafd;color:#50617a;border-color:#e5edf5}
-.tag-no{background:#fff;color:#64748d;border-color:#d6d9fc}
-.divider{border-top:1px solid #e5edf5}
-.row-in{animation:up .3s both}@keyframes up{from{opacity:0;transform:translateY(6px)}}
-input,select{border:1px solid #e5edf5!important;border-radius:4px!important}
-dialog::backdrop{background:rgba(6,27,49,.45)}
-.material-symbols-outlined{color:#533afd;font-variation-settings:'FILL' 0,'wght' 400}
-#sankey path.flow{transition:opacity .2s, stroke-width .3s;cursor:pointer}
-#sankey path.flow:hover{opacity:.7}
-.seg{position:relative;display:inline-flex;background:#f8fafd;border:1px solid #e5edf5;border-radius:9999px;padding:4px}
-.seg button,.seg a{position:relative;z-index:1;border:0;background:transparent;font:400 13px 'Inter Tight',sans-serif;padding:8px 16px;color:#64748d;cursor:pointer;border-radius:9999px;white-space:nowrap;text-decoration:none}
-.seg button.on,.seg a.on{color:#fff}
-.seg-pill{position:absolute;top:4px;left:0;height:calc(100% - 8px);width:0;background:#533afd;border-radius:9999px;pointer-events:none;transition:left .35s cubic-bezier(.34,1.3,.64,1),width .35s cubic-bezier(.34,1.3,.64,1)}
-.pager{display:flex;align-items:center;gap:8px;border:1px solid #e5edf5;border-radius:9999px;padding:10px 14px;background:#fff;width:fit-content;margin:16px auto}
-.pdot{height:8px;width:8px;border-radius:9999px;background:#e5edf5;border:0;cursor:pointer;padding:0;transition:all .3s cubic-bezier(.34,1.3,.64,1)}
-.pdot.on{width:24px;background:#533afd}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@view-transition{navigation:auto}
-main{animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
-@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@keyframes pageOut{to{opacity:0;transform:translateY(-6px)}}
-::view-transition-old(root){animation:pageOut .25s ease both}
-::view-transition-new(root){animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
-</style>
-</head>
-<body>
-<header class="sticky top-0 z-40 bg-white" style="border-bottom:1px solid #e5edf5;height:76px">
-<div class="mx-auto px-6 flex items-center gap-3" style="max-width:1320px;height:76px">
-<div class="font-bold" style="font-size:18px;letter-spacing:-0.18px">Yire</div>
-<nav class="ml-6 flex"><a class="nav-a on" href="index.html">Bills</a><a class="nav-a" href="sellers.html">Sellers</a><a class="nav-a" href="records.html">Records</a><a class="nav-a" href="controls.html">Controls</a></nav>
-</div></header>
-<main class="mx-auto px-6 py-10" style="max-width:1320px">
-<section class="pb-10">
-<div class="text-xs uppercase" style="color:#64748d;letter-spacing:.5px">Yire · Bills</div>
-<h1 style="font-size:40px;line-height:1.05;letter-spacing:-0.8px" class="mt-2">Bills payable</h1>
-<div class="mt-6 flex gap-2"><button class="btn btn-primary" onclick="document.getElementById('addbox').showModal()">Add bill ›</button><a class="btn btn-ghost" href="records.html">See proof ›</a></div>
-</section>
-<div class="divider"></div>
-<section class="grid grid-cols-3 gap-6 py-10">
-<div><div class="text-xs uppercase" style="color:#64748d">Paid so far</div><div class="stat mono" id="n-paid" style="font-size:48px">—</div><div class="text-sm" style="color:#50617a">Settled to date</div></div>
-<div><div class="text-xs uppercase" style="color:#64748d">To pay now</div><div class="stat mono" id="n-topay" style="font-size:48px;color:#533afd">—</div><div class="text-sm" style="color:#50617a">Cleared for payment</div></div>
-<div><div class="text-xs uppercase" style="color:#64748d">Cash left</div><div class="stat mono" id="n-bal" style="font-size:48px">Rs.5,00,000</div><div class="text-sm" style="color:#50617a" id="cash-note">Available balance</div></div>
-</section>
-<section class="card p-8" style="background:#f8fafd">
-<div class="text-xs uppercase" style="color:#64748d;letter-spacing:.5px">Saved this month</div>
-<div class="grid grid-cols-3 gap-6 mt-2">
-<div><div class="stat mono" style="font-size:32px;color:#533afd">Rs.8,400</div><div class="text-sm" style="color:#50617a">Early-payment discounts</div></div>
-<div><div class="stat mono" style="font-size:32px">Rs.25,800</div><div class="text-sm" style="color:#50617a">Tax withheld</div></div>
-<div><div class="stat mono" style="font-size:32px">Rs.54,240</div><div class="text-sm" style="color:#50617a">GST retained</div></div>
-</div>
-</section>
-<div class="divider"></div>
-<section class="py-10"><div class="text-xs uppercase" style="color:#64748d">Cash flow</div>
-<h2 style="font-size:32px;letter-spacing:-0.64px">Money flow</h2>
-<div class="card mt-6 p-8">
-<div class="flex items-center justify-between">
-<div><div class="text-xs uppercase" style="color:#64748d;letter-spacing:.5px">Settlement flow</div>
-<div class="mt-1" style="font-size:20px"><span id="sk-total" class="mono">—</span> <span class="text-sm" style="color:#64748d">flow routed</span></div></div>
-<span class="tag tag-do">Live</span>
-</div>
-<div class="mt-4" style="background:#f8fafd;border:1px solid #e5edf5;border-radius:4px;padding:16px">
-<svg id="sankey" viewBox="0 0 680 300" class="w-full" style="height:300px" preserveAspectRatio="xMidYMid meet">
-<path id="sk-pay" class="flow" d="M128,120 C300,120 380,110 552,110" fill="none" stroke="#533afd" stroke-width="60" stroke-linecap="round"><title>You pay</title></path>
-<path id="sk-tax" class="flow" d="M128,165 C300,165 380,199 552,199" fill="none" stroke="#7f71e6" stroke-width="20" stroke-linecap="round"><title>Tax held</title></path>
-<path id="sk-gst" class="flow" d="M128,195 C300,195 380,258 552,258" fill="none" stroke="#b9b9f9" stroke-width="24" stroke-linecap="round"><title>GST waiting</title></path>
-<rect id="sk-src-rect" x="8" y="60" width="120" height="180" rx="4" fill="#533afd"/>
-<text id="sk-src-title" x="68" y="142" text-anchor="middle" fill="#fff" style="font:400 12px 'Inter Tight'">Bills in</text>
-<text id="sk-src-amt" x="68" y="162" text-anchor="middle" fill="#fff" style="font:400 15px 'Inter Tight'">—</text>
-<rect id="sk-pay-rect" x="552" y="60" width="120" height="100" rx="4" fill="#fff" stroke="#e5edf5"/>
-<text id="sk-pay-title" x="612" y="104" text-anchor="middle" fill="#061b31" style="font:400 12px 'Inter Tight'">You pay</text>
-<text id="sk-pay-amt" x="612" y="124" text-anchor="middle" fill="#533afd" style="font:400 13px 'Inter Tight'">—</text>
-<rect id="sk-tax-rect" x="552" y="176" width="120" height="46" rx="4" fill="#fff" stroke="#e5edf5"/>
-<text id="sk-tax-title" x="612" y="195" text-anchor="middle" fill="#061b31" style="font:400 11px 'Inter Tight'">Tax held</text>
-<text id="sk-tax-amt" x="612" y="211" text-anchor="middle" fill="#533afd" style="font:400 12px 'Inter Tight'">—</text>
-<rect id="sk-gst-rect" x="552" y="232" width="120" height="52" rx="4" fill="#fff" stroke="#e5edf5"/>
-<text id="sk-gst-title" x="612" y="253" text-anchor="middle" fill="#061b31" style="font:400 11px 'Inter Tight'">GST waiting</text>
-<text id="sk-gst-amt" x="612" y="269" text-anchor="middle" fill="#533afd" style="font:400 12px 'Inter Tight'">—</text>
-</svg>
-</div>
-<div class="flex gap-2 mt-3 flex-wrap">
-<button id="sk-note-eye" class="btn btn-tert">Under review ›</button>
-<button id="sk-note-wait" class="btn btn-tert">On hold ›</button>
-</div>
-<div class="flex items-center justify-between mt-3 pt-3 text-xs mono" style="border-top:1px solid #e5edf5;color:#64748d"><span>Settlement split</span><span style="color:#061b31">Live values</span></div>
-</div>
-</section>
-<div class="divider"></div>
-<section class="card p-10">
-<div><h2 style="font-size:32px">Payment safeguards</h2><ul class="space-y-5 mt-6" style="font-size:18px">
-<li class="flex gap-2"><span class="material-symbols-outlined">verified</span><span><b>Bank verification passed</b><br><span style="color:#50617a">All beneficiaries confirmed</span></span></li>
-<li class="flex gap-2"><span class="material-symbols-outlined">schedule</span><span><b>Apex Security — 2-day hold</b><br><span style="color:#50617a">Beneficiary changed recently</span></span></li>
-<li class="flex gap-2"><span class="material-symbols-outlined">block</span><span><b>Duplicate protection</b><br><span style="color:#50617a">Settlements lock on submit</span></span></li>
-</ul></div>
-</section>
-<div class="divider"></div>
-<section class="py-10"><div class="flex flex-wrap gap-2 items-center">
-<div class="seg text-sm" id="tabs"><span class="seg-pill" id="seg-pill"></span><button class="on" data-f="">All</button><button data-f="READY">Ready</button><button data-f="EYE">Needs review</button><button data-f="PAID">Paid</button><button data-f="NO">Declined</button></div>
-<input id="q" class="ml-auto text-sm px-4 py-2 w-72" style="padding:14.5px 16px" placeholder="Search bill or seller…"/></div>
-<div class="block overflow-x-auto mt-6"><table class="w-full text-sm"><thead class="text-left text-xs uppercase" style="color:#64748d;border-bottom:1px solid #e5edf5"><tr><th class="py-3 pr-3">Bill</th><th class="py-3 pr-3">Seller</th><th class="py-3 pr-3 text-right">Bill total</th><th class="py-3 pr-3 text-right">Tax held</th><th class="py-3 pr-3 text-right">GST waiting</th><th class="py-3 pr-3 text-right">You pay</th><th class="py-3 pr-3">State</th><th class="py-3"></th></tr></thead><tbody id="rows"></tbody></table></div><div id="pager" class="pager" style="display:none"></div></section>
-</main>
-<dialog id="addbox" class="card p-0 w-full" style="max-width:520px"><div class="p-8">
-<div class="flex items-start justify-between"><div><div style="font-size:26px">Add bill</div><div class="text-sm" style="color:#64748d">Upload a bill for processing.</div></div><button class="btn btn-tert" onclick="document.getElementById('addbox').close()">Close</button></div>
-<div class="mt-4 space-y-3 text-sm">
-<label class="block">Seller name<input id="nb-s" class="w-full mt-1 px-3" style="padding:12px" placeholder="e.g. Zenith Robotics"/></label>
-<label class="block">Bill total (Rs.)<input id="nb-t" type="number" class="w-full mt-1 px-3" style="padding:12px" placeholder="e.g. 120000"/></label>
-<label class="block">Bill file<input type="file" accept=".pdf,.zip" class="w-full mt-1 px-3" style="padding:12px"/></label>
-<div class="text-sm" style="color:#50617a">Duplicate invoices are rejected automatically.</div>
-<div class="flex gap-2"><button class="btn btn-primary" onclick="addBill()">Save bill ›</button><button class="btn btn-ghost" onclick="document.getElementById('addbox').close()">Cancel</button></div>
-</div></div></dialog>
-<script>
-const CASH_LEFT = 500000;
-let balance = 500000;
-const SELLER_STATE = {'Zenith Robotics':'SAFE','Apex Security':'WAIT','CloudCore Tech':'SAFE','Bharat Steels':'SAFE'};
-let BILLS=[
-{b:'INV-2026-101',s:'Zenith Robotics',t:140000,tax:2800,gst:17200,pay:120000,st:'READY'},
-{b:'INV-2026-102',s:'Apex Security',t:95000,tax:19000,gst:6000,pay:70000,st:'EYE',why:'Enhanced withholding. Beneficiary hold.'},
-{b:'INV-2026-103',s:'CloudCore Tech',t:210000,tax:4200,gst:25800,pay:180000,st:'PAID',rcpt:'RZX8K2P4Q9A1'},
-{b:'INV-2026-104',s:'Bharat Steels',t:88000,tax:1760,gst:6240,pay:80000,st:'READY'},
-{b:'INV-2026-099',s:'Falcon Logistics',t:60000,tax:1200,gst:4800,pay:54000,st:'NO',why:'Declined. Rate variance.'}];
-const inr=n=>'Rs.'+Number(n).toLocaleString('en-IN');
-let ff='',fq='',pg=0;const PAGE=3;
-let role='CHECK';try{role=localStorage.getItem('yire-role')||'CHECK';}catch(e){}
-function canPay(){return role==='PAY';}
-function beRole(){try{const r=localStorage.getItem('yire-role')||'CHECK';return r==='PAY'?'ROLE_TREASURER':(r==='ADD'?'ROLE_AP_CLERK':'ROLE_CONTROLLER');}catch(e){return 'ROLE_CONTROLLER';}}
-function blockedBySeller(x){return SELLER_STATE[x.s]==='WAIT';}
-function payable(x){return x.st==='READY' && !blockedBySeller(x);}
-function render(){const r=BILLS.filter(x=>JSON.stringify(x).toLowerCase().includes(fq)&&(!ff||x.st===ff));
-const pages=Math.max(1,Math.ceil(r.length/PAGE));if(pg>pages-1)pg=pages-1;const vis=r.slice(pg*PAGE,pg*PAGE+PAGE);
-document.getElementById('n-paid').textContent=inr(BILLS.filter(x=>x.st==='PAID').reduce((s,x)=>s+x.pay,0));
-document.getElementById('n-topay').textContent=inr(BILLS.filter(payable).reduce((s,x)=>s+x.pay,0));
-document.getElementById('n-bal').textContent=inr(balance);
-document.getElementById('rows').innerHTML=vis.map((x,i)=>{
-let action='';
-if(x.st==='PAID') action=`<span class="text-xs mono" style="color:#50617a">Receipt ${x.rcpt||'saved'}</span>`;
-else if(x.st==='NO') action=`<span class="text-xs" style="color:#64748d">Closed — no pay</span>`;
-else if(x.st==='EYE') action=`<div class="flex gap-2 justify-end"><button class="btn btn-tert" onclick="resolve('${x.b}','READY')">Approve</button><button class="btn btn-tert" onclick="payLess('${x.b}')">Pay less</button><button class="btn btn-ghost" onclick="resolve('${x.b}','NO')">Say no</button></div>`;
-else if(blockedBySeller(x)) action=`<button class="btn btn-tert" disabled>On hold - 2 days</button>`;
-else if(!canPay()) action=`<button class="btn btn-tert" disabled title="Switch job to Pay bills in Controls">Pay - need Pay role</button>`;
-else action=`<button class="btn btn-primary" onclick="payOne('${x.b}',this)">Pay ›</button>`;
-const wait=x.s==='Apex Security'?`<div class="text-xs mt-1" style="color:#533afd">Seller bank wait — pay frozen 2 days</div>`:'';
-const why=x.why?`<div class="text-xs mt-1" style="color:#50617a">${x.why}</div>`:'';
-const math=`<div class="text-xs mono mt-1" style="color:#64748d">${inr(x.pay)} + ${inr(x.tax)} + ${inr(x.gst)} = ${inr(x.t)}</div>`;
-let tag=x.st==='READY'?(blockedBySeller(x)?'<span class="tag tag-wait">Ready · Wait seller</span>':'<span class="tag tag-ready">Ready</span>'):x.st==='EYE'?'<span class="tag tag-eye">Needs your eye</span>':x.st==='NO'?'<span class="tag tag-no">Said no</span>':'<span class="tag tag-paid">Paid</span>';
-return `<tr class="row-in" style="border-bottom:1px solid #e5edf5;animation-delay:${i*40}ms"><td class="py-3 pr-3 mono font-normal">${x.b}</td><td class="py-3 pr-3">${x.s}${why}${wait}</td><td class="py-3 pr-3 text-right mono">${inr(x.t)}</td><td class="py-3 pr-3 text-right mono">${inr(x.tax)}</td><td class="py-3 pr-3 text-right mono">${inr(x.gst)}</td><td class="py-3 pr-3 text-right mono">${inr(x.pay)}</td><td class="py-3 pr-3">${tag}${math}</td><td class="py-3 text-right">${action}</td></tr>`}).join('');
-renderDots(pages);sankey();}
-
-function showToast(msg){
-  let t = document.getElementById('toast');
-  if(!t){
-    t = document.createElement('div');
-    t.id = 'toast';
-    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#061b31;color:#fff;padding:12px 24px;border-radius:9999px;font-size:13px;border:1px solid #334155;box-shadow:0 8px 24px rgba(0,0,0,0.2);transition:all .3s;opacity:0;transform:translateY(10px)';
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  t.style.opacity = '1';
-  t.style.transform = 'none';
-  clearTimeout(t._tm);
-  t._tm = setTimeout(()=>{ t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 3500);
-}
-
-function payLess(b){ shortPayBill(b); }
-
-async function payOne(b,el){
-  el.disabled=true;
-  el.textContent='Paying… locked';
-  const idem = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('IDEM-' + Date.now());
-  try {
-    const resp = await fetch(`/api/v1/decisions/${encodeURIComponent(b)}/disburse`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idem, 'X-User-Role': beRole() },
-      body: JSON.stringify({ idempotency_key: idem })
-    });
-    if (resp.ok) {
-      const res = await resp.json();
-      const utr = res.utr || res.payout_id || ('RZX-' + b.slice(-4));
-      const hit = BILLS.find(x => x.b === b);
-      if (hit) balance -= hit.pay;
-      BILLS = BILLS.map(x => x.b === b ? { ...x, st: 'PAID', rcpt: utr } : x);
-      render();
-      showToast('Settlement disbursed for ' + b + ' (UTR: ' + utr + ')');
-      return;
-    }
-  } catch(e) {}
-  const hit=BILLS.find(x=>x.b===b);
-  if(hit)balance-=hit.pay;
-  BILLS=BILLS.map(x=>x.b===b?{...x,st:'PAID',rcpt:'RZX-'+b.slice(-3)}:x);
-  setTimeout(()=>{render(); showToast('Settlement dispatched for ' + b);},400);
-}
-
-async function sendResolve(b, action, reason){
-  try{
-    const resp = await fetch(`/api/v1/decisions/${encodeURIComponent(b)}/resolve-exception`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-User-Role': beRole() },
-      body: JSON.stringify({ action, reason: reason || '', controller_id: 'MOCK-DESK' })
-    });
-    if(!resp.ok){ let d={}; try{ d = await resp.json(); }catch(e){} showToast('Not applied: ' + (d.detail || ('HTTP ' + resp.status))); return false; }
-    return true;
-  }catch(e){ return true; }
-}
-async function approveBill(b){
-  const r = prompt('Justification (required for override) for ' + b + ':');
-  if(!r) return;
-  if(await sendResolve(b,'OVERRIDE',r)){ BILLS=BILLS.map(x=>x.b===b?{...x,st:'READY'}:x); render(); showToast('Approved ' + b); }
-}
-async function shortPayBill(b){
-  if(await sendResolve(b,'SHORT_PAY','Short-pay to PO ceiling')){ BILLS=BILLS.map(x=>x.b===b?{...x,st:'READY'}:x); render(); showToast('Short-pay authorized for ' + b); }
-}
-async function declineBill(b){
-  if(await sendResolve(b,'REJECT','Declined in mock review')){ BILLS=BILLS.map(x=>x.b===b?{...x,st:'NO'}:x); render(); showToast('Declined ' + b); }
-}
-function resolve(b,to){ if(to==='READY'){ approveBill(b); } else { declineBill(b); } }
-
-document.getElementById('q').addEventListener('input',e=>{fq=e.target.value.toLowerCase();pg=0;render()});
-function setTab(b){document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');movePill(b);ff=b.dataset.f;pg=0;render();}
-document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b));
-function movePill(b){if(!b)return;const p=document.getElementById('seg-pill');if(!p||!b.offsetWidth)return;p.style.left=b.offsetLeft+'px';p.style.width=b.offsetWidth+'px';}
-
-window.addEventListener('resize',()=>{const b=document.querySelector('#tabs button.on');if(b)movePill(b);});
-window.addEventListener('storage',()=>{try{role=localStorage.getItem('yire-role')||'CHECK';}catch(e){}render();});
-window.addEventListener('focus',()=>{try{role=localStorage.getItem('yire-role')||'CHECK';}catch(e){}render();});
-
-document.getElementById('sk-pay').onclick=()=>document.querySelector('#tabs [data-f="READY"]').click();
-document.getElementById('sk-tax').onclick=()=>document.querySelector('#tabs [data-f=""]').click();
-document.getElementById('sk-gst').onclick=()=>document.querySelector('#tabs [data-f=""]').click();
-document.getElementById('sk-note-eye').onclick=()=>document.querySelector('#tabs [data-f="EYE"]').click();
-document.getElementById('sk-note-wait').onclick=()=>{document.querySelector('#tabs [data-f=""]').click();document.getElementById('q').value='apex';fq='apex';render();};
-
-async function addBill(){
-  const s=(document.getElementById('nb-s').value||'New Seller').trim();
-  const t=+document.getElementById('nb-t').value||100000;
-  const tax=Math.round(t*0.02);
-  const gst=Math.round(t*0.12);
-  const pay=t-tax-gst;
-  const n='INV-2026-'+(105+BILLS.length);
-
-  const fileInput = document.querySelector('#addbox input[type="file"]');
-  if (fileInput && fileInput.files && fileInput.files[0]) {
-    try {
-      const formData = new FormData();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Yire — Bills</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{ink:'#061b31',slate2:'#64748d',steel:'#50617a',smoke:'#839bc8',mist:'#f8fafd',frost:'#e5edf5',indigoink:'#533afd',indigohover:'#7389ff',lav:'#b9b9f9',lilac:'#d6d9fc',wash:'#e8e9ff'},fontFamily:{sans:['Inter Tight','sohne-var','system-ui','sans-serif'],mono:['Inter Tight','system-ui','sans-serif']}}}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+<style>
+:root{--color-indigo-ink:#533afd;--color-midnight-ink:#061b31;--color-slate:#64748d;--color-frost:#e5edf5;--color-mist:#f8fafd;--color-wash:#e8e9ff;--color-lav:#b9b9f9;--color-lilac:#d6d9fc}
+*{box-shadow:none!important}
+body{font-family:'Inter Tight','sohne-var',system-ui,sans-serif;font-weight:300;color:#061b31;background:#fff;font-feature-settings:"ss01" on,"tnum" on}
+h1,h2{font-weight:300;letter-spacing:-0.02em;color:#061b31}
+.stat{font-weight:300;letter-spacing:-0.02em;font-feature-settings:"tnum" on}
+.mono{font-feature-settings:"tnum" on;letter-spacing:-0.01em}
+.card{background:#fff;border:1px solid #e5edf5;border-radius:4px}
+.btn{display:inline-flex;align-items:center;gap:.5rem;font-weight:400;font-size:14px;padding:14.5px 24px;border-radius:9999px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:background .15s}
+.btn-primary{background:#533afd;color:#fff}
+.btn-primary:hover:not(:disabled){background:#7389ff}
+.btn-ghost{background:transparent;color:#533afd;border-color:#b9b9f9}
+.btn-ghost:hover:not(:disabled){background:#e5edf5}
+.btn-tert{background:transparent;color:#533afd;border-color:#d6d9fc;padding:10px 16px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.nav-a{font-weight:400;font-size:14px;color:#061b31;text-decoration:none;padding:8px 4px;margin-right:8px}
+.nav-a.on{color:#533afd;border-bottom:2px solid #533afd}
+.tag{display:inline-block;font-size:12px;font-weight:400;padding:4px 12px;border-radius:9999px;border:1px solid #e5edf5}
+.tag-ready{background:#533afd;color:#fff;border-color:#533afd}
+.tag-eye{background:#e8e9ff;color:#533afd;border-color:#b9b9f9}
+.tag-wait{background:#fff;color:#533afd;border-color:#b9b9f9}
+.tag-paid{background:#f8fafd;color:#50617a;border-color:#e5edf5}
+.tag-no{background:#fff;color:#64748d;border-color:#d6d9fc}
+.divider{border-top:1px solid #e5edf5}
+.row-in{animation:up .3s both}@keyframes up{from{opacity:0;transform:translateY(6px)}}
+input,select{border:1px solid #e5edf5!important;border-radius:4px!important}
+dialog::backdrop{background:rgba(6,27,49,.45)}
+.material-symbols-outlined{color:#533afd;font-variation-settings:'FILL' 0,'wght' 400}
+#sankey path.flow{transition:opacity .2s, stroke-width .3s;cursor:pointer}
+#sankey path.flow:hover{opacity:.7}
+.seg{position:relative;display:inline-flex;background:#f8fafd;border:1px solid #e5edf5;border-radius:9999px;padding:4px}
+.seg button,.seg a{position:relative;z-index:1;border:0;background:transparent;font:400 13px 'Inter Tight',sans-serif;padding:8px 16px;color:#64748d;cursor:pointer;border-radius:9999px;white-space:nowrap;text-decoration:none}
+.seg button.on,.seg a.on{color:#fff}
+.seg-pill{position:absolute;top:4px;left:0;height:calc(100% - 8px);width:0;background:#533afd;border-radius:9999px;pointer-events:none;transition:left .35s cubic-bezier(.34,1.3,.64,1),width .35s cubic-bezier(.34,1.3,.64,1)}
+.pager{display:flex;align-items:center;gap:8px;border:1px solid #e5edf5;border-radius:9999px;padding:10px 14px;background:#fff;width:fit-content;margin:16px auto}
+.pdot{height:8px;width:8px;border-radius:9999px;background:#e5edf5;border:0;cursor:pointer;padding:0;transition:all .3s cubic-bezier(.34,1.3,.64,1)}
+.pdot.on{width:24px;background:#533afd}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@view-transition{navigation:auto}
+main{animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pageOut{to{opacity:0;transform:translateY(-6px)}}
+::view-transition-old(root){animation:pageOut .25s ease both}
+::view-transition-new(root){animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
+</style>
+</head>
+<body>
+<header class="sticky top-0 z-40 bg-white" style="border-bottom:1px solid #e5edf5;height:76px">
+<div class="mx-auto px-6 flex items-center gap-3" style="max-width:1320px;height:76px">
+<div class="font-bold" style="font-size:18px;letter-spacing:-0.18px">Yire</div>
+<nav class="ml-6 flex"><a class="nav-a on" href="index.html">Bills</a><a class="nav-a" href="sellers.html">Sellers</a><a class="nav-a" href="records.html">Records</a><a class="nav-a" href="controls.html">Controls</a></nav>
+</div></header>
+<main class="mx-auto px-6 py-10" style="max-width:1320px">
+<section class="pb-10">
+<div class="text-xs uppercase" style="color:#64748d;letter-spacing:.5px">Yire · Bills</div>
+<h1 style="font-size:40px;line-height:1.05;letter-spacing:-0.8px" class="mt-2">Bills payable</h1>
+<div class="mt-6 flex gap-2"><button class="btn btn-primary" onclick="document.getElementById('addbox').showModal()">Add bill ›</button><a class="btn btn-ghost" href="records.html">See proof ›</a></div>
+</section>
+<div class="divider"></div>
+<section class="grid grid-cols-3 gap-6 py-10">
+<div><div class="text-xs uppercase" style="color:#64748d">Paid so far</div><div class="stat mono" id="n-paid" style="font-size:48px">—</div><div class="text-sm" style="color:#50617a">Settled to date</div></div>
+<div><div class="text-xs uppercase" style="color:#64748d">To pay now</div><div class="stat mono" id="n-topay" style="font-size:48px;color:#533afd">—</div><div class="text-sm" style="color:#50617a">Cleared for payment</div></div>
+<div><div class="text-xs uppercase" style="color:#64748d">Cash left</div><div class="stat mono" id="n-bal" style="font-size:48px">Rs.5,00,000</div><div class="text-sm" style="color:#50617a" id="cash-note">Available balance</div></div>
+</section>
+<section class="card p-8" style="background:#f8fafd">
+<div class="text-xs uppercase" style="color:#64748d;letter-spacing:.5px">Saved this month</div>
+<div class="grid grid-cols-3 gap-6 mt-2">
+<div><div class="stat mono" style="font-size:32px;color:#533afd">Rs.8,400</div><div class="text-sm" style="color:#50617a">Early-payment discounts</div></div>
+<div><div class="stat mono" style="font-size:32px">Rs.25,800</div><div class="text-sm" style="color:#50617a">Tax withheld</div></div>
+<div><div class="stat mono" style="font-size:32px">Rs.54,240</div><div class="text-sm" style="color:#50617a">GST retained</div></div>
+</div>
+</section>
+<div class="divider"></div>
+<section class="py-10"><div class="text-xs uppercase" style="color:#64748d">Cash flow</div>
+<h2 style="font-size:32px;letter-spacing:-0.64px">Money flow</h2>
+<div class="card mt-6 p-8">
+<div class="flex items-center justify-between">
+<div><div class="text-xs uppercase" style="color:#64748d;letter-spacing:.5px">Settlement flow</div>
+<div class="mt-1" style="font-size:20px"><span id="sk-total" class="mono">—</span> <span class="text-sm" style="color:#64748d">flow routed</span></div></div>
+<span class="tag tag-do">Live</span>
+</div>
+<div class="mt-4" style="background:#f8fafd;border:1px solid #e5edf5;border-radius:4px;padding:16px">
+<svg id="sankey" viewBox="0 0 680 300" class="w-full" style="height:300px" preserveAspectRatio="xMidYMid meet">
+<path id="sk-pay" class="flow" d="M128,120 C300,120 380,110 552,110" fill="none" stroke="#533afd" stroke-width="60" stroke-linecap="round"><title>You pay</title></path>
+<path id="sk-tax" class="flow" d="M128,165 C300,165 380,199 552,199" fill="none" stroke="#7f71e6" stroke-width="20" stroke-linecap="round"><title>Tax held</title></path>
+<path id="sk-gst" class="flow" d="M128,195 C300,195 380,258 552,258" fill="none" stroke="#b9b9f9" stroke-width="24" stroke-linecap="round"><title>GST waiting</title></path>
+<rect id="sk-src-rect" x="8" y="60" width="120" height="180" rx="4" fill="#533afd"/>
+<text id="sk-src-title" x="68" y="142" text-anchor="middle" fill="#fff" style="font:400 12px 'Inter Tight'">Bills in</text>
+<text id="sk-src-amt" x="68" y="162" text-anchor="middle" fill="#fff" style="font:400 15px 'Inter Tight'">—</text>
+<rect id="sk-pay-rect" x="552" y="60" width="120" height="100" rx="4" fill="#fff" stroke="#e5edf5"/>
+<text id="sk-pay-title" x="612" y="104" text-anchor="middle" fill="#061b31" style="font:400 12px 'Inter Tight'">You pay</text>
+<text id="sk-pay-amt" x="612" y="124" text-anchor="middle" fill="#533afd" style="font:400 13px 'Inter Tight'">—</text>
+<rect id="sk-tax-rect" x="552" y="176" width="120" height="46" rx="4" fill="#fff" stroke="#e5edf5"/>
+<text id="sk-tax-title" x="612" y="195" text-anchor="middle" fill="#061b31" style="font:400 11px 'Inter Tight'">Tax held</text>
+<text id="sk-tax-amt" x="612" y="211" text-anchor="middle" fill="#533afd" style="font:400 12px 'Inter Tight'">—</text>
+<rect id="sk-gst-rect" x="552" y="232" width="120" height="52" rx="4" fill="#fff" stroke="#e5edf5"/>
+<text id="sk-gst-title" x="612" y="253" text-anchor="middle" fill="#061b31" style="font:400 11px 'Inter Tight'">GST waiting</text>
+<text id="sk-gst-amt" x="612" y="269" text-anchor="middle" fill="#533afd" style="font:400 12px 'Inter Tight'">—</text>
+</svg>
+</div>
+<div class="flex gap-2 mt-3 flex-wrap">
+<button id="sk-note-eye" class="btn btn-tert">Under review ›</button>
+<button id="sk-note-wait" class="btn btn-tert">On hold ›</button>
+</div>
+<div class="flex items-center justify-between mt-3 pt-3 text-xs mono" style="border-top:1px solid #e5edf5;color:#64748d"><span>Settlement split</span><span style="color:#061b31">Live values</span></div>
+</div>
+</section>
+<div class="divider"></div>
+<section class="card p-10">
+<div><h2 style="font-size:32px">Payment safeguards</h2><ul class="space-y-5 mt-6" style="font-size:18px">
+<li class="flex gap-2"><span class="material-symbols-outlined">verified</span><span><b>Bank verification passed</b><br><span style="color:#50617a">All beneficiaries confirmed</span></span></li>
+<li class="flex gap-2"><span class="material-symbols-outlined">schedule</span><span><b>Apex Security — 2-day hold</b><br><span style="color:#50617a">Beneficiary changed recently</span></span></li>
+<li class="flex gap-2"><span class="material-symbols-outlined">block</span><span><b>Duplicate protection</b><br><span style="color:#50617a">Settlements lock on submit</span></span></li>
+</ul></div>
+</section>
+<div class="divider"></div>
+<section class="py-10"><div class="flex flex-wrap gap-2 items-center">
+<div class="seg text-sm" id="tabs"><span class="seg-pill" id="seg-pill"></span><button class="on" data-f="">All</button><button data-f="READY">Ready</button><button data-f="EYE">Needs review</button><button data-f="PAID">Paid</button><button data-f="NO">Declined</button></div>
+<input id="q" class="ml-auto text-sm px-4 py-2 w-72" style="padding:14.5px 16px" placeholder="Search bill or seller…"/></div>
+<div class="block overflow-x-auto mt-6"><table class="w-full text-sm"><thead class="text-left text-xs uppercase" style="color:#64748d;border-bottom:1px solid #e5edf5"><tr><th class="py-3 pr-3">Bill</th><th class="py-3 pr-3">Seller</th><th class="py-3 pr-3 text-right">Bill total</th><th class="py-3 pr-3 text-right">Tax held</th><th class="py-3 pr-3 text-right">GST waiting</th><th class="py-3 pr-3 text-right">You pay</th><th class="py-3 pr-3">State</th><th class="py-3"></th></tr></thead><tbody id="rows"></tbody></table></div><div id="pager" class="pager" style="display:none"></div></section>
+</main>
+<dialog id="addbox" class="card p-0 w-full" style="max-width:520px"><div class="p-8">
+<div class="flex items-start justify-between"><div><div style="font-size:26px">Add bill</div><div class="text-sm" style="color:#64748d">Upload a bill for processing.</div></div><button class="btn btn-tert" onclick="document.getElementById('addbox').close()">Close</button></div>
+<div class="mt-4 space-y-3 text-sm">
+<label class="block">Seller name<input id="nb-s" class="w-full mt-1 px-3" style="padding:12px" placeholder="e.g. Zenith Robotics"/></label>
+<label class="block">Bill total (Rs.)<input id="nb-t" type="number" class="w-full mt-1 px-3" style="padding:12px" placeholder="e.g. 120000"/></label>
+<label class="block">Bill file<input type="file" accept=".pdf,.zip" class="w-full mt-1 px-3" style="padding:12px"/></label><details class="border rounded p-3 mt-1" style="border-color:#e5edf5;border-radius:4px"><summary class="text-sm font-bold" style="cursor:pointer">Advanced (optional)</summary><div class="grid grid-cols-2 gap-3 mt-3"><label class="block text-xs">Tax section<select id="nb-sec" class="w-full mt-1 px-2" style="padding:10px"><option value="">Auto-detect</option><option>194C_CORP</option><option>194C_IND</option><option>194J_TECH</option><option>194J_PROF</option><option>194Q_GOODS</option><option>NONE</option></select></label><label class="block text-xs">Bank age (hours)<input id="nb-bank" type="number" min="0" class="w-full mt-1 px-2" style="padding:10px" placeholder="720"/></label><label class="block text-xs">PO number<input id="nb-po" class="w-full mt-1 px-2" style="padding:10px" placeholder="PO-..."/></label><label class="flex items-center gap-2 text-xs mt-5"><input id="nb-206ab" type="checkbox"/> 206AB non-filer</label></div></details>
+<div class="text-sm" style="color:#50617a">Duplicate invoices are rejected automatically.</div>
+<div class="flex gap-2"><button class="btn btn-primary" onclick="addBill()">Save bill ›</button><button class="btn btn-ghost" onclick="document.getElementById('addbox').close()">Cancel</button></div>
+</div></div></dialog>
+<script>
+const CASH_LEFT = 500000;
+let balance = 500000;
+const SELLER_STATE = {'Zenith Robotics':'SAFE','Apex Security':'WAIT','CloudCore Tech':'SAFE','Bharat Steels':'SAFE'};
+let BILLS=[
+{b:'INV-2026-101',s:'Zenith Robotics',t:140000,tax:2800,gst:17200,pay:120000,st:'READY'},
+{b:'INV-2026-102',s:'Apex Security',t:95000,tax:19000,gst:6000,pay:70000,st:'EYE',why:'Enhanced withholding. Beneficiary hold.'},
+{b:'INV-2026-103',s:'CloudCore Tech',t:210000,tax:4200,gst:25800,pay:180000,st:'PAID',rcpt:'RZX8K2P4Q9A1'},
+{b:'INV-2026-104',s:'Bharat Steels',t:88000,tax:1760,gst:6240,pay:80000,st:'READY'},
+{b:'INV-2026-099',s:'Falcon Logistics',t:60000,tax:1200,gst:4800,pay:54000,st:'NO',why:'Declined. Rate variance.'}];
+const inr=n=>'Rs.'+Number(n).toLocaleString('en-IN');
+let ff='',fq='',pg=0;const PAGE=3;
+let role='CHECK';try{role=localStorage.getItem('yire-role')||'CHECK';}catch(e){}
+function canPay(){return role==='PAY';}
+function beRole(){try{const r=localStorage.getItem('yire-role')||'CHECK';return r==='PAY'?'ROLE_TREASURER':(r==='ADD'?'ROLE_AP_CLERK':'ROLE_CONTROLLER');}catch(e){return 'ROLE_CONTROLLER';}}
+function blockedBySeller(x){return SELLER_STATE[x.s]==='WAIT';}
+function payable(x){return x.st==='READY' && !blockedBySeller(x);}
+function render(){const r=BILLS.filter(x=>JSON.stringify(x).toLowerCase().includes(fq)&&(!ff||x.st===ff));
+const pages=Math.max(1,Math.ceil(r.length/PAGE));if(pg>pages-1)pg=pages-1;const vis=r.slice(pg*PAGE,pg*PAGE+PAGE);
+document.getElementById('n-paid').textContent=inr(BILLS.filter(x=>x.st==='PAID').reduce((s,x)=>s+x.pay,0));
+document.getElementById('n-topay').textContent=inr(BILLS.filter(payable).reduce((s,x)=>s+x.pay,0));
+document.getElementById('n-bal').textContent=inr(balance);
+document.getElementById('rows').innerHTML=vis.map((x,i)=>{
+let action='';
+if(x.st==='PAID') action=`<span class="text-xs mono" style="color:#50617a">Receipt ${x.rcpt||'saved'}</span>`;
+else if(x.st==='NO') action=`<span class="text-xs" style="color:#64748d">Closed — no pay</span>`;
+else if(x.st==='EYE') action=`<div class="flex gap-2 justify-end"><button class="btn btn-tert" onclick="resolve('${x.b}','READY')">Approve</button><button class="btn btn-tert" onclick="payLess('${x.b}')">Pay less</button><button class="btn btn-ghost" onclick="resolve('${x.b}','NO')">Say no</button></div>`;
+else if(blockedBySeller(x)) action=`<button class="btn btn-tert" disabled>On hold - 2 days</button>`;
+else if(!canPay()) action=`<button class="btn btn-tert" disabled title="Switch job to Pay bills in Controls">Pay - need Pay role</button>`;
+else action=`<button class="btn btn-primary" onclick="payOne('${x.b}',this)">Pay ›</button>`;
+const wait=x.s==='Apex Security'?`<div class="text-xs mt-1" style="color:#533afd">Seller bank wait — pay frozen 2 days</div>`:'';
+const why=x.why?`<div class="text-xs mt-1" style="color:#50617a">${x.why}</div>`:'';
+const math=`<div class="text-xs mono mt-1" style="color:#64748d">${inr(x.pay)} + ${inr(x.tax)} + ${inr(x.gst)} = ${inr(x.t)}</div>`;
+let tag=x.st==='READY'?(blockedBySeller(x)?'<span class="tag tag-wait">Ready · Wait seller</span>':'<span class="tag tag-ready">Ready</span>'):x.st==='EYE'?'<span class="tag tag-eye">Needs your eye</span>':x.st==='NO'?'<span class="tag tag-no">Said no</span>':'<span class="tag tag-paid">Paid</span>';
+return `<tr class="row-in" style="border-bottom:1px solid #e5edf5;animation-delay:${i*40}ms"><td class="py-3 pr-3 mono font-normal">${x.b}</td><td class="py-3 pr-3">${x.s}${why}${wait}</td><td class="py-3 pr-3 text-right mono">${inr(x.t)}</td><td class="py-3 pr-3 text-right mono">${inr(x.tax)}</td><td class="py-3 pr-3 text-right mono">${inr(x.gst)}</td><td class="py-3 pr-3 text-right mono">${inr(x.pay)}</td><td class="py-3 pr-3">${tag}${math}</td><td class="py-3 text-right">${action}</td></tr>`}).join('');
+renderDots(pages);sankey();}
+
+function showToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#061b31;color:#fff;padding:12px 24px;border-radius:9999px;font-size:13px;border:1px solid #334155;box-shadow:0 8px 24px rgba(0,0,0,0.2);transition:all .3s;opacity:0;transform:translateY(10px)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'none';
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>{ t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 3500);
+}
+
+function payLess(b){ shortPayBill(b); }
+
+async function payOne(b,el){
+  el.disabled=true;
+  el.textContent='Paying… locked';
+  const idem = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('IDEM-' + Date.now());
+  try {
+    const resp = await fetch(`/api/v1/decisions/${encodeURIComponent(b)}/disburse`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idem, 'X-User-Role': beRole() },
+      body: JSON.stringify({ idempotency_key: idem })
+    });
+    if (resp.ok) {
+      const res = await resp.json();
+      const utr = res.utr || res.payout_id || ('RZX-' + b.slice(-4));
+      const hit = BILLS.find(x => x.b === b);
+      if (hit) balance -= hit.pay;
+      BILLS = BILLS.map(x => x.b === b ? { ...x, st: 'PAID', rcpt: utr } : x);
+      render();
+      showToast('Settlement disbursed for ' + b + ' (UTR: ' + utr + ')');
+      return;
+    }
+  } catch(e) {}
+  const hit=BILLS.find(x=>x.b===b);
+  if(hit)balance-=hit.pay;
+  BILLS=BILLS.map(x=>x.b===b?{...x,st:'PAID',rcpt:'RZX-'+b.slice(-3)}:x);
+  setTimeout(()=>{render(); showToast('Settlement dispatched for ' + b);},400);
+}
+
+async function sendResolve(b, action, reason){
+  try{
+    const resp = await fetch(`/api/v1/decisions/${encodeURIComponent(b)}/resolve-exception`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-User-Role': beRole() },
+      body: JSON.stringify({ action, reason: reason || '', controller_id: 'MOCK-DESK' })
+    });
+    if(!resp.ok){ let d={}; try{ d = await resp.json(); }catch(e){} showToast('Not applied: ' + (d.detail || ('HTTP ' + resp.status))); return false; }
+    return true;
+  }catch(e){ return true; }
+}
+async function approveBill(b){
+  const r = prompt('Justification (required for override) for ' + b + ':');
+  if(!r) return;
+  if(await sendResolve(b,'OVERRIDE',r)){ BILLS=BILLS.map(x=>x.b===b?{...x,st:'READY'}:x); render(); showToast('Approved ' + b); }
+}
+async function shortPayBill(b){
+  if(await sendResolve(b,'SHORT_PAY','Short-pay to PO ceiling')){ BILLS=BILLS.map(x=>x.b===b?{...x,st:'READY'}:x); render(); showToast('Short-pay authorized for ' + b); }
+}
+async function declineBill(b){
+  if(await sendResolve(b,'REJECT','Declined in mock review')){ BILLS=BILLS.map(x=>x.b===b?{...x,st:'NO'}:x); render(); showToast('Declined ' + b); }
+}
+function resolve(b,to){ if(to==='READY'){ approveBill(b); } else { declineBill(b); } }
+
+document.getElementById('q').addEventListener('input',e=>{fq=e.target.value.toLowerCase();pg=0;render()});
+function setTab(b){document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');movePill(b);ff=b.dataset.f;pg=0;render();}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b));
+function movePill(b){if(!b)return;const p=document.getElementById('seg-pill');if(!p||!b.offsetWidth)return;p.style.left=b.offsetLeft+'px';p.style.width=b.offsetWidth+'px';}
+
+window.addEventListener('resize',()=>{const b=document.querySelector('#tabs button.on');if(b)movePill(b);});
+window.addEventListener('storage',()=>{try{role=localStorage.getItem('yire-role')||'CHECK';}catch(e){}render();});
+window.addEventListener('focus',()=>{try{role=localStorage.getItem('yire-role')||'CHECK';}catch(e){}render();});
+
+document.getElementById('sk-pay').onclick=()=>document.querySelector('#tabs [data-f="READY"]').click();
+document.getElementById('sk-tax').onclick=()=>document.querySelector('#tabs [data-f=""]').click();
+document.getElementById('sk-gst').onclick=()=>document.querySelector('#tabs [data-f=""]').click();
+document.getElementById('sk-note-eye').onclick=()=>document.querySelector('#tabs [data-f="EYE"]').click();
+document.getElementById('sk-note-wait').onclick=()=>{document.querySelector('#tabs [data-f=""]').click();document.getElementById('q').value='apex';fq='apex';render();};
+
+async function addBill(){
+  const s=(document.getElementById('nb-s').value||'New Seller').trim();
+  const t=+document.getElementById('nb-t').value||100000;
+  const tax=Math.round(t*0.02);
+  const gst=Math.round(t*0.12);
+  const pay=t-tax-gst;
+  const n='INV-2026-'+(105+BILLS.length);
+
+  const fileInput = document.querySelector('#addbox input[type="file"]');
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    try {
+      const formData = new FormData();
       formData.append('file', fileInput.files[0]);
-      await fetch('/api/v1/invoices/upload', {
-        method: 'POST',
-        body: formData
-      });
-    } catch(e) {}
-  }
-
-  BILLS.unshift({b:n,s:s,t:t,tax:tax,gst:gst,pay:pay,st:'READY'});
-  SELLER_STATE[s]=SELLER_STATE[s]||'SAFE';
-  document.getElementById('addbox').close();
-  render();
-  showToast('Bill ' + n + ' submitted for intake');
-}
-
-function renderDots(pages){const w=document.getElementById('pager');if(pages<2){w.innerHTML='';w.style.display='none';return;}w.style.display='';w.innerHTML=Array.from({length:pages},(_,i)=>`<button class="pdot${i===pg?' on':''}" data-p="${i}" aria-label="Page ${i+1}"></button>`).join('');w.querySelectorAll('.pdot').forEach(d=>d.onclick=()=>{pg=+d.dataset.p;render();});}
-
-function sankey(){const live=BILLS.filter(x=>x.st!=='NO');
-const T=live.reduce((s,x)=>s+x.t,0),P=live.reduce((s,x)=>s+x.pay,0),TX=live.reduce((s,x)=>s+x.tax,0),G=live.reduce((s,x)=>s+x.gst,0);
-document.getElementById('sk-total').textContent=inr(T);
-const sc=v=>Math.max(8,Math.round(88*v/(T||1)));
-[['sk-pay',P],['sk-tax',TX],['sk-gst',G]].forEach(([id,v])=>{const p=document.getElementById(id);p.setAttribute('stroke-width',sc(v));const t=p.querySelector('title');if(t)t.textContent=inr(v);});
-document.getElementById('sk-src-amt').textContent=inr(T);
-document.getElementById('sk-pay-amt').textContent=inr(P);
-document.getElementById('sk-tax-amt').textContent=inr(TX);
-document.getElementById('sk-gst-amt').textContent=inr(G);
-const eye=BILLS.filter(x=>x.st==='EYE').reduce((s,x)=>s+x.pay,0);
-const wait=BILLS.filter(x=>blockedBySeller(x)&&x.st==='READY').reduce((s,x)=>s+x.pay,0);
-document.getElementById('sk-note-eye').textContent=`Needs your eye — ${inr(eye)} held back ›`;
-document.getElementById('sk-note-wait').textContent=`Wait 2 days — ${inr(wait)} frozen ›`;}
-
-// --- LIVE BACKEND SYNC ---
-async function syncBackend(){
-  try {
-    const balRes = await fetch('/api/v1/treasury/balance');
-    if (balRes.ok) {
-      const bdata = await balRes.json();
-      if (bdata && bdata.available_balance !== undefined) {
-        balance = bdata.available_balance;
-      }
-    }
-  } catch(e) {}
-
-  try {
-    const venRes = await fetch('/api/v1/vendors/all');
-    if (venRes.ok) {
-      const vdata = await venRes.json();
-      if (vdata && vdata.vendors) {
-        vdata.vendors.forEach(v => {
-          SELLER_STATE[v.vendor_name] = (v.cooling_shield_hours > 0 || v.bank_status === 'UNVERIFIED') ? 'WAIT' : 'SAFE';
-        });
-      }
-    }
-  } catch(e) {}
-
-  try {
-    const decRes = await fetch('/api/v1/decisions');
-    if (decRes.ok) {
-      const ddata = await decRes.json();
-      if (ddata && ddata.decisions && Array.isArray(ddata.decisions) && ddata.decisions.length > 0) {
-        const liveBills = ddata.decisions.map(d => {
-          const t = d.subtotal || d.gross_amount || 100000;
-          const pay = d.final_disbursed || d.net_payable || Math.round(t * 0.86);
-          const tax = Math.round(t * 0.02);
-          const gst = (t - pay - tax > 0) ? (t - pay - tax) : Math.round(t * 0.12);
-          let st = 'READY';
-          if (d.status === 'SETTLED' || d.status === 'PAID') st = 'PAID';
-          else if (d.status === 'ACTION_REQUIRED' || d.status === 'SUSPENDED' || d.status === 'HELD') st = 'EYE';
-          else if (d.status === 'REJECTED') st = 'NO';
-          else st = 'READY';
-
-          return {
-            b: d.invoice_number,
-            s: d.vendor_name || 'Vendor',
-            t: t,
-            tax: tax,
-            gst: gst,
-            pay: pay,
-            st: st,
-            rcpt: d.payout_telemetry?.utr || 'RZX-CONFIRMED',
-            why: d.decision_title || ''
-          };
-        });
-        const existingIds = new Set(liveBills.map(b => b.b));
-        BILLS = [...liveBills, ...BILLS.filter(b => !existingIds.has(b.b))];
-      }
-    }
-  } catch(e) {}
-
-  render();
-}
-
-render();
-movePill(document.querySelector('#tabs button.on'));
-window.addEventListener('load',function(){
-  movePill(document.querySelector('#tabs button.on'));
-  syncBackend();
-});
-</script>
-</body>
-</html>
+      const adv = (id)=>{ const el=document.getElementById(id); return el ? el.value : ''; };
+      if(adv('nb-sec')) formData.append('tds_section', adv('nb-sec'));
+      if(document.getElementById('nb-206ab') && document.getElementById('nb-206ab').checked) formData.append('vendor_206ab', 'true');
+      if(adv('nb-bank')) formData.append('bank_age_hours', adv('nb-bank'));
+      if(adv('nb-po') && adv('nb-po').trim()) formData.append('po_number', adv('nb-po').trim());
+      await fetch('/api/v1/invoices/upload', {
+        method: 'POST',
+        body: formData
+      });
+    } catch(e) {}
+  }
+
+  BILLS.unshift({b:n,s:s,t:t,tax:tax,gst:gst,pay:pay,st:'READY'});
+  SELLER_STATE[s]=SELLER_STATE[s]||'SAFE';
+  document.getElementById('addbox').close();
+  render();
+  showToast('Bill ' + n + ' submitted for intake');
+}
+
+function renderDots(pages){const w=document.getElementById('pager');if(pages<2){w.innerHTML='';w.style.display='none';return;}w.style.display='';w.innerHTML=Array.from({length:pages},(_,i)=>`<button class="pdot${i===pg?' on':''}" data-p="${i}" aria-label="Page ${i+1}"></button>`).join('');w.querySelectorAll('.pdot').forEach(d=>d.onclick=()=>{pg=+d.dataset.p;render();});}
+
+function sankey(){const live=BILLS.filter(x=>x.st!=='NO');
+const T=live.reduce((s,x)=>s+x.t,0),P=live.reduce((s,x)=>s+x.pay,0),TX=live.reduce((s,x)=>s+x.tax,0),G=live.reduce((s,x)=>s+x.gst,0);
+document.getElementById('sk-total').textContent=inr(T);
+const sc=v=>Math.max(8,Math.round(88*v/(T||1)));
+[['sk-pay',P],['sk-tax',TX],['sk-gst',G]].forEach(([id,v])=>{const p=document.getElementById(id);p.setAttribute('stroke-width',sc(v));const t=p.querySelector('title');if(t)t.textContent=inr(v);});
+document.getElementById('sk-src-amt').textContent=inr(T);
+document.getElementById('sk-pay-amt').textContent=inr(P);
+document.getElementById('sk-tax-amt').textContent=inr(TX);
+document.getElementById('sk-gst-amt').textContent=inr(G);
+const eye=BILLS.filter(x=>x.st==='EYE').reduce((s,x)=>s+x.pay,0);
+const wait=BILLS.filter(x=>blockedBySeller(x)&&x.st==='READY').reduce((s,x)=>s+x.pay,0);
+document.getElementById('sk-note-eye').textContent=`Needs your eye — ${inr(eye)} held back ›`;
+document.getElementById('sk-note-wait').textContent=`Wait 2 days — ${inr(wait)} frozen ›`;}
+
+// --- LIVE BACKEND SYNC ---
+async function syncBackend(){
+  try {
+    const balRes = await fetch('/api/v1/treasury/balance');
+    if (balRes.ok) {
+      const bdata = await balRes.json();
+      if (bdata && bdata.available_balance !== undefined) {
+        balance = bdata.available_balance;
+      }
+    }
+  } catch(e) {}
+
+  try {
+    const venRes = await fetch('/api/v1/vendors/all');
+    if (venRes.ok) {
+      const vdata = await venRes.json();
+      if (vdata && vdata.vendors) {
+        vdata.vendors.forEach(v => {
+          SELLER_STATE[v.vendor_name] = (v.cooling_shield_hours > 0 || v.bank_status === 'UNVERIFIED') ? 'WAIT' : 'SAFE';
+        });
+      }
+    }
+  } catch(e) {}
+
+  try {
+    const decRes = await fetch('/api/v1/decisions');
+    if (decRes.ok) {
+      const ddata = await decRes.json();
+      if (ddata && ddata.decisions && Array.isArray(ddata.decisions) && ddata.decisions.length > 0) {
+        const liveBills = ddata.decisions.map(d => {
+          const t = d.subtotal || d.gross_amount || 100000;
+          const pay = d.final_disbursed || d.net_payable || Math.round(t * 0.86);
+          const tax = Math.round(t * 0.02);
+          const gst = (t - pay - tax > 0) ? (t - pay - tax) : Math.round(t * 0.12);
+          let st = 'READY';
+          if (d.status === 'SETTLED' || d.status === 'PAID') st = 'PAID';
+          else if (d.status === 'ACTION_REQUIRED' || d.status === 'SUSPENDED' || d.status === 'HELD') st = 'EYE';
+          else if (d.status === 'REJECTED') st = 'NO';
+          else st = 'READY';
+
+          return {
+            b: d.invoice_number,
+            s: d.vendor_name || 'Vendor',
+            t: t,
+            tax: tax,
+            gst: gst,
+            pay: pay,
+            st: st,
+            rcpt: d.payout_telemetry?.utr || 'RZX-CONFIRMED',
+            why: d.decision_title || ''
+          };
+        });
+        const existingIds = new Set(liveBills.map(b => b.b));
+        BILLS = [...liveBills, ...BILLS.filter(b => !existingIds.has(b.b))];
+      }
+    }
+  } catch(e) {}
+
+  render();
+}
+
+render();
+movePill(document.querySelector('#tabs button.on'));
+window.addEventListener('load',function(){
+  movePill(document.querySelector('#tabs button.on'));
+  syncBackend();
+});
+</script>
+</body>
+</html>
