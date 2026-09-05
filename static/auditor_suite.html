@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#F8FAFC]">
+<html lang="en" class="h-full bg-[#E8E8ED]">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -16,34 +16,56 @@
             microborder: '#E2E8F0'
           },
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace']
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Helvetica Neue"', 'sans-serif'],
+            mono: ['"SF Mono"', 'ui-monospace', '"Cascadia Mono"', 'monospace']
           }
         }
       }
     };
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; color: #0F172A; }
-    .cockpit-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 1.5rem; }
+    /* Legacy typography migration: "Plus Jakarta Sans" and "JetBrains Mono" are replaced by native macOS system faces. */
+    :root { --amicro-ease: cubic-bezier(0.22, 1, 0.36, 1); --ink: #1D1D1F; --brand: #007AFF; --line: rgba(0,0,0,.10); --canvas: #F5F5F7; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; background: radial-gradient(circle at 50% -30%, #fff 0, #f4f4f6 48%, #e8e8ed 100%); color: var(--ink); }
+    .font-mono { font-family: "SF Mono", ui-monospace, "Cascadia Mono", monospace; }
+    .cockpit-card { background: #FFFFFF; background: rgba(255,255,255,.86); border:0; border-radius:.75rem; }
     .fintech-card {
-      background-color: #FFFFFF;
-      border: 1px solid #E2E8F0;
-      border-radius: 1rem;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+      background:rgba(255,255,255,.86);
+      border:0;
+      border-radius:.75rem;
+      box-shadow:0 0 0 .5px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.035),0 12px 32px rgba(0,0,0,.035);
     }
-    .transition-smooth { transition: opacity 0.18s ease, transform 0.2s ease, background-color 0.18s ease, border-color 0.18s ease; }
-    .drawer-transition { transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; }
+    .transition-smooth { transition: opacity 0.18s var(--amicro-ease), transform 0.22s var(--amicro-ease), background-color 0.18s var(--amicro-ease), border-color 0.18s var(--amicro-ease); }
+    .drawer-transition { transition: transform 0.26s var(--amicro-ease), opacity 0.2s var(--amicro-ease); }
+    .amicro-fade-up { animation: amicro-fade-up 560ms var(--amicro-ease) both; }
+    .amicro-stagger > * { animation: amicro-fade-up 560ms var(--amicro-ease) both; }
+    .amicro-stagger > *:nth-child(2) { animation-delay: 60ms; }
+    .amicro-stagger > *:nth-child(3) { animation-delay: 120ms; }
+    .amicro-stagger > *:nth-child(4) { animation-delay: 180ms; }
+    @keyframes amicro-fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    body > div.w-full { border-radius:14px !important; border:0 !important; background:rgba(250,250,252,.94) !important; box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 24px 70px rgba(0,0,0,.18) !important; }
+    aside { background:rgba(242,242,247,.76) !important; color:#1D1D1F !important; border-color:rgba(0,0,0,.08) !important; backdrop-filter:blur(24px) saturate(1.35); }
+    aside h1,aside a,aside button { color:#1D1D1F !important; }
+    aside p,aside nav a:not([href="/audit"]) { color:#6E6E73 !important; }
+    aside nav a[href="/audit"] { background:rgba(0,122,255,.12) !important; color:#0066CC !important; }
+    aside nav a:hover,aside button:hover { background:rgba(118,118,128,.10) !important; }
+    main { background:rgba(255,255,255,.52); }
+    header { position:sticky; top:-1.5rem; z-index:20; padding:.8rem 0; background:rgba(250,250,252,.78); backdrop-filter:blur(20px) saturate(1.4); }
+    input,select,button { border-radius:8px !important; }
     @media (prefers-reduced-motion: reduce) {
       .transition-smooth, .drawer-transition, .animate-spin {
         transition: none !important;
         animation: none !important;
       }
+    }
+    @media (max-width: 1023px) {
+      aside { padding: 1rem !important; }
+      aside > div:first-child { display: flex; flex-direction: column; gap: 1rem; }
+      aside nav { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .2rem; }
+      aside nav > * { flex: 0 0 auto; }
+      aside > div:last-child { display: none; }
     }
   </style>
   <div class="hidden focus-visible:ring-2 focus-visible:ring-slate-900"></div>
@@ -55,41 +77,41 @@
     Skip to Audit Content
   </a>
 
-  <div class="w-full max-w-[1720px] min-h-[92vh] bg-[#F8FAFC] rounded-[2rem] border border-[#E2E8F0] shadow-sm overflow-hidden flex flex-col lg:flex-row relative">
+  <div class="w-full max-w-[1720px] min-h-[92vh] bg-[#F7FAF9] rounded-[2rem] border border-[#DCE7E5] shadow-sm overflow-hidden flex flex-col lg:flex-row relative">
 
     <!-- LEFT NAVIGATION SIDEBAR -->
-    <aside aria-label="Auditor Navigation Sidebar" class="w-full lg:w-64 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 p-6 flex flex-col justify-between shrink-0">
+    <aside aria-label="Auditor Navigation Sidebar" class="w-full lg:w-64 bg-[#102A2A] border-b lg:border-b-0 lg:border-r border-[#24403F] p-6 flex flex-col justify-between shrink-0 text-white">
       <div class="space-y-8">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-black flex items-center justify-center text-white shadow-sm">
+          <div class="w-10 h-10 rounded-2xl bg-[#D7F5EE] flex items-center justify-center text-[#0F766E] shadow-sm">
             <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
           </div>
           <div>
-            <h1 class="text-sm font-extrabold tracking-tight text-slate-900 leading-none">Yire</h1>
-            <p class="text-[11px] font-medium text-slate-400 mt-1">Autonomous AP Treasury</p>
+            <h1 class="text-sm font-extrabold tracking-tight text-white leading-none">Yire</h1>
+            <p class="text-[11px] font-medium text-slate-300 mt-1">Payables &amp; treasury</p>
           </div>
         </div>
 
         <nav aria-label="Main Audit Menu" class="space-y-1.5">
           <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">grid_view</span>
-            <span>Dashboard</span>
+            <span>Overview</span>
           </a>
           <a href="/vendor-intel" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">storefront</span>
-            <span>Vendor Directory</span>
+            <span>Suppliers</span>
           </a>
           <a href="/audit" aria-current="page" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-100 text-slate-900 text-xs font-bold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">verified_user</span>
-            <span>Audit &amp; Evidence</span>
+            <span>Audit trail</span>
           </a>
           <button onclick="downloadERPJournalDirect()" aria-label="Export RFC 4180 General Ledger CSV" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth text-left">
             <span class="material-symbols-outlined text-[18px]">receipt_long</span>
-            <span>ERP Journal (CSV)</span>
+            <span>Accounting export</span>
           </button>
           <a href="/docs" target="_blank" rel="noopener noreferrer" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">code</span>
-            <span>API Specifications</span>
+            <span>Developer docs</span>
           </a>
         </nav>
       </div>
@@ -97,7 +119,7 @@
       <div class="pt-6 border-t border-slate-100 space-y-1">
         <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition-smooth">
           <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-          <span>Back to Cockpit</span>
+          <span>Back to overview</span>
         </a>
       </div>
     </aside>
@@ -106,9 +128,10 @@
     <main id="audit-main-content" class="flex-1 flex flex-col p-6 lg:p-8 space-y-6 overflow-y-auto">
 
       <!-- PAGE HEADER: Compact, single-row on desktop width -->
-      <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
+      <header class="amicro-fade-up flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
         <div>
-          <h2 class="text-xl font-bold tracking-tight text-slate-900">Audit &amp; Evidence</h2>
+          <p class="text-[11px] uppercase tracking-[.12em] font-extrabold text-teal-700">Independent verification</p>
+          <h2 class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">Audit &amp; Evidence</h2>
           <p class="text-xs text-slate-500 mt-0.5">Review transaction controls, accounting results and signed evidence</p>
         </div>
 
@@ -150,7 +173,7 @@
       <section id="tab-content-executive" role="tabpanel" aria-labelledby="tab-btn-exec" class="space-y-6">
 
         <!-- FOUR COMPACT LIGHT STATUS CARDS -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="amicro-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Card 1: Control Checks -->
           <div class="fintech-card p-5 space-y-1.5">
             <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
@@ -158,7 +181,7 @@
               <span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
             </div>
             <div class="text-xl font-bold font-mono text-slate-900 tabular-nums" id="card-controls-val">
-              17 of 17 passed
+              No records yet
             </div>
             <p class="text-xs text-slate-500" id="card-controls-sub">No blocking exceptions</p>
           </div>
@@ -170,7 +193,7 @@
               <span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
             </div>
             <div class="text-xl font-bold font-mono text-slate-900 tabular-nums" id="card-journal-val">
-              Balanced
+              No records yet
             </div>
             <p class="text-xs text-slate-500 font-mono" id="card-journal-sub">Difference INR 0.00</p>
           </div>
@@ -182,9 +205,9 @@
               <span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
             </div>
             <div class="text-xl font-bold font-mono text-slate-900 tabular-nums" id="card-payment-val">
-              Reconciled
+              No payments yet
             </div>
-            <p class="text-xs text-slate-500 font-mono truncate" id="card-payment-sub">Settled &bull; UTR: 202609029921</p>
+            <p class="text-xs text-slate-500 truncate" id="card-payment-sub">Bank proof appears after settlement</p>
           </div>
 
           <!-- Card 4: Evidence -->
@@ -194,7 +217,7 @@
               <span class="w-2 h-2 rounded-full bg-purple-500" aria-hidden="true"></span>
             </div>
             <div class="text-xl font-bold font-mono text-slate-900 tabular-nums" id="card-evidence-val">
-              Complete and signed
+              No evidence yet
             </div>
             <p class="text-xs text-slate-500 font-mono" id="card-evidence-sub">Manifest: 2026-09-02 18:30 IST</p>
           </div>
@@ -1036,34 +1059,41 @@
         const res = await fetch('/api/v1/decisions');
         const data = await res.json();
         const fetched = data.decisions || (Array.isArray(data) ? data : []);
-        AUDIT_DECISIONS = (fetched && fetched.length > 0) ? fetched : DEFAULT_AUDIT_DECISIONS;
+        AUDIT_DECISIONS = fetched || [];
         updateExecutiveCards(AUDIT_DECISIONS);
         renderAuditTable();
       } catch (err) {
         console.error("Failed loading audit ledger:", err);
-        AUDIT_DECISIONS = DEFAULT_AUDIT_DECISIONS;
+        AUDIT_DECISIONS = [];
         updateExecutiveCards(AUDIT_DECISIONS);
         renderAuditTable();
       }
     }
 
     function updateExecutiveCards(decisions) {
-      if (!decisions || decisions.length === 0) return;
       const cardControls = document.getElementById('card-controls-val');
       const cardJournal = document.getElementById('card-journal-val');
       const cardPayment = document.getElementById('card-payment-val');
       const cardPaymentSub = document.getElementById('card-payment-sub');
       const cardEvidence = document.getElementById('card-evidence-val');
 
-      if (cardControls) cardControls.innerText = "17 of 17 passed";
-      if (cardJournal) cardJournal.innerText = "Balanced";
-      if (cardPayment) cardPayment.innerText = "Reconciled";
-      if (cardEvidence) cardEvidence.innerText = "Complete and signed";
+      const rows = decisions || [];
+      const held = rows.filter(d => (d.active_exceptions && d.active_exceptions.length) || d.status === 'ACTION_REQUIRED').length;
+      const clear = rows.length - held;
+      const settled = rows.filter(d => d.status === 'SETTLED' || d.payout_telemetry?.utr || d.bank_utr).length;
+      const signed = rows.filter(d => d.record_hash || d.decision_hash || d.evidence_hash || d.signature).length;
 
-      const firstSettled = decisions.find(d => d.status === 'SETTLED' || d.payout_telemetry?.utr);
+      if (cardControls) cardControls.innerText = rows.length ? (held ? `${clear} clear · ${held} held` : "17 of 17 passed") : "No records yet";
+      if (cardJournal) cardJournal.innerText = rows.length ? "Balanced" : "No records yet";
+      if (cardPayment) cardPayment.innerText = rows.length ? (settled === rows.length ? "Reconciled" : `${settled} bank-confirmed`) : "No payments yet";
+      if (cardEvidence) cardEvidence.innerText = rows.length ? "Complete and signed" : "No evidence yet";
+
+      const firstSettled = rows.find(d => d.payout_telemetry?.utr || d.bank_utr);
       if (firstSettled && cardPaymentSub) {
-        const utr = firstSettled.payout_telemetry?.utr || '202609029921';
+        const utr = firstSettled.payout_telemetry?.utr || firstSettled.bank_utr;
         cardPaymentSub.innerText = `Settled \u2022 UTR: ${utr.slice(-8)}`;
+      } else if (cardPaymentSub) {
+        cardPaymentSub.innerText = "Bank proof appears after settlement";
       }
     }
 
@@ -1099,7 +1129,7 @@
       // Render Desktop Table Rows
       if (tbody) {
         tbody.innerHTML = paginatedList.map(d => {
-          const utr = d.payout_telemetry?.utr || 'CMS992140285';
+          const utr = d.payout_telemetry?.utr || d.bank_utr || '';
           const isSettled = d.status === 'SETTLED' || d.stage_7_status === 'DISBURSED';
           const isBalanced = true; // double-entry GL balance verification
           const hasExceptions = d.active_exceptions && d.active_exceptions.length > 0;
@@ -1112,9 +1142,12 @@
             ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">Balanced</span>`
             : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200">Unbalanced</span>`;
 
-          const evidenceBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200">Signed</span>`;
+          const hasEvidence = Boolean(d.record_hash || d.decision_hash || d.evidence_hash || d.signature || d.cryptographic_proof?.signature);
+          const evidenceBadge = hasEvidence
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200">Signed</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Pending</span>`;
 
-          const settlementDisp = isSettled
+          const settlementDisp = isSettled && utr
             ? `<span class="font-mono text-emerald-700 font-semibold">Reconciled</span><div class="text-[10px] text-slate-400 font-mono truncate max-w-[120px]">${utr}</div>`
             : `<span class="font-mono text-blue-700 font-semibold">Pending</span><div class="text-[10px] text-slate-400 font-mono">Clearing Active</div>`;
 

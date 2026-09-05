@@ -25,3 +25,5 @@ venv/
 .DS_Store
 scratch/
 node_modules/
+.npm-cache/
+.reference-monocharts/

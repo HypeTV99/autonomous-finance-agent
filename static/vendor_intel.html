@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#EAEFF4]">
+<html lang="en" class="h-full bg-[#E8E8ED]">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Yire | Vendor Directory &amp; NPCI Verification</title>
+  <title>Yire | Supplier Readiness</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -16,75 +16,101 @@
             microborder: '#E2E8F0'
           },
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace']
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Helvetica Neue"', 'sans-serif'],
+            mono: ['"SF Mono"', 'ui-monospace', '"Cascadia Mono"', 'monospace']
           }
         }
       }
     };
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; color: #0F172A; }
-    .font-mono { font-family: 'JetBrains Mono', monospace; }
-    .cockpit-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 1.5rem; }
+    /* Legacy typography migration: "Plus Jakarta Sans" and "JetBrains Mono" are replaced by native macOS system faces. */
+    :root { --amicro-ease: cubic-bezier(0.22, 1, 0.36, 1); --ink: #1D1D1F; --brand: #007AFF; --line: rgba(0,0,0,.10); --canvas: #F5F5F7; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; background: radial-gradient(circle at 50% -30%, #fff 0, #f4f4f6 48%, #e8e8ed 100%); color: var(--ink); }
+    .font-mono { font-family: "SF Mono", ui-monospace, "Cascadia Mono", monospace; }
+    .cockpit-card { background: #FFFFFF; background: rgba(255,255,255,.86); border: 0; border-radius: .75rem; }
     .fintech-card {
-      background-color: #FFFFFF;
-      background: #FFFFFF;
-      border: 1px solid #E2E8F0;
-      border-radius: 1.5rem;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+      background: rgba(255,255,255,.86);
+      border: 0;
+      border-radius: .75rem;
+      box-shadow: 0 0 0 .5px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.035), 0 12px 32px rgba(0,0,0,.035);
     }
     .fintech-dark-card {
       background-color: #17171A;
       border: 1px solid #27272A;
       border-radius: 1.5rem;
     }
-    .transition-smooth { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+    .transition-smooth { transition-property: opacity, transform, background-color, border-color, color, fill, stroke; transition-duration: 220ms; transition-timing-function: var(--amicro-ease); }
+    .amicro-fade-up { animation: amicro-fade-up 560ms var(--amicro-ease) both; }
+    .amicro-stagger > * { animation: amicro-fade-up 560ms var(--amicro-ease) both; }
+    .amicro-stagger > *:nth-child(2) { animation-delay: 60ms; }
+    .amicro-stagger > *:nth-child(3) { animation-delay: 120ms; }
+    .amicro-lift { transition: transform 260ms var(--amicro-ease), box-shadow 260ms var(--amicro-ease); }
+    .amicro-lift:hover { transform: translateY(-3px); box-shadow: 0 18px 36px rgba(15, 42, 42, 0.08); }
+    @keyframes amicro-fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    body > div.w-full { border-radius:14px !important; border:0 !important; background:rgba(250,250,252,.94) !important; box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 24px 70px rgba(0,0,0,.18) !important; }
+    aside { background:rgba(242,242,247,.76) !important; color:#1D1D1F !important; border-color:rgba(0,0,0,.08) !important; backdrop-filter:blur(24px) saturate(1.35); }
+    aside h1, aside a, aside button { color:#1D1D1F !important; }
+    aside p, aside nav a:not([href="/vendor-intel"]) { color:#6E6E73 !important; }
+    aside nav a[href="/vendor-intel"] { background:rgba(0,122,255,.12) !important; color:#0066CC !important; }
+    aside nav a:hover, aside button:hover { background:rgba(118,118,128,.10) !important; }
+    main { background:rgba(255,255,255,.52); }
+    header { position:sticky; top:-1.5rem; z-index:20; padding:.8rem 0; background:rgba(250,250,252,.78); backdrop-filter:blur(20px) saturate(1.4); }
+    input,select,button { border-radius:8px !important; }
+    .fintech-dark-card { background:rgba(255,255,255,.90); color:#1D1D1F !important; border:0; border-radius:12px; box-shadow:0 0 0 .5px rgba(0,0,0,.10),0 12px 30px rgba(0,0,0,.05); }
+    .fintech-dark-card .text-white { color:#1D1D1F !important; }
+    .fintech-dark-card .text-slate-400 { color:#6E6E73 !important; }
+    .fintech-dark-card > div > div { border-color:rgba(0,0,0,.08) !important; }
+    @media (prefers-reduced-motion: reduce) { *, ::before, ::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+    @media (max-width: 1023px) {
+      aside { padding: 1rem !important; }
+      aside > div:first-child { display: flex; flex-direction: column; gap: 1rem; }
+      aside nav { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .2rem; }
+      aside nav > * { flex: 0 0 auto; }
+      aside > div:last-child { display: none; }
+    }
   </style>
   <div class="hidden focus-visible:ring-2 focus-visible:ring-slate-900"></div>
 </head>
 <body class="h-full antialiased text-slate-800 bg-[#F8FAFC] flex justify-center p-3 sm:p-5 lg:p-6 selection:bg-slate-200">
 
-  <div class="w-full max-w-[1720px] min-h-[92vh] bg-[#F4F6F8] rounded-[2rem] border border-[#E2E8F0] shadow-xl overflow-hidden flex flex-col lg:flex-row relative">
+  <div class="w-full max-w-[1720px] min-h-[92vh] bg-[#F7FAF9] rounded-[2rem] border border-[#DCE7E5] shadow-xl overflow-hidden flex flex-col lg:flex-row relative">
 
     <!-- LEFT SIDEBAR -->
-    <aside class="w-full lg:w-64 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 p-6 flex flex-col justify-between shrink-0">
+    <aside class="w-full lg:w-64 bg-[#102A2A] border-b lg:border-b-0 lg:border-r border-[#24403F] p-6 flex flex-col justify-between shrink-0 text-white">
       <div class="space-y-8">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-black flex items-center justify-center text-white shadow-sm">
+          <div class="w-10 h-10 rounded-2xl bg-[#D7F5EE] flex items-center justify-center text-[#0F766E] shadow-sm">
             <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
           </div>
           <div>
-            <h1 class="text-sm font-extrabold tracking-tight text-slate-900 leading-none">Yire</h1>
-            <p class="text-[11px] font-medium text-slate-400 mt-1">Autonomous AP Treasury</p>
+            <h1 class="text-sm font-extrabold tracking-tight text-white leading-none">Yire</h1>
+            <p class="text-[11px] font-medium text-slate-300 mt-1">Payables &amp; treasury</p>
           </div>
         </div>
 
         <nav class="space-y-1.5">
           <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">grid_view</span>
-            <span>Dashboard</span>
+            <span>Overview</span>
           </a>
           <a href="/vendor-intel" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-100 text-slate-900 text-xs font-bold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">storefront</span>
-            <span>Vendor Directory</span>
+            <span>Suppliers</span>
           </a>
           <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">verified_user</span>
-            <span>Auditor Vault</span>
+            <span>Audit trail</span>
           </a>
           <button onclick="exportVendorLedgerCSV()" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth text-left focus-visible:ring-2 focus-visible:ring-slate-900">
             <span class="material-symbols-outlined text-[18px]">receipt_long</span>
-            <span>ERP Journal (CSV)</span>
+            <span>Supplier export</span>
           </button>
           <a href="/docs" target="_blank" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">code</span>
-            <span>API Specifications</span>
+            <span>Developer docs</span>
           </a>
         </nav>
       </div>
@@ -92,7 +118,7 @@
       <div class="pt-6 border-t border-slate-100 space-y-1">
         <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition-smooth">
           <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-          <span>Back to Cockpit</span>
+          <span>Back to overview</span>
         </a>
       </div>
     </aside>
@@ -109,56 +135,52 @@
         <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
           <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-2 px-5 py-2.5 bg-black hover:bg-slate-800 text-white rounded-2xl text-xs font-bold shadow-xs transition-smooth">
             <span class="material-symbols-outlined text-[16px]">upload_file</span>
-            <span>Ingest Bill</span>
+            <span>Add invoice</span>
           </a>
         </div>
       </header>
 
-      <!-- DARK BENTO METRICS FOR VENDORS -->
-      <div class="space-y-4">
-        <h2 class="text-xl font-bold tracking-tight text-slate-900">Vendor Directory & Invariants</h2>
+      <div class="space-y-4 amicro-fade-up">
+        <div><p class="text-[11px] uppercase tracking-[.12em] font-extrabold text-teal-700">Supplier readiness</p><h2 class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">Pay the right supplier account with confidence.</h2><p class="mt-2 text-sm text-slate-500">See identity, tax, and bank-change checks before a bill reaches the payout queue.</p></div>
 
-        <div class="fintech-dark-card p-6 lg:p-7 text-white shadow-xl">
+        <div class="fintech-dark-card p-6 lg:p-7 text-white shadow-xl amicro-lift">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 divide-y md:divide-y-0 md:divide-x divide-white/10">
             <div class="space-y-2">
               <div class="flex items-center gap-1.5 text-xs font-medium text-slate-400">
                 <span class="material-symbols-outlined text-[15px]">corporate_fare</span>
-                <span>Active Commercial Partners</span>
+                <span>Suppliers on file</span>
               </div>
               <div class="text-2xl lg:text-3xl font-extrabold tracking-tight font-mono tabular-nums" id="metric-vendor-count">
                 0
               </div>
               <div class="flex items-center gap-2 text-[11px]">
-                <span class="text-slate-400">Section 206AB Compliance</span>
-                <span class="font-bold text-emerald-400 font-mono">Filer Screening Active</span>
+                <span class="text-slate-400">Identity and tax screening</span>
               </div>
             </div>
 
             <div class="space-y-2 md:pl-6 lg:pl-8 pt-4 md:pt-0">
               <div class="flex items-center gap-1.5 text-xs font-medium text-slate-400">
                 <span class="material-symbols-outlined text-[15px]">verified</span>
-                <span>NPCI Penny Drop Cached Rate</span>
+                <span>Bank accounts verified</span>
               </div>
-              <div class="text-2xl lg:text-3xl font-extrabold tracking-tight font-mono text-emerald-400 tabular-nums">
-                100.0% Verified
+              <div class="text-2xl lg:text-3xl font-extrabold tracking-tight font-mono text-emerald-400 tabular-nums" id="metric-verified-count">
+                0
               </div>
               <div class="flex items-center gap-2 text-[11px]">
-                <span class="text-slate-400">Master Gating</span>
-                <span class="font-bold text-emerald-400 font-mono">Zero Float Drainage</span>
+                <span class="text-slate-400">Confirmed beneficiary accounts</span>
               </div>
             </div>
 
             <div class="space-y-2 md:pl-6 lg:pl-8 pt-4 md:pt-0">
               <div class="flex items-center gap-1.5 text-xs font-medium text-slate-400">
                 <span class="material-symbols-outlined text-[15px]">lock_clock</span>
-                <span>Banking Anti-Takeover Fence</span>
+                <span>Suppliers needing review</span>
               </div>
-              <div class="text-2xl lg:text-3xl font-extrabold tracking-tight font-mono text-purple-400 tabular-nums">
-                48 Hours Active
+              <div class="text-2xl lg:text-3xl font-extrabold tracking-tight font-mono text-amber-300 tabular-nums" id="metric-review-count">
+                0
               </div>
               <div class="flex items-center gap-2 text-[11px]">
-                <span class="text-slate-400">Cooling Defense</span>
-                <span class="font-bold text-emerald-400 font-mono">Fuzzy Legal Match</span>
+                <span class="text-slate-400">Includes tax or bank-detail holds</span>
               </div>
             </div>
           </div>
@@ -168,10 +190,10 @@
       <!-- VENDORS DIRECTORY TABLE WITH PAGINATION -->
       <div class="fintech-card p-6 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
-          <h3 class="text-sm font-bold text-slate-900">Verified Supplier Profiles</h3>
+          <div><h3 class="text-sm font-bold text-slate-900">Supplier profiles</h3><p class="text-[11px] text-slate-500 mt-1">Open a profile to understand why it is ready or held.</p></div>
           <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
             <button onclick="filterVendors('ALL')" id="tab-all" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg bg-white text-slate-900 shadow-2xs font-bold transition-smooth">All Suppliers (<span id="vcount-all">0</span>)</button>
-            <button onclick="filterVendors('TIER1')" id="tab-tier1" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Tier 1 Elite (<span id="vcount-tier1">0</span>)</button>
+            <button onclick="filterVendors('TIER1')" id="tab-tier1" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Ready (<span id="vcount-tier1">0</span>)</button>
             <button onclick="filterVendors('ACTION')" id="tab-action" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Review Required (<span id="vcount-action">0</span>)</button>
           </div>
         </div>
@@ -339,6 +361,15 @@
     let CURRENT_VPAGE = 1;
     const VPAGE_SIZE = 6;
 
+    function vendorScore(vendor) {
+      const score = Number(vendor && (vendor.trustScore ?? vendor.score));
+      return Number.isFinite(score) ? score : 0;
+    }
+
+    function isVendorReady(vendor) {
+      return vendorScore(vendor) >= 90 && Number(vendor && vendor.invariantsPassed) === Number(vendor && vendor.invariantsTotal);
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       loadVendors();
     });
@@ -399,28 +430,16 @@
         const data = await res.json();
         let vendors = data.vendors || [];
 
-        // Always include Section 206AB Non-Filer demo partner for institutional audit
-        const hasNonFiler = vendors.some(v => (v.vendor_id === 'VEND-004' || v.id === 'VEND-004'));
-        if (!hasNonFiler) {
-          vendors.push({
-            vendor_id: 'VEND-004',
-            name: 'Apex Infrastructure Contractors',
-            pan: 'AAACA9999K',
-            gstin: '27AAACA9999K1Z4',
-            bankAcc: 'ICICI **** 9921',
-            bankIfsc: 'ICIC0000004',
-            score: '68.0%',
-            sec_206ab: 'NON_FILER'
-          });
-        }
-
         ALL_VENDORS = vendors;
         document.getElementById('metric-vendor-count').innerText = ALL_VENDORS.length;
         document.getElementById('vcount-all').innerText = ALL_VENDORS.length;
         
-        const tier1 = ALL_VENDORS.filter(v => (parseInt(v.score) || 95) >= 90).length;
+        const tier1 = ALL_VENDORS.filter(isVendorReady).length;
+        const reviewCount = ALL_VENDORS.length - tier1;
         document.getElementById('vcount-tier1').innerText = tier1;
-        document.getElementById('vcount-action').innerText = ALL_VENDORS.length - tier1;
+        document.getElementById('vcount-action').innerText = reviewCount;
+        document.getElementById('metric-verified-count').innerText = tier1;
+        document.getElementById('metric-review-count').innerText = reviewCount;
 
         renderVendorsTable();
       } catch (err) {
@@ -435,9 +454,9 @@
 
       let list = ALL_VENDORS;
       if (VENDOR_FILTER === 'TIER1') {
-        list = ALL_VENDORS.filter(v => (parseInt(v.score) || 95) >= 90);
+        list = ALL_VENDORS.filter(isVendorReady);
       } else if (VENDOR_FILTER === 'ACTION') {
-        list = ALL_VENDORS.filter(v => (parseInt(v.score) || 95) < 90);
+        list = ALL_VENDORS.filter(v => !isVendorReady(v));
       }
 
       const totalItems = list.length;
@@ -483,11 +502,11 @@
       if (tbody) {
         tbody.innerHTML = paginatedList.map(v => {
           const vid = v.vendor_id || v.id || 'VEND-001';
-          const numScore = parseInt(v.score) || 95;
+          const numScore = vendorScore(v);
           const tierClass = numScore >= 90 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200';
           const tierLabel = numScore >= 90 ? 'TIER 1 ELITE' : 'ACTION REQUIRED';
-          const bankAc = v.bankAcc || 'HDFC **** 4021';
-          const bankIf = v.bankIfsc || v.ifsc || 'HDFC0000060';
+          const bankAc = v.bankAcc || 'Not available';
+          const bankIf = v.bankIfsc || v.ifsc || 'Not available';
 
           const isNonFiler = v.sec_206ab === 'NON_FILER' || numScore < 70;
           const sec206abBadge = isNonFiler
@@ -528,7 +547,7 @@
       if (cardList) {
         cardList.innerHTML = paginatedList.map(v => {
           const vid = v.vendor_id || v.id || 'VEND-001';
-          const numScore = parseInt(v.score) || 95;
+          const numScore = vendorScore(v);
           const tierClass = numScore >= 90 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200';
           const tierLabel = numScore >= 90 ? 'TIER 1 ELITE' : 'ACTION REQUIRED';
           const isNonFiler = v.sec_206ab === 'NON_FILER' || numScore < 70;
@@ -549,7 +568,7 @@
               </div>
               <div class="text-xs font-mono space-y-1 text-slate-600 border-t border-slate-100 pt-2">
                 <div>PAN: ${v.pan || 'AAACB1234K'}</div>
-                <div>Bank: ${v.bankAcc || 'HDFC **** 4021'} (${v.bankIfsc || 'HDFC0000060'})</div>
+                <div>Bank: ${v.bankAcc || 'Not available'} (${v.bankIfsc || v.ifsc || 'Not available'})</div>
               </div>
               <div class="flex items-center justify-between pt-1">
                 <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${tierClass}">${tierLabel}</span>
@@ -567,24 +586,21 @@
     }
 
     function openVendorDrawer(vendorId) {
-      const v = ALL_VENDORS.find(item => (item.vendor_id === vendorId || item.id === vendorId)) || {
-        vendor_id: vendorId,
-        name: 'Alpha Tech Labs Private Limited',
-        pan: 'AAACB1234K',
-        gstin: '27AAACB1234K1Z1',
-        bankAcc: 'HDFC **** 4021',
-        bankIfsc: 'HDFC0000060'
-      };
+      const v = ALL_VENDORS.find(item => (item.vendor_id === vendorId || item.id === vendorId));
+      if (!v) {
+        showToast("Supplier unavailable", "This supplier profile could not be loaded.", "error");
+        return;
+      }
 
       const vid = v.vendor_id || v.id || vendorId;
       document.getElementById('drawer-vendor-name').innerText = v.name || 'Commercial Supplier';
       document.getElementById('drawer-vendor-id').innerText = vid;
       document.getElementById('drawer-pan-legal-name').innerText = (v.name || 'Commercial Supplier').toUpperCase();
-      document.getElementById('drawer-pan').innerText = v.pan || 'AAACB1234K';
-      document.getElementById('drawer-gstin').innerText = v.gstin || '27AAACB1234K1Z1';
-      document.getElementById('drawer-bank').innerText = `${v.bankAcc || 'HDFC **** 4021'} (${v.bankIfsc || v.ifsc || 'HDFC0000060'})`;
+      document.getElementById('drawer-pan').innerText = v.pan || 'Not available';
+      document.getElementById('drawer-gstin').innerText = v.gstin || 'Not available';
+      document.getElementById('drawer-bank').innerText = `${v.bankAcc || 'Not available'} (${v.bankIfsc || v.ifsc || 'Not available'})`;
 
-      const isNonFiler = v.sec_206ab === 'NON_FILER' || (parseInt(v.score) || 95) < 70;
+      const isNonFiler = v.sec_206ab === 'NON_FILER' || vendorScore(v) < 70;
       const el206 = document.getElementById('drawer-206ab');
       if (el206) {
         el206.innerText = isNonFiler ? "Non-Filer Penalty Active (20.0% TDS Rate)" : "Verified Filer (Normal Rate)";

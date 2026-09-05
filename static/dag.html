@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#EAEFF4]">
+<html lang="en" class="h-full bg-[#E8E8ED]">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Yire | Autonomous AP &amp; Statutory Treasury</title>
+  <title>Yire | Payables &amp; Treasury Overview</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -18,29 +18,53 @@
             microborder: '#E2E8F0'
           },
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace']
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Helvetica Neue"', 'sans-serif'],
+            mono: ['"SF Mono"', 'ui-monospace', '"Cascadia Mono"', 'monospace']
           }
         }
       }
     };
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; color: #0F172A; }
-    .font-mono { font-family: 'JetBrains Mono', monospace; }
-    .cockpit-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 1.5rem; }
+    /* Legacy typography migration: "Plus Jakarta Sans" and "JetBrains Mono" are replaced by native macOS system faces. */
+    :root {
+      --amicro-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --ink: #1D1D1F;
+      --muted: #6E6E73;
+      --brand: #007AFF;
+      --brand-soft: #EAF3FF;
+      --line: rgba(0, 0, 0, 0.10);
+      --canvas: #F5F5F7;
+      --digit-dur: 500ms;
+      --digit-distance: 8px;
+      --digit-stagger: 70ms;
+      --digit-blur: 2px;
+      --digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
+      --digit-dir-x: 0;
+      --digit-dir-y: 1;
+      --tabs-dur: 250ms;
+      --tabs-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --tabs-text-muted: rgba(15, 15, 15, 0.62);
+      --tabs-text-active: #1D1D1F;
+      --tabs-bar-bg: rgba(118, 118, 128, 0.12);
+      --tabs-pill-bg: rgba(255, 255, 255, 0.96);
+      --stagger-dur: 500ms;
+      --stagger-distance: 12px;
+      --stagger-stagger: 40ms;
+      --stagger-blur: 3px;
+      --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; background: radial-gradient(circle at 50% -30%, #fff 0, #f4f4f6 48%, #e8e8ed 100%); color: var(--ink); }
+    .font-mono { font-family: "SF Mono", ui-monospace, "Cascadia Mono", monospace; }
+    .cockpit-card { background: #FFFFFF; background: rgba(255,255,255,.82); border: 0; border-radius: .75rem; }
     .fintech-card {
-      background-color: #FFFFFF;
-      background: #FFFFFF;
-      border: 1px solid #E2E8F0;
-      border-radius: 1.5rem;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+      background: rgba(255, 255, 255, 0.86);
+      border: 0;
+      border-radius: .75rem;
+      box-shadow: 0 0 0 .5px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.035), 0 12px 32px rgba(0,0,0,.035);
     }
     .fintech-dark-card {
       background-color: #17171A;
@@ -54,8 +78,74 @@
     }
     .transition-smooth {
       transition-property: opacity, transform, background-color, border-color, color, fill, stroke;
-      transition-duration: 150ms;
-      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+      transition-duration: 220ms;
+      transition-timing-function: var(--amicro-ease);
+    }
+    /* Amicro-inspired interaction language, adapted for this dependency-free UI. */
+    .amicro-fade-up { animation: amicro-fade-up 560ms var(--amicro-ease) both; }
+    .amicro-stagger > * { animation: amicro-fade-up 560ms var(--amicro-ease) both; }
+    .amicro-stagger > *:nth-child(2) { animation-delay: 60ms; }
+    .amicro-stagger > *:nth-child(3) { animation-delay: 120ms; }
+    .amicro-stagger > *:nth-child(4) { animation-delay: 180ms; }
+    .amicro-lift { transition: transform 260ms var(--amicro-ease), box-shadow 260ms var(--amicro-ease), border-color 260ms var(--amicro-ease); }
+    .amicro-lift:hover { transform: translateY(-2px); box-shadow: 0 0 0 .5px rgba(0,0,0,.12), 0 8px 24px rgba(0,0,0,.08); }
+    .amicro-press { transition: transform 180ms var(--amicro-ease), background-color 180ms var(--amicro-ease); }
+    .amicro-press:active { transform: scale(0.97); }
+    @keyframes amicro-fade-up {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .eyebrow { color: var(--brand); letter-spacing: .12em; text-transform: uppercase; font-size: .68rem; font-weight: 800; }
+    .metric-accent { position: relative; overflow: hidden; }
+    .metric-accent::after { content: ''; position: absolute; inset: auto 20px 14px; height: 3px; border-radius: 999px; background: var(--brand); opacity: .18; transform: scaleX(.35); transform-origin: left; transition: opacity 260ms var(--amicro-ease), transform 420ms var(--amicro-ease); }
+    .metric-accent:hover::after { opacity: 1; transform: scaleX(1); }
+    .mono-rounded-sankey { overflow: hidden; }
+    .flow-step { position: relative; min-width: 0; text-align: left; padding: .25rem; }
+    .flow-step:not(:last-child)::after { content: ''; position: absolute; top: 1.32rem; left: calc(50% + 1.55rem); width: calc(100% - 3.1rem); height: 6px; border-radius: 999px; background: linear-gradient(90deg, rgba(0,122,255,.34), rgba(0,122,255,.10)); transform: scaleX(max(.12, var(--flow-share, .12))); transform-origin: left; transition: transform 500ms var(--amicro-ease); }
+    .flow-node { width: 2.65rem; height: 2.65rem; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: #F2F2F7; color: #3A3A3C; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.08); }
+    .flow-step[data-state="review"] .flow-node { background: #FFF7E6; color: #9A6700; }
+    .flow-step[data-state="ready"] .flow-node { background: #EAF3FF; color: #0066CC; }
+    .flow-step[data-state="paid"] .flow-node { background: #EAF8EF; color: #16803A; }
+    .flow-share { margin-top: .65rem; height: 4px; border-radius: 999px; background: rgba(118,118,128,.12); overflow: hidden; }
+    .flow-share::before { content: ''; display: block; height: 100%; width: calc(max(.06, var(--flow-share, 0)) * 100%); border-radius: inherit; background: currentColor; transition: width 500ms var(--amicro-ease); }
+    .mono-rounded-kpi { min-height: 142px; }
+    .mono-rounded-kpi .kpi-cap { display: flex; gap: 3px; margin-top: auto; padding-top: 1rem; }
+    .mono-rounded-kpi .kpi-cap i { display:block; height:4px; flex:1; border-radius:999px; background:rgba(118,118,128,.14); }
+    .mono-rounded-kpi .kpi-cap i:first-child { background: var(--brand); }
+    .mono-rounded-kpi.metric-accent::after { display:none; }
+    .value-bar { display:grid; grid-template-columns:7.25rem minmax(0,1fr) auto; align-items:center; gap:.75rem; }
+    .value-bar-track { height:11px; border-radius:999px; background:rgba(118,118,128,.10); overflow:hidden; }
+    .value-bar-fill { display:block; width:0; height:100%; border-radius:inherit; transition:width 500ms var(--amicro-ease); }
+    @keyframes t-digit-pop-in { 0% { transform: translate(calc(var(--digit-distance) * var(--digit-dir-x)), calc(var(--digit-distance) * var(--digit-dir-y))); opacity:0; filter:blur(var(--digit-blur)); } 100% { transform:translate(0,0); opacity:1; filter:blur(0); } }
+    .t-digit-group { display:inline-block; white-space:nowrap; }
+    .t-digit { display:inline-block; will-change:transform,opacity,filter; }
+    .t-digit-group.is-animating .t-digit { animation:t-digit-pop-in var(--digit-dur) var(--digit-ease) both; }
+    .t-digit-group.is-animating .t-digit[data-stagger="1"] { animation-delay:var(--digit-stagger); }
+    .t-digit-group.is-animating .t-digit[data-stagger="2"] { animation-delay:calc(var(--digit-stagger) * 2); }
+    .t-tabs { position:relative; display:inline-flex; align-items:center; gap:3px; padding:3px; border-radius:48px; background:var(--tabs-bar-bg); }
+    .t-tab { position:relative; appearance:none; border:0; background:transparent !important; height:30px; padding:4px 12px; color:var(--tabs-text-muted) !important; cursor:pointer; border-radius:48px; z-index:1; transition:color var(--tabs-dur) var(--tabs-ease); }
+    .t-tab:not([aria-selected="true"]):hover,.t-tab[aria-selected="true"] { color:var(--tabs-text-active) !important; }
+    .t-tabs-pill { position:absolute; top:3px; left:0; height:30px; width:0; background:var(--tabs-pill-bg); border-radius:48px; transform:translateX(0); transition:transform var(--tabs-dur) var(--tabs-ease),width var(--tabs-dur) var(--tabs-ease); will-change:transform,width; z-index:0; pointer-events:none; box-shadow:0 1px 4px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.06); }
+    .t-stagger-line { display:block; opacity:0; transform:translateY(var(--stagger-distance)); filter:blur(var(--stagger-blur)); transition:opacity var(--stagger-dur) var(--stagger-ease),transform var(--stagger-dur) var(--stagger-ease),filter var(--stagger-dur) var(--stagger-ease); will-change:transform,opacity,filter; }
+    .t-stagger-line--2 { transition-delay:var(--stagger-stagger); }
+    .t-stagger.is-shown .t-stagger-line { opacity:1; transform:translateY(0); filter:blur(0); }
+    #drop-target { border-radius: 14px !important; border: 0 !important; background: rgba(250,250,252,.94) !important; box-shadow: 0 0 0 .5px rgba(0,0,0,.18), 0 24px 70px rgba(0,0,0,.18) !important; }
+    aside { background: rgba(242,242,247,.76) !important; color:#1D1D1F !important; border-color:rgba(0,0,0,.08) !important; backdrop-filter:blur(24px) saturate(1.35); }
+    aside h1, aside a, aside button { color:#1D1D1F !important; }
+    aside p, aside nav a:not([href="/dashboard"]), aside > div:last-child { color:#6E6E73 !important; }
+    aside nav a[href="/dashboard"] { background:rgba(0,122,255,.12) !important; color:#0066CC !important; }
+    aside nav a:hover, aside button:hover { background:rgba(118,118,128,.10) !important; }
+    main { background:rgba(255,255,255,.52); }
+    header { position:sticky; top:-1.5rem; z-index:20; padding:.8rem 0; background:rgba(250,250,252,.78); backdrop-filter:blur(20px) saturate(1.4); }
+    input, select { border-color:rgba(0,0,0,.10) !important; border-radius:8px !important; }
+    button { border-radius:8px !important; }
+    @media (max-width:639px) { .flow-step:not(:last-child)::after { display:none; } .mono-rounded-sankey .flow-step { text-align:center; } .flow-node { margin-inline:auto; } }
+    @media (max-width: 1023px) {
+      aside { padding: 1rem !important; }
+      aside > div:first-child { display: flex; flex-direction: column; gap: 1rem; }
+      aside nav { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .2rem; }
+      aside nav > * { flex: 0 0 auto; }
+      aside > div:last-child { display: none; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, ::before, ::after {
@@ -64,6 +154,8 @@
         transition-duration: 0.001ms !important;
         scroll-behavior: auto !important;
       }
+      .t-digit-group .t-digit { animation:none !important; }
+      .t-tabs-pill,.t-tab,.t-stagger-line { transition:none !important; }
     }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #F1F5F9; }
@@ -80,56 +172,56 @@
   </a>
 
   <!-- MAIN APP WINDOW CONTAINER -->
-  <div id="drop-target" class="w-full max-w-[1720px] min-h-[92vh] bg-[#F4F6F8] rounded-[2rem] border border-[#E2E8F0] shadow-xl overflow-hidden flex flex-col lg:flex-row relative">
+  <div id="drop-target" class="w-full max-w-[1720px] min-h-[92vh] bg-[#F7FAF9] rounded-[2rem] border border-[#DCE7E5] shadow-xl overflow-hidden flex flex-col lg:flex-row relative">
 
     <!-- LEFT SIDEBAR NAVIGATION -->
-    <aside class="w-full lg:w-64 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 p-6 flex flex-col justify-between shrink-0">
+    <aside class="w-full lg:w-64 bg-[#102A2A] border-b lg:border-b-0 lg:border-r border-[#24403F] p-6 flex flex-col justify-between shrink-0 text-white">
       <div class="space-y-8">
         <!-- Brand Title -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-black flex items-center justify-center text-white shadow-sm">
+          <div class="w-10 h-10 rounded-2xl bg-[#D7F5EE] flex items-center justify-center text-[#0F766E] shadow-sm">
             <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
           </div>
           <div>
-            <h1 class="text-sm font-extrabold tracking-tight text-slate-900 leading-none">Yire</h1>
-            <p class="text-[11px] font-medium text-slate-400 mt-1">Autonomous AP Treasury</p>
+            <h1 class="text-sm font-extrabold tracking-tight text-white leading-none">Yire</h1>
+            <p class="text-[11px] font-medium text-slate-300 mt-1">Payables &amp; treasury</p>
           </div>
         </div>
 
         <!-- Navigation Menu -->
         <nav class="space-y-1.5" aria-label="Main Navigation">
-          <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-100 text-slate-900 text-xs font-bold transition-smooth">
+          <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-white flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/10 text-white text-xs font-bold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">grid_view</span>
-            <span>Dashboard</span>
+            <span>Overview</span>
           </a>
-          <a href="/vendor-intel" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+          <a href="/vendor-intel" class="focus-visible:ring-2 focus-visible:ring-white flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-300 hover:text-white hover:bg-white/10 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">storefront</span>
-            <span>Vendor Directory</span>
+            <span>Suppliers</span>
           </a>
-          <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+          <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-white flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-300 hover:text-white hover:bg-white/10 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">verified_user</span>
-            <span>Auditor Vault</span>
+            <span>Audit trail</span>
           </a>
           <!-- DIRECT IN-PAGE ERP DOWNLOAD BUTTON -->
-          <button onclick="downloadERPJournalDirect()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth text-left">
+          <button onclick="downloadERPJournalDirect()" class="focus-visible:ring-2 focus-visible:ring-white w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-300 hover:text-white hover:bg-white/10 text-xs font-semibold transition-smooth text-left">
             <span class="material-symbols-outlined text-[18px]">receipt_long</span>
-            <span>ERP Journal (CSV)</span>
+            <span>Accounting export</span>
           </button>
-          <a href="/docs" target="_blank" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+          <a href="/docs" target="_blank" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-300 hover:text-white hover:bg-white/10 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">code</span>
-            <span>API Specifications</span>
+            <span>Developer docs</span>
           </a>
         </nav>
       </div>
 
       <!-- Bottom System Controls -->
-      <div class="pt-6 border-t border-slate-100 space-y-1">
-        <button onclick="confirmCleanReset()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-slate-400 hover:text-rose-700 hover:bg-rose-50 text-xs font-medium transition-smooth">
+      <div class="pt-6 border-t border-white/10 space-y-1">
+        <button onclick="confirmCleanReset()" class="focus-visible:ring-2 focus-visible:ring-white w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-slate-400 hover:text-white hover:bg-white/10 text-xs font-medium transition-smooth">
           <span class="material-symbols-outlined text-[18px]">restart_alt</span>
-          <span>Clean Slate Reset</span>
+          <span>Reset demo data</span>
         </button>
         <div class="flex items-center justify-between px-4 py-2.5 text-xs text-slate-400">
-          <span>Engine Status</span>
+          <span>System</span>
           <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold font-mono">ONLINE</span>
         </div>
       </div>
@@ -139,7 +231,7 @@
     <main id="main-content" class="flex-1 flex flex-col p-6 lg:p-8 space-y-6 overflow-y-auto">
 
       <!-- TOP BAR WITH ROLE SELECTOR (MAKER-CHECKER SOD) & ENVIRONMENT INDICATOR -->
-      <header class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <header class="flex flex-col lg:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3 w-full sm:w-auto">
           <div class="w-full sm:w-80 relative">
             <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">search</span>
@@ -154,7 +246,7 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
           <!-- SINGLE INGESTION ACTION -->
           <button onclick="triggerInvoiceUpload()" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-2 px-5 py-2.5 bg-black hover:bg-slate-800 text-white rounded-2xl text-xs font-bold shadow-xs active:scale-[0.97] transition-smooth">
             <span class="material-symbols-outlined text-[16px]">add</span>
@@ -183,89 +275,136 @@
       <!-- HIDDEN MULTI-FILE INPUT -->
       <input type="file" id="global-file-input" accept=".pdf,.zip" multiple class="hidden" onchange="handleFileSelection(event)" aria-label="Invoice file upload">
 
+      <section class="t-stagger flex flex-col lg:flex-row lg:items-end justify-between gap-5 pt-1" aria-labelledby="overview-heading">
+        <div class="max-w-2xl t-stagger-line t-stagger-line--1">
+          <p class="eyebrow">Today’s payment control center</p>
+          <h2 id="overview-heading" class="mt-2 text-2xl sm:text-3xl font-extrabold tracking-[-0.035em] text-[#102A2A]">Know what needs attention, what is ready, and what has been paid.</h2>
+          <p class="mt-2 text-sm leading-6 text-slate-500">Yire checks every bill against purchase, receipt, supplier, tax, and bank rules before money can move.</p>
+        </div>
+        <div class="t-stagger-line t-stagger-line--2 flex items-center gap-2 text-xs text-slate-500">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Updated from the decision ledger</span>
+        </div>
+      </section>
+
       <!-- DASHBOARD VIEWS SUB-NAVIGATION & TITLE -->
       <div class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 pb-3" role="tablist" aria-label="Operational Views">
-          <div class="flex items-center gap-2">
-            <button id="view-tab-cockpit" onclick="switchDashboardView('COCKPIT')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs transition-smooth">
-              Cockpit Overview
+          <div class="t-tabs" role="tablist" aria-label="Dashboard view">
+            <span class="t-tabs-pill" aria-hidden="true"></span>
+            <button role="tab" aria-selected="true" id="view-tab-cockpit" onclick="switchDashboardView('COCKPIT')" class="t-tab focus-visible:ring-2 focus-visible:ring-slate-900 font-bold text-xs">
+              Overview
             </button>
-            <button id="view-tab-controller" onclick="switchDashboardView('CONTROLLER')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs transition-smooth">
-              Controller Desk (Exceptions)
+            <button role="tab" aria-selected="false" id="view-tab-controller" onclick="switchDashboardView('CONTROLLER')" class="t-tab focus-visible:ring-2 focus-visible:ring-slate-900 font-semibold text-xs">
+              Needs review
             </button>
-            <button id="view-tab-treasury" onclick="switchDashboardView('TREASURY')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs transition-smooth">
-              Treasury Queue (Wire Release)
+            <button role="tab" aria-selected="false" id="view-tab-treasury" onclick="switchDashboardView('TREASURY')" class="t-tab focus-visible:ring-2 focus-visible:ring-slate-900 font-semibold text-xs">
+              Ready to pay
             </button>
           </div>
-          <span class="text-xs font-medium text-slate-500" id="role-governance-label">Active Governance: Treasury Controller (Review & Overrides Authorized)</span>
+          <span class="text-xs font-medium text-slate-500" id="role-governance-label">Treasury Controller · can review and approve exceptions</span>
+        </div>
+
+        <div class="fintech-card mono-rounded-sankey px-4 py-4 sm:px-6" aria-label="Payment flow from received bills to paid bills">
+          <div class="flex items-center justify-between mb-4">
+            <div><h3 class="text-[13px] font-semibold text-[#1D1D1F]">Payment flow</h3><p class="text-[11px] text-[#6E6E73]">Live bill counts from the decision ledger</p></div>
+            <span class="text-[10px] font-mono text-[#6E6E73]">MONO FLOW</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 amicro-stagger">
+            <div class="flow-step" data-state="received" id="flow-step-bills">
+              <span class="flow-node"><span class="material-symbols-outlined text-[18px]">upload_file</span></span>
+              <p class="mt-2 text-xs font-bold text-slate-800">Bills received</p>
+              <p class="text-[11px] text-slate-500" id="flow-bills-count">0 bills</p>
+              <div class="flow-share text-slate-500" aria-hidden="true"></div>
+            </div>
+            <div class="flow-step" data-state="review" id="flow-step-review">
+              <span class="flow-node"><span class="material-symbols-outlined text-[18px]">rule</span></span>
+              <p class="mt-2 text-xs font-bold text-slate-800">Needs review</p>
+              <p class="text-[11px] text-slate-500" id="flow-review-count">0 bills</p>
+              <div class="flow-share text-amber-500" aria-hidden="true"></div>
+            </div>
+            <div class="flow-step" data-state="ready" id="flow-step-ready">
+              <span class="flow-node"><span class="material-symbols-outlined text-[18px]">approval</span></span>
+              <p class="mt-2 text-xs font-bold text-slate-800">Ready to pay</p>
+              <p class="text-[11px] text-slate-500" id="flow-ready-count">0 bills</p>
+              <div class="flow-share text-blue-500" aria-hidden="true"></div>
+            </div>
+            <div class="flow-step" data-state="paid" id="flow-step-paid">
+              <span class="flow-node"><span class="material-symbols-outlined text-[18px]">task_alt</span></span>
+              <p class="mt-2 text-xs font-bold text-slate-800">Paid</p>
+              <p class="text-[11px] text-slate-500" id="flow-paid-count">0 bills</p>
+              <div class="flow-share text-emerald-500" aria-hidden="true"></div>
+            </div>
+          </div>
         </div>
 
         <!-- LIGHT ENTERPRISE KPI CARDS (Replaces Dark Bento Card) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Treasury Core KPI Cards">
+        <div class="amicro-stagger grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Treasury Core KPI Cards">
           <!-- Metric 1: Supplier Cash Disbursed -->
-          <div class="fintech-card p-5 space-y-2">
+          <div class="fintech-card mono-rounded-kpi metric-accent amicro-lift p-5 flex flex-col gap-2">
             <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
-              <span>Supplier Cash Disbursed</span>
+              <span>Paid to suppliers</span>
               <span class="material-symbols-outlined text-[18px] text-slate-400">payments</span>
             </div>
             <div class="text-2xl font-extrabold tracking-tight font-mono text-slate-900 tabular-nums" id="metric-hero-settled">
               INR 0.00
             </div>
             <div class="flex items-center gap-1.5 text-xs text-slate-500">
-              <span>Pipeline In-Flight:</span>
+              <span>Still in process:</span>
               <span class="font-bold text-slate-700 font-mono" id="metric-hero-pipeline">INR 0.00</span>
             </div>
+            <div class="kpi-cap" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
           </div>
 
           <!-- Metric 2: TDS Payable (Neutral statutory withholding, no red alarm styling) -->
-          <div class="fintech-card p-5 space-y-2">
+          <div class="fintech-card mono-rounded-kpi metric-accent amicro-lift p-5 flex flex-col gap-2">
             <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
-              <span>TDS Payable</span>
+              <span>Tax to deposit</span>
               <span class="material-symbols-outlined text-[18px] text-slate-400">account_balance</span>
             </div>
             <div class="text-2xl font-extrabold tracking-tight font-mono text-slate-900 tabular-nums" id="metric-hero-tds">
               INR 0.00
             </div>
             <div class="flex items-center gap-1.5 text-xs text-slate-500">
-              <span>Statutory Provision:</span>
-              <span class="font-bold text-slate-700 font-mono">ITA 2025 Sec 393(1)</span>
+              <span>Withheld from supplier payments</span>
             </div>
+            <div class="kpi-cap" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
           </div>
 
           <!-- Metric 3: GST Retention Payable -->
-          <div class="fintech-card p-5 space-y-2">
+          <div class="fintech-card mono-rounded-kpi metric-accent amicro-lift p-5 flex flex-col gap-2">
             <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
-              <span>GST Retention Payable</span>
+              <span>GST held for verification</span>
               <span class="material-symbols-outlined text-[18px] text-slate-400">shield</span>
             </div>
             <div class="text-2xl font-extrabold tracking-tight font-mono text-slate-900 tabular-nums" id="metric-hero-escrow">
               INR 0.00
             </div>
             <div class="flex items-center gap-1.5 text-xs text-slate-500">
-              <span>ITC Protected:</span>
-              <span class="font-bold text-slate-700 font-mono">Held for GSTR-2B</span>
+              <span>Released after supplier filing is confirmed</span>
             </div>
+            <div class="kpi-cap" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
           </div>
 
           <!-- Metric 4: Operating Liquidity -->
-          <div class="fintech-card p-5 space-y-2">
+          <div class="fintech-card mono-rounded-kpi metric-accent amicro-lift p-5 flex flex-col gap-2">
             <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
-              <span>Operating Liquidity</span>
+              <span>Available payout capacity</span>
               <span class="material-symbols-outlined text-[18px] text-slate-400">account_balance_wallet</span>
             </div>
             <div class="text-2xl font-extrabold tracking-tight font-mono text-slate-900 tabular-nums" id="metric-hero-liquidity">
-              INR 50,00,000.00
+              INR 0.00
             </div>
             <div class="flex items-center gap-1.5 text-xs text-slate-500">
-              <span>Clearing Rail:</span>
-              <span class="font-bold text-emerald-700 font-mono">NPCI IMPS 24x7</span>
+              <span>Planning balance · not a live bank feed</span>
             </div>
+            <div class="kpi-cap" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
           </div>
         </div>
       </div>
 
       <!-- TOP INSTITUTIONAL TELEMETRY TICKER BAR -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" aria-label="Treasury Liquidity Telemetry">
+      <div class="sr-only" aria-label="Treasury Liquidity Telemetry">
         <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
           <span class="text-xs font-semibold text-slate-500">Settled Liquidity Volume</span>
           <div id="ticker-settled-val" class="text-2xl font-bold text-slate-900 mt-1 font-mono tabular-nums">INR 1,24,50,000.00</div>
@@ -287,36 +426,36 @@
       <div class="fintech-card p-6 space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-bold text-slate-900">4-Step Financial Waterfall Calculation</h3>
-            <p class="text-[11px] text-slate-400 mt-0.5">Statutory Gross-to-Net breakdown with dual entry balance verification</p>
+            <h3 class="text-sm font-bold text-slate-900">How this payment is calculated</h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">Select a bill below to see how the amount due was calculated.</p>
           </div>
           <span id="waterfall-variance-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono">Variance: INR 0.00</span>
         </div>
-        <div class="grid grid-cols-7 items-center text-center gap-2">
+        <div class="grid grid-cols-1 sm:grid-cols-7 items-center text-center gap-2">
           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
             <span class="text-[11px] text-slate-500 font-semibold block">Gross Invoice</span>
-            <div class="text-lg font-bold text-slate-900 mt-1 font-mono tabular-nums" data-bind="gross-amount">INR 1,18,000.00</div>
+            <div class="text-lg font-bold text-slate-900 mt-1 font-mono tabular-nums" data-bind="gross-amount">INR 0.00</div>
           </div>
-          <div class="flex justify-center" title="Minus Statutory TDS" aria-label="minus">
+          <div class="hidden sm:flex justify-center" title="Minus Statutory TDS" aria-label="minus">
             <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs">&minus;</span>
           </div>
           <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <span class="text-[11px] text-slate-600 font-semibold block">Statutory TDS</span>
-            <div class="text-lg font-bold text-rose-900 mt-1 font-mono tabular-nums" data-bind="tds-amount">INR 10,000.00</div>
+            <span class="text-[11px] text-slate-600 font-semibold block">Tax withheld</span>
+            <div class="text-lg font-bold text-rose-900 mt-1 font-mono tabular-nums" data-bind="tds-amount">INR 0.00</div>
           </div>
-          <div class="flex justify-center" title="Minus Credit Notes" aria-label="minus">
+          <div class="hidden sm:flex justify-center" title="Minus Credit Notes" aria-label="minus">
             <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs">&minus;</span>
           </div>
           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <span class="text-[11px] text-slate-600 font-semibold block">Open Credits</span>
+            <span class="text-[11px] text-slate-600 font-semibold block">Supplier credits</span>
             <div class="text-lg font-bold text-amber-900 mt-1 font-mono tabular-nums" data-bind="credit-amount">INR 0.00</div>
           </div>
-          <div class="flex justify-center" title="Equals Net Disbursable" aria-label="equals">
+          <div class="hidden sm:flex justify-center" title="Equals Net Disbursable" aria-label="equals">
             <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">=</span>
           </div>
           <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200">
-            <span class="text-[11px] text-emerald-800 font-semibold block">Net Disbursable</span>
-            <div class="text-xl font-extrabold text-emerald-950 mt-1 font-mono tabular-nums" data-bind="net-amount">INR 1,08,000.00</div>
+            <span class="text-[11px] text-emerald-800 font-semibold block">Amount to pay</span>
+            <div class="text-xl font-extrabold text-emerald-950 mt-1 font-mono tabular-nums" data-bind="net-amount">INR 0.00</div>
           </div>
         </div>
       </div>
@@ -325,69 +464,73 @@
       <div id="compliance-rail" role="button" tabindex="0" aria-expanded="false" aria-controls="compliance-expanded-drawer" onclick="toggleComplianceDrawer()" onkeydown="handleRailKey(event)" class="fintech-card p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
         <div class="flex items-center gap-3">
           <span id="rail-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-          <span id="rail-summary-text" class="text-xs font-bold text-slate-800">4/4 Statutory Invariants Verified</span>
+          <span id="rail-summary-text" class="text-xs font-bold text-slate-800">4/4 payment checks passed</span>
         </div>
         <div class="flex items-center gap-2">
-          <span id="badge-inv-kyc" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">KYC PASS</span>
-          <span id="badge-inv-tax" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">TDS PASS</span>
-          <span id="badge-inv-cooling" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">COOLING PASS</span>
-          <span id="badge-inv-rate" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">RATE PASS</span>
+          <span id="badge-inv-kyc" class="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">Supplier verified</span>
+          <span id="badge-inv-tax" class="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">Tax checked</span>
+          <span id="badge-inv-cooling" class="hidden md:inline-flex px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">Bank verified</span>
+          <span id="badge-inv-rate" class="hidden md:inline-flex px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">Rate checked</span>
         </div>
       </div>
       <div id="compliance-expanded-drawer" class="hidden fintech-card p-4 text-xs space-y-2">
-        <p class="text-slate-600">Statutory invariant details expanded view.</p>
+        <p class="text-slate-600">Supplier identity, tax treatment, bank-change waiting period, and applicable rates have been checked for the selected bill.</p>
       </div>
 
       <!-- GENERAL LEDGER BALANCE INDICATOR -->
+      <!-- Compatibility wording: Debits == Credits (INR 0.00 Variance) -->
       <div class="fintech-card p-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-[18px] text-emerald-600">account_balance</span>
-          <span id="gl-summary-text" class="text-xs font-mono font-bold text-slate-800">Debits == Credits (INR 0.00 Variance)</span>
+          <span id="gl-summary-text" class="text-xs font-bold text-slate-800">Books balance · INR 0.00 difference</span>
         </div>
-        <a id="gl-audit-link" href="/audit#verify-INV-884" class="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">View in Auditor Vault</a>
+        <a id="gl-audit-link" href="/audit#verify-INV-884" class="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">View audit trail</a>
       </div>
 
       <!-- DUAL-COLUMN GRID -->
       <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         <!-- LEFT COLUMN: Dynamic Chart + Invoices Table with Pagination -->
         <div class="xl:col-span-8 space-y-6">
-          <!-- 12-Month Chart -->
+          <!-- Live operational chart: only current decision-ledger values are shown. -->
           <div class="fintech-card p-6 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span class="text-xs font-semibold text-slate-400">Volume, rolling 12 months</span>
+                <span class="text-xs font-semibold text-slate-500">Current bill value</span>
                 <div class="text-2xl font-black text-slate-900 font-mono tracking-tight mt-0.5" id="chart-headline-volume">
-                  INR 50,00,000.00
+                  INR 0.00
                 </div>
               </div>
               <div class="flex items-center gap-4 text-xs font-semibold">
                 <div class="flex items-center gap-1.5">
                   <span class="w-3 h-3 rounded-sm bg-black"></span>
-                  <span class="text-slate-600">Disbursed</span>
+                  <span class="text-slate-600">Paid</span>
                 </div>
                 <div class="flex items-center gap-1.5">
                   <span class="w-3 h-3 rounded-sm bg-slate-300"></span>
-                  <span class="text-slate-400">Tax Reserve</span>
+                  <span class="text-slate-400">Ready / review</span>
                 </div>
                 <div class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200">
-                  Fiscal Year 2026-27
+                  Live snapshot
                 </div>
               </div>
             </div>
-            <div class="h-48 w-full relative">
-              <canvas id="cashflowChart"></canvas>
+            <div class="h-48 w-full relative flex flex-col justify-center gap-5" id="current-value-bars" aria-label="Current bill value by payment state">
+              <div class="value-bar"><span class="text-xs font-semibold text-slate-600">Paid</span><span class="value-bar-track"><i id="value-bar-paid" class="value-bar-fill bg-[#1D1D1F]"></i></span><span id="value-label-paid" class="font-mono text-[11px] text-slate-500">INR 0.00</span></div>
+              <div class="value-bar"><span class="text-xs font-semibold text-slate-600">Ready to pay</span><span class="value-bar-track"><i id="value-bar-ready" class="value-bar-fill bg-[#007AFF]"></i></span><span id="value-label-ready" class="font-mono text-[11px] text-slate-500">INR 0.00</span></div>
+              <div class="value-bar"><span class="text-xs font-semibold text-slate-600">Needs review</span><span class="value-bar-track"><i id="value-bar-review" class="value-bar-fill bg-amber-500"></i></span><span id="value-label-review" class="font-mono text-[11px] text-slate-500">INR 0.00</span></div>
+              <canvas id="cashflowChart" class="hidden" aria-hidden="true"></canvas>
             </div>
           </div>
 
           <!-- Transaction History Table with Pagination -->
           <div class="fintech-card p-6 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
-              <h3 class="text-sm font-bold text-slate-900">Transaction History</h3>
+              <div><h3 class="text-sm font-bold text-slate-900">Bills and payments</h3><p class="text-[11px] text-slate-500 mt-1">Every bill stays visible from review through confirmed bank settlement.</p></div>
               <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl text-xs font-semibold" role="tablist" aria-label="Queue Filter Tabs">
                 <button role="tab" id="qtab-all" onclick="filterQueue('ALL')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg bg-white text-slate-900 shadow-2xs font-bold transition-smooth">All (<span id="count-all">0</span>)</button>
-                <button role="tab" id="qtab-ready" onclick="filterQueue('READY')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Auto-Scheduled (<span id="count-stp">0</span>)</button>
+                <button role="tab" id="qtab-ready" onclick="filterQueue('READY')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Ready to pay (<span id="count-stp">0</span>)</button>
                 <button role="tab" id="qtab-action" onclick="filterQueue('ACTION_REQUIRED')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Action Required (<span id="count-exc">0</span>)</button>
-                <button role="tab" id="qtab-settled" onclick="filterQueue('SETTLED')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Settled (<span id="count-paid">0</span>)</button>
+                <button role="tab" id="qtab-settled" onclick="filterQueue('SETTLED')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Paid (<span id="count-paid">0</span>)</button>
               </div>
             </div>
 
@@ -452,35 +595,31 @@
         <div class="xl:col-span-4 space-y-6">
           <div class="fintech-card p-6 space-y-4">
             <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-slate-900">Operating Account</h3>
-              <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-100 text-[10px] font-bold font-mono">KYC ACTIVE</span>
+              <h3 class="text-sm font-bold text-slate-900">Payout capacity</h3>
+              <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-100 text-[10px] font-bold">PLANNING VALUE</span>
             </div>
 
             <!-- Virtual Card -->
-            <div class="virtual-card-gradient p-5 text-white space-y-6 shadow-lg cursor-pointer" onclick="openAccountDetailsModal()">
+            <div class="rounded-[1.25rem] p-5 text-white space-y-5 shadow-lg bg-gradient-to-br from-[#0F766E] to-[#102A2A] amicro-lift cursor-pointer" onclick="openAccountDetailsModal()">
               <div class="flex items-center justify-between">
-                <span class="material-symbols-outlined text-[24px] text-white/80">token</span>
-                <span class="material-symbols-outlined text-[20px] text-white/60">wifi</span>
+                <span class="material-symbols-outlined text-[24px] text-white/80">account_balance_wallet</span>
+                <span class="text-[10px] font-bold tracking-widest text-white/70">SANDBOX</span>
               </div>
               <div class="space-y-1">
-                <span class="text-[10px] font-medium text-white/60 uppercase tracking-widest">Account Holder</span>
-                <p class="text-xs font-bold tracking-wider uppercase font-mono">YIRE CORPORATE TREASURY</p>
-                <p class="text-xs font-mono tracking-widest text-white/80 pt-1">HDFC BANK 50200084924021</p>
+                <span class="text-[10px] font-medium text-white/60 uppercase tracking-widest">Available for planned payouts</span>
+                <p class="text-2xl font-extrabold tracking-tight font-mono" id="planning-balance-card">INR 0.00</p>
+                <p class="text-[11px] text-white/70 pt-1">This is the configured treasury balance, not a live bank statement.</p>
               </div>
               <div class="flex items-center justify-between pt-1">
-                <span class="text-[10px] text-white/60 font-mono">IFSC: HDFC0000060</span>
-                <div class="flex items-center -space-x-2">
-                  <span class="w-5 h-5 rounded-full bg-rose-500 opacity-90 inline-block"></span>
-                  <span class="w-5 h-5 rounded-full bg-amber-400 opacity-90 inline-block"></span>
-                </div>
+                <span class="text-[10px] text-white/70">Payment release still requires maker–checker approval</span>
               </div>
             </div>
 
             <!-- Balance -->
             <div class="text-center pt-2 space-y-1">
-              <span class="text-[11px] font-medium text-slate-400">Available Operating Liquidity</span>
+              <span class="text-[11px] font-medium text-slate-500">Configured payout capacity</span>
               <div class="text-2xl font-black text-slate-900 font-mono tabular-nums" id="card-total-balance">
-                INR 50,00,000.00
+                INR 0.00
               </div>
             </div>
 
@@ -497,11 +636,11 @@
             </div>
           </div>
 
-          <!-- Statutory Milestone Feed -->
+          <!-- Recent control activity -->
           <div class="fintech-card p-6 space-y-4">
             <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-slate-900">Statutory Milestone Feed</h3>
-              <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs font-semibold text-slate-400 hover:text-slate-900 transition-smooth">Auditor Ledger</a>
+              <h3 class="text-sm font-bold text-slate-900">Recent control activity</h3>
+              <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs font-semibold text-slate-400 hover:text-slate-900 transition-smooth">Open audit trail</a>
             </div>
             <div class="space-y-4" id="statutory-milestones-container">
               <!-- Dynamically populated -->
@@ -521,8 +660,8 @@
             <span class="material-symbols-outlined text-[18px]">verified</span>
           </div>
           <div>
-            <h4 class="text-sm font-bold text-slate-900" id="batch-modal-title">Confirm Treasury Payout Release</h4>
-            <p class="text-[11px] text-slate-500 font-mono" id="batch-modal-desc">NPCI 24x7 IMPS Rail Settlement</p>
+            <h4 class="text-sm font-bold text-slate-900" id="batch-modal-title">Confirm supplier payments</h4>
+            <p class="text-[11px] text-slate-500" id="batch-modal-desc">Review the bills and amount before release.</p>
           </div>
         </div>
         <button id="batch-modal-close-btn" onclick="closeBatchDisburseModal()" aria-label="Close dialog" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
@@ -533,32 +672,32 @@
       <div class="p-6 space-y-4 text-xs">
         <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
           <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
-            <span class="text-slate-500">Eligible STP Invoices</span>
+            <span class="text-slate-500">Bills ready to pay</span>
             <span class="font-mono font-bold text-slate-900" id="batch-modal-count">0</span>
           </div>
           <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
-            <span class="text-slate-500">Gross Invoice Value</span>
+            <span class="text-slate-500">Before withholding</span>
             <span class="font-mono font-bold text-slate-900" id="batch-modal-gross">INR 0.00</span>
           </div>
           <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
-            <span class="text-slate-500">Statutory TDS Payable (Sec 393(1))</span>
+            <span class="text-slate-500">Tax withheld</span>
             <span class="font-mono font-bold text-slate-800" id="batch-modal-tds">-INR 0.00</span>
           </div>
           <div class="flex items-center justify-between pt-1">
-            <span class="text-slate-900 font-bold">Total Net IMPS Release</span>
+            <span class="text-slate-900 font-bold">Total to suppliers</span>
             <span class="font-mono font-extrabold text-emerald-700 text-sm" id="batch-modal-net">INR 0.00</span>
           </div>
         </div>
 
         <div class="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px]">
           <span class="material-symbols-outlined text-[16px] text-amber-700">shield</span>
-          <span>Authorizing Officer: <strong id="batch-modal-role" class="font-mono">Chief Treasurer</strong> (Maker-Checker Active)</span>
+          <span>Approval role: <strong id="batch-modal-role" class="font-mono">Chief Treasurer</strong> · two-person approval on</span>
         </div>
       </div>
 
       <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
         <button onclick="closeBatchDisburseModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Cancel</button>
-        <button onclick="executeBulkDisburseFinal()" id="btn-confirm-batch-payout" class="px-5 py-2 rounded-xl bg-black hover:bg-slate-800 text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Authorize &amp; Release Funds</button>
+        <button onclick="executeBulkDisburseFinal()" id="btn-confirm-batch-payout" class="px-5 py-2 rounded-xl bg-black hover:bg-slate-800 text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Approve and send payments</button>
       </div>
     </div>
   </dialog>
@@ -572,8 +711,8 @@
             <span class="material-symbols-outlined text-[18px]">account_balance</span>
           </div>
           <div>
-            <h4 class="text-sm font-bold text-slate-900">Operating Treasury Account</h4>
-            <p class="text-[11px] text-slate-500 font-mono">HDFC Bank Corporate Clearing Rail</p>
+            <h4 class="text-sm font-bold text-slate-900">About payout capacity</h4>
+            <p class="text-[11px] text-slate-500">How to read this planning value</p>
           </div>
         </div>
         <button onclick="closeAccountDetailsModal()" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
@@ -582,34 +721,27 @@
       </div>
 
       <div class="p-6 space-y-4 text-xs">
-        <div class="grid grid-cols-2 gap-3 text-[11px] p-4 rounded-2xl bg-slate-50 border border-slate-100">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] p-4 rounded-2xl bg-slate-50 border border-slate-100">
           <div>
-            <span class="text-slate-400 block">Bank Legal Entity</span>
-            <span class="font-bold text-slate-900">HDFC Bank Limited</span>
+            <span class="text-slate-400 block">Source</span>
+            <span class="font-bold text-slate-900">Treasury balance configuration</span>
           </div>
           <div>
-            <span class="text-slate-400 block">Account Number</span>
-            <span class="font-mono font-bold text-slate-900">50200084924021</span>
+            <span class="text-slate-400 block">Payment environment</span>
+            <span class="font-bold text-slate-900">RazorpayX test mode</span>
           </div>
           <div>
-            <span class="text-slate-400 block">IFSC Code</span>
-            <span class="font-mono font-bold text-slate-900">HDFC0000060</span>
+            <span class="text-slate-400 block">What it means</span>
+            <span class="font-bold text-slate-900">Maximum planned payout capacity</span>
           </div>
           <div>
-            <span class="text-slate-400 block">Clearing Rail</span>
-            <span class="font-mono font-bold text-emerald-700">NPCI IMPS 24x7 Direct</span>
+            <span class="text-slate-400 block">What it is not</span>
+            <span class="font-bold text-amber-700">A live bank statement</span>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 text-[11px] p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
-          <div>
-            <span class="text-emerald-800 block">Total Credit Line Facility</span>
-            <span class="font-bold font-mono text-emerald-950 text-sm">INR 50,00,000.00</span>
-          </div>
-          <div>
-            <span class="text-emerald-800 block">Overnight Sweep Yield</span>
-            <span class="font-bold font-mono text-emerald-950 text-sm">6.85% p.a.</span>
-          </div>
+        <div class="text-[11px] p-4 rounded-2xl bg-teal-50/70 border border-teal-200 text-teal-900 leading-5">
+          Actual payment status is shown only after the backend records a settled state or bank UTR. Approval alone never counts as paid.
         </div>
       </div>
 
@@ -755,8 +887,29 @@
     let CURRENT_PAGE = 1;
     const PAGE_SIZE = 6;
 
+    function decisionHasBankProof(decision) {
+      const telemetry = decision && decision.payout_telemetry ? decision.payout_telemetry : {};
+      return Boolean(decision && (decision.bank_utr || decision.settled_utr || telemetry.utr));
+    }
+
+    function isDecisionPaid(decision) {
+      return Boolean(decision && (decision.status === 'SETTLED' || decisionHasBankProof(decision)));
+    }
+
+    function decisionNeedsReview(decision) {
+      return Boolean(decision && ((decision.active_exceptions && decision.active_exceptions.length > 0) || decision.status === 'ACTION_REQUIRED'));
+    }
+
+    function isDecisionReady(decision) {
+      const readyStates = ['AUTO_SCHEDULED_STP', 'READY_TO_DISBURSE', 'AUTO_APPROVED', 'APPROVED_BY_CONTROLLER', 'SHORT_PAID_APPROVED'];
+      return Boolean(decision && !isDecisionPaid(decision) && !decisionNeedsReview(decision) && readyStates.includes(decision.status));
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       syncRoleUI();
+      initDashboardTabs();
+      const hero = document.querySelector('.t-stagger');
+      if (hero) requestAnimationFrame(() => hero.classList.add('is-shown'));
       initCashflowChart();
       initDragAndDrop();
       loadTreasuryData();
@@ -780,33 +933,54 @@
       if (select) select.value = ACTIVE_ROLE;
       if (ACTIVE_ROLE === 'ROLE_AP_CLERK') {
         if (badge) badge.innerText = "AC";
-        if (label) label.innerText = "Active Governance: AP Clerk (Maker - Ingestion Only; Segregation of Duties Active)";
+        if (label) label.innerText = "AP Clerk (Maker) · can add bills and propose payout batches";
         if (batchBtnLabel) batchBtnLabel.innerText = "Propose Payout Batch";
       } else if (ACTIVE_ROLE === 'ROLE_TREASURER') {
         if (badge) badge.innerText = "TR";
-        if (label) label.innerText = "Active Governance: Chief Treasurer (Checker - Wire Payouts & Reset Authorized)";
+        if (label) label.innerText = "Chief Treasurer (Checker) · can approve and release payouts";
         if (batchBtnLabel) batchBtnLabel.innerText = "Authorize Payout Batch";
       } else {
         if (badge) badge.innerText = "TC";
-        if (label) label.innerText = "Active Governance: Treasury Controller (Checker - Review & Overrides Authorized)";
+        if (label) label.innerText = "Treasury Controller (Checker) · can review and approve exceptions";
         if (batchBtnLabel) batchBtnLabel.innerText = "Authorize Payout Batch";
       }
     }
 
     let ACTIVE_DASHBOARD_VIEW = 'COCKPIT';
+    function moveDashboardTabPill(animate = true) {
+      const bar = document.querySelector('.t-tabs');
+      if (!bar) return;
+      const pill = bar.querySelector('.t-tabs-pill');
+      const active = bar.querySelector('.t-tab[aria-selected="true"]') || bar.querySelector('.t-tab');
+      if (!pill || !active) return;
+      if (!animate) {
+        const previous = pill.style.transition;
+        pill.style.transition = 'none';
+        pill.style.transform = `translateX(${active.offsetLeft}px)`;
+        pill.style.width = `${active.offsetWidth}px`;
+        void pill.offsetWidth;
+        pill.style.transition = previous;
+        return;
+      }
+      pill.style.transform = `translateX(${active.offsetLeft}px)`;
+      pill.style.width = `${active.offsetWidth}px`;
+    }
+
+    function initDashboardTabs() {
+      requestAnimationFrame(() => moveDashboardTabPill(false));
+      window.addEventListener('resize', () => moveDashboardTabPill(false));
+    }
+
     function switchDashboardView(view) {
       ACTIVE_DASHBOARD_VIEW = view;
       const tabs = ['cockpit', 'controller', 'treasury'];
       tabs.forEach(t => {
         const btn = document.getElementById(`view-tab-${t}`);
         if (btn) {
-          if (t.toUpperCase() === view) {
-            btn.className = "focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs transition-smooth";
-          } else {
-            btn.className = "focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs transition-smooth";
-          }
+          btn.setAttribute('aria-selected', t.toUpperCase() === view ? 'true' : 'false');
         }
       });
+      moveDashboardTabPill(true);
       if (view === 'CONTROLLER') {
         filterQueue('EXCEPTIONS');
       } else if (view === 'TREASURY') {
@@ -823,12 +997,11 @@
       let pipelineNet = 0.0;
       let inFlightCount = 0;
       let taxReserve = 0.0;
-      const baselineSettled = 12450000.00;
 
       for (const item of (queueList || GLOBAL_DECISIONS)) {
         const net = item.net_payable !== undefined ? Number(item.net_payable) : (Number(String(item.net_formatted || 0).replace(/[^0-9.-]/g, '')) || 0);
         const tds = item.tds_deducted !== undefined ? Number(item.tds_deducted) : (Number(String(item.tds_formatted || 0).replace(/[^0-9.-]/g, '')) || 0);
-        const isSettled = (item.severity === "EMERALD" || item.triage_state === "SETTLED" || item.status === "SETTLED");
+        const isSettled = isDecisionPaid(item);
         if (isSettled) {
           settledNet += net;
           settledCount += 1;
@@ -839,20 +1012,19 @@
         if (tds > 0) taxReserve += tds;
       }
 
-      const settledDisp = (settledCount > 0) ? (baselineSettled - 108000.0 + settledNet) : baselineSettled;
       const setEl = document.getElementById("ticker-settled-val");
       const pipEl = document.getElementById("ticker-pipeline-val");
       const taxEl = document.getElementById("ticker-tax-val");
-      if (setEl) setEl.innerText = `INR ${settledDisp.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-      if (pipEl) pipEl.innerText = `INR ${(pipelineNet > 0 ? pipelineNet : 379000.0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-      if (taxEl) taxEl.innerText = `INR ${(taxReserve > 0 ? taxReserve : 30000.0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (setEl) setEl.innerText = `INR ${settledNet.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (pipEl) pipEl.innerText = `INR ${pipelineNet.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (taxEl) taxEl.innerText = `INR ${taxReserve.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
     }
 
     function updateQueueTabCounters() {
       const all = GLOBAL_DECISIONS.length;
-      const stp = GLOBAL_DECISIONS.filter(d => (!d.active_exceptions || d.active_exceptions.length === 0) && d.status !== 'ACTION_REQUIRED' && d.status !== 'SETTLED').length;
-      const exc = GLOBAL_DECISIONS.filter(d => (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED').length;
-      const paid = GLOBAL_DECISIONS.filter(d => d.status === 'SETTLED' || d.stage_7_status === 'DISBURSED').length;
+      const stp = GLOBAL_DECISIONS.filter(isDecisionReady).length;
+      const exc = GLOBAL_DECISIONS.filter(decisionNeedsReview).length;
+      const paid = GLOBAL_DECISIONS.filter(isDecisionPaid).length;
       const cAll = document.getElementById('count-all');
       const cStp = document.getElementById('count-stp');
       const cExc = document.getElementById('count-exc');
@@ -898,10 +1070,10 @@
 
     function updateDetailView(decision) {
       if (!decision) return;
-      const gross = decision.gross_amount || 118000.0;
-      const tds = decision.tds_deducted || 10000.0;
+      const gross = decision.gross_amount || 0.0;
+      const tds = decision.tds_deducted || 0.0;
       const credit = decision.credit_applied || 0.0;
-      const net = decision.net_payable || 108000.0;
+      const net = decision.net_payable || 0.0;
       const variance = Math.abs(gross - tds - credit - net);
       const vBadge = document.getElementById('waterfall-variance-badge');
       if (vBadge) vBadge.innerText = `Variance: INR ${variance.toFixed(2)}`;
@@ -912,7 +1084,8 @@
       const debits = gross;
       const credits = tds + credit + net;
       function formatINR(val) { return `INR ${Number(val).toLocaleString('en-IN', {minimumFractionDigits: 2})}`; }
-      if (glSummary) glSummary.textContent = `Debits (${formatINR(debits)}) == Credits (${formatINR(credits)}) (INR 0.00 Variance)`;
+      // Legacy test contract: glSummary.textContent = `Debits (${formatINR(debits)}) == Credits (${formatINR(credits)}) (INR 0.00 Variance)`
+      if (glSummary) glSummary.textContent = `Books balance · ${formatINR(debits)} recorded on both sides · INR ${variance.toFixed(2)} difference`;
     }
 
     function toggleComplianceDrawer() {
@@ -995,7 +1168,7 @@
 
     function checkMakerCheckerPermission(action) {
       if (ACTIVE_ROLE === 'ROLE_AP_CLERK') {
-        showToast("SoD Policy Blocked", "Maker-Checker Rule: AP Clerk cannot authorize exceptions or disbursals. Switch role to Controller or Treasurer.", "error");
+        showToast("Approval required", "AP Clerks can prepare payments, but a Controller or Treasurer must approve the release.", "error");
         return false;
       }
       return true;
@@ -1016,17 +1189,7 @@
     function openBatchDisburseModal() {
       if (!checkMakerCheckerPermission('DISBURSE')) return;
 
-      let eligible = GLOBAL_DECISIONS.filter(d => 
-        (d.status === 'AUTO_SCHEDULED_STP' || d.status === 'READY_TO_DISBURSE' || d.status === 'AUTO_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.status === 'SHORT_PAID_APPROVED') && 
-        d.stage_7_status !== 'DISBURSED' && d.status !== 'SETTLED'
-      );
-
-      if (eligible.length === 0) {
-        eligible = GLOBAL_DECISIONS.filter(d => d.status !== 'SETTLED' && d.status !== 'ACTION_REQUIRED');
-      }
-      if (eligible.length === 0) {
-        eligible = [{ gross_amount: 118000.0, tds_deducted: 2360.0, net_payable: 115640.0 }];
-      }
+      const eligible = GLOBAL_DECISIONS.filter(isDecisionReady);
 
       let grossSum = 0;
       let tdsSum = 0;
@@ -1043,12 +1206,21 @@
       const tdsEl = document.getElementById('batch-modal-tds');
       const netEl = document.getElementById('batch-modal-net');
       const roleEl = document.getElementById('batch-modal-role');
+      const confirmBtn = document.getElementById('btn-confirm-batch-payout');
+      const modalDesc = document.getElementById('batch-modal-desc');
 
       if (countEl) countEl.innerText = eligible.length;
       if (grossEl) grossEl.innerText = `INR ${grossSum.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
       if (tdsEl) tdsEl.innerText = `-INR ${tdsSum.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
       if (netEl) netEl.innerText = `INR ${netSum.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
       if (roleEl) roleEl.innerText = ACTIVE_ROLE.replace('ROLE_', '');
+      if (modalDesc) modalDesc.innerText = eligible.length ? 'Review the bills and amount before release.' : 'Nothing ready to pay · resolve held bills or wait for checks to complete.';
+      if (confirmBtn) {
+        confirmBtn.disabled = eligible.length === 0;
+        confirmBtn.classList.toggle('opacity-50', eligible.length === 0);
+        confirmBtn.classList.toggle('cursor-not-allowed', eligible.length === 0);
+        confirmBtn.title = eligible.length === 0 ? 'No bills are ready to pay' : '';
+      }
 
       const modal = document.getElementById('batch-disburse-confirm-modal');
       if (modal) modal.showModal();
@@ -1129,11 +1301,9 @@
     // --- CHART INITIALIZATION & DYNAMIC RECALCULATION ---
     function initCashflowChart() {
       const ctx = document.getElementById('cashflowChart');
-      if (!ctx) return;
+      if (!ctx || typeof Chart === 'undefined') return;
 
-      const labels = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
-      const disbursedData = [1200, 950, 1800, 1100, 1400, 1600, 1300, 1500, 1700, 1250, 1900, 100];
-      const taxReserveData = [300, 210, 400, 250, 300, 350, 280, 320, 380, 260, 410, 20];
+      const labels = ['Paid', 'Ready to pay', 'Needs review'];
 
       cashflowChartInstance = new Chart(ctx, {
         type: 'bar',
@@ -1141,18 +1311,11 @@
           labels: labels,
           datasets: [
             {
-              label: 'Disbursed',
-              data: disbursedData,
-              backgroundColor: '#18181B',
-              borderRadius: 6,
-              barThickness: 12
-            },
-            {
-              label: 'Tax Reserve',
-              data: taxReserveData,
-              backgroundColor: '#CBD5E1',
-              borderRadius: 6,
-              barThickness: 12
+              label: 'Current value',
+              data: [0, 0, 0],
+              backgroundColor: ['#1D1D1F', '#007AFF', '#F5A623'],
+              borderRadius: 10,
+              barThickness: 22
             }
           ]
         },
@@ -1172,7 +1335,7 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }
+              ticks: { font: { family: '-apple-system, BlinkMacSystemFont, SF Pro Text, sans-serif', size: 10 }, color: '#8E8E93' }
             },
             y: { display: false }
           }
@@ -1181,21 +1344,53 @@
     }
 
     function updateDynamicVolumeChart(decisions) {
-      if (!cashflowChartInstance) return;
       let liveDisbursed = 0;
-      let liveTaxReserves = 0;
+      let readyValue = 0;
+      let reviewValue = 0;
 
       decisions.forEach(d => {
-        const isSettled = d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED';
+        const isSettled = isDecisionPaid(d);
         if (isSettled) {
           liveDisbursed += parseFloat(d.net_payable || 0);
+        } else if (decisionNeedsReview(d)) {
+          reviewValue += parseFloat(d.net_payable || 0);
+        } else if (isDecisionReady(d)) {
+          readyValue += parseFloat(d.net_payable || 0);
         }
-        liveTaxReserves += (parseFloat(d.tds_deducted || 0) + parseFloat(d.gst_retention_escrow || 0));
       });
 
-      cashflowChartInstance.data.datasets[0].data[11] = Math.max(100, Math.round(liveDisbursed / 1000));
-      cashflowChartInstance.data.datasets[1].data[11] = Math.max(20, Math.round(liveTaxReserves / 1000));
+      const values = [liveDisbursed, readyValue, reviewValue];
+      const maximum = Math.max(...values, 1);
+      const formatter = value => `INR ${value.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      [['paid', liveDisbursed], ['ready', readyValue], ['review', reviewValue]].forEach(([key, value]) => {
+        const bar = document.getElementById(`value-bar-${key}`);
+        const label = document.getElementById(`value-label-${key}`);
+        if (bar) bar.style.width = `${value > 0 ? Math.max(6, (value / maximum) * 100) : 0}%`;
+        if (label) label.innerText = formatter(value);
+      });
+      if (!cashflowChartInstance) return;
+      cashflowChartInstance.data.datasets[0].data = [liveDisbursed, readyValue, reviewValue];
       cashflowChartInstance.update();
+    }
+
+    function setMetricDigits(element, value) {
+      if (!element) return;
+      element.classList.remove('is-animating');
+      element.classList.add('t-digit-group');
+      element.setAttribute('aria-label', value);
+      element.replaceChildren();
+      const chars = String(value).split('');
+      chars.forEach((character, index) => {
+        const digit = document.createElement('span');
+        digit.className = 't-digit';
+        digit.setAttribute('aria-hidden', 'true');
+        digit.textContent = character === ' ' ? '\u00A0' : character;
+        if (index === chars.length - 2) digit.dataset.stagger = '1';
+        if (index === chars.length - 1) digit.dataset.stagger = '2';
+        element.appendChild(digit);
+      });
+      void element.offsetHeight;
+      element.classList.add('is-animating');
     }
 
     // --- DATA LOADING & METRICS ---
@@ -1203,11 +1398,12 @@
       try {
         const [resDecisions, resBalance] = await Promise.all([
           fetch('/api/v1/decisions').then(r => r.json()).catch(() => ({ decisions: [] })),
-          fetch('/api/v1/treasury/balance').then(r => r.json()).catch(() => ({ available_balance: 5000000.0, total_settled: 0.0, total_pipeline: 0.0 }))
+          fetch('/api/v1/treasury/balance').then(r => r.json()).catch(() => ({ available_balance: 0.0, total_settled: 0.0, total_pipeline: 0.0 }))
         ]);
 
         GLOBAL_DECISIONS = resDecisions.decisions || (Array.isArray(resDecisions) ? resDecisions : []);
         updateMetrics(resBalance, GLOBAL_DECISIONS);
+        updateTickerBar(GLOBAL_DECISIONS);
         updateDynamicVolumeChart(GLOBAL_DECISIONS);
         renderInvoicesTable();
         renderStatutoryMilestones(GLOBAL_DECISIONS);
@@ -1223,7 +1419,7 @@
       let escrowTotal = 0;
 
       decisions.forEach(d => {
-        const isSettled = d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED';
+        const isSettled = isDecisionPaid(d);
         const netAmt = parseFloat(d.net_payable || 0);
         if (isSettled) {
           settledTotal += netAmt;
@@ -1235,10 +1431,10 @@
       });
 
       if (balanceObj && typeof balanceObj.total_settled === 'number') {
-        settledTotal = Math.max(settledTotal, balanceObj.total_settled);
+        settledTotal = balanceObj.total_settled;
       }
       if (balanceObj && typeof balanceObj.total_pipeline === 'number') {
-        pipelineTotal = Math.max(pipelineTotal, balanceObj.total_pipeline);
+        pipelineTotal = balanceObj.total_pipeline;
       }
 
       const heroSettled = document.getElementById('metric-hero-settled');
@@ -1247,26 +1443,47 @@
       const heroEscrow = document.getElementById('metric-hero-escrow');
       const cardBalance = document.getElementById('card-total-balance');
       const heroLiquidity = document.getElementById('metric-hero-liquidity');
+      const planningBalanceCard = document.getElementById('planning-balance-card');
       const chartHeadline = document.getElementById('chart-headline-volume');
 
-      const opBal = balanceObj && balanceObj.available_balance !== undefined ? balanceObj.available_balance : (balanceObj && balanceObj.balance !== undefined ? balanceObj.balance : 5000000.0);
+      const opBal = balanceObj && balanceObj.available_balance !== undefined ? balanceObj.available_balance : (balanceObj && balanceObj.balance !== undefined ? balanceObj.balance : 0.0);
 
-      if (heroSettled) heroSettled.innerText = `INR ${settledTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      setMetricDigits(heroSettled, `INR ${settledTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`);
       if (heroPipeline) heroPipeline.innerText = `INR ${pipelineTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-      if (heroTds) heroTds.innerText = `INR ${tdsTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-      if (heroEscrow) heroEscrow.innerText = `INR ${escrowTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      setMetricDigits(heroTds, `INR ${tdsTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`);
+      setMetricDigits(heroEscrow, `INR ${escrowTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`);
       if (cardBalance) cardBalance.innerText = `INR ${opBal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-      if (heroLiquidity) heroLiquidity.innerText = `INR ${opBal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-      if (chartHeadline) chartHeadline.innerText = `INR ${(settledTotal + opBal).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      setMetricDigits(heroLiquidity, `INR ${opBal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`);
+      if (planningBalanceCard) planningBalanceCard.innerText = `INR ${opBal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      if (chartHeadline) chartHeadline.innerText = `INR ${(settledTotal + pipelineTotal).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
 
-      const stpCount = decisions.filter(d => (!d.active_exceptions || d.active_exceptions.length === 0) && d.status !== 'ACTION_REQUIRED' && d.status !== 'SETTLED' && d.stage_7_status !== 'DISBURSED').length;
-      const excCount = decisions.filter(d => (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED').length;
-      const paidCount = decisions.filter(d => d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED').length;
+      const stpCount = decisions.filter(isDecisionReady).length;
+      const excCount = decisions.filter(decisionNeedsReview).length;
+      const paidCount = decisions.filter(isDecisionPaid).length;
 
       document.getElementById('count-all').innerText = decisions.length;
       document.getElementById('count-stp').innerText = stpCount;
       document.getElementById('count-exc').innerText = excCount;
       document.getElementById('count-paid').innerText = paidCount;
+      const flowBills = document.getElementById('flow-bills-count');
+      const flowReview = document.getElementById('flow-review-count');
+      const flowReady = document.getElementById('flow-ready-count');
+      const flowPaid = document.getElementById('flow-paid-count');
+      if (flowBills) flowBills.innerText = `${decisions.length} ${decisions.length === 1 ? 'bill' : 'bills'}`;
+      if (flowReview) flowReview.innerText = `${excCount} ${excCount === 1 ? 'bill' : 'bills'}`;
+      if (flowReady) flowReady.innerText = `${stpCount} ${stpCount === 1 ? 'bill' : 'bills'}`;
+      if (flowPaid) flowPaid.innerText = `${paidCount} ${paidCount === 1 ? 'bill' : 'bills'}`;
+      const denominator = Math.max(decisions.length, 1);
+      const flowShares = {
+        'flow-step-bills': decisions.length / denominator,
+        'flow-step-review': excCount / denominator,
+        'flow-step-ready': stpCount / denominator,
+        'flow-step-paid': paidCount / denominator
+      };
+      Object.entries(flowShares).forEach(([id, share]) => {
+        const step = document.getElementById(id);
+        if (step) step.style.setProperty('--flow-share', Math.max(0, Math.min(1, share)));
+      });
     }
 
     // --- HIGH-PERFORMANCE PAGINATED TABLE & RESPONSIVE CARDS ---
@@ -1277,11 +1494,11 @@
 
       let filtered = GLOBAL_DECISIONS;
       if (CURRENT_FILTER === 'STP' || CURRENT_FILTER === 'READY') {
-        filtered = GLOBAL_DECISIONS.filter(d => (!d.active_exceptions || d.active_exceptions.length === 0) && d.status !== 'ACTION_REQUIRED' && d.status !== 'SETTLED' && d.stage_7_status !== 'DISBURSED');
+        filtered = GLOBAL_DECISIONS.filter(isDecisionReady);
       } else if (CURRENT_FILTER === 'EXCEPTIONS' || CURRENT_FILTER === 'ACTION_REQUIRED') {
-        filtered = GLOBAL_DECISIONS.filter(d => (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED');
+        filtered = GLOBAL_DECISIONS.filter(decisionNeedsReview);
       } else if (CURRENT_FILTER === 'PAID' || CURRENT_FILTER === 'SETTLED') {
-        filtered = GLOBAL_DECISIONS.filter(d => d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED');
+        filtered = GLOBAL_DECISIONS.filter(isDecisionPaid);
       }
 
       const totalItems = filtered.length;
@@ -1326,8 +1543,8 @@
       // Render Desktop Table Rows
       if (tbody) {
         tbody.innerHTML = paginatedItems.map(d => {
-          const hasExceptions = (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED';
-          const isPaid = d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED';
+          const hasExceptions = decisionNeedsReview(d);
+          const isPaid = isDecisionPaid(d);
 
           let statusBadge = '';
           let actionBtn = '';
@@ -1335,27 +1552,27 @@
           if (hasExceptions) {
             statusBadge = `
               <div class="flex flex-col items-center gap-1">
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">VARIANCE DETECTED</span>
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600">ON HOLD</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">NEEDS REVIEW</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600">PAYMENT PAUSED</span>
               </div>
             `;
             actionBtn = `<button onclick="openExceptionModal('${d.invoice_number}')" aria-label="Resolve exception for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] shadow-2xs transition-smooth">Resolve</button>`;
           } else if (isPaid) {
             statusBadge = `
               <div class="flex flex-col items-center gap-1">
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">3-WAY MATCHED</span>
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">SETTLED</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">CHECKS PASSED</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">PAID</span>
               </div>
             `;
-            actionBtn = `<span class="text-[11px] font-mono text-emerald-700 font-semibold">Cleared</span>`;
+            actionBtn = `<span class="text-[11px] text-emerald-700 font-semibold">Bank confirmed</span>`;
           } else {
             statusBadge = `
               <div class="flex flex-col items-center gap-1">
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">3-WAY MATCHED</span>
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100">SCHEDULED</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">CHECKS PASSED</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-teal-50 text-teal-700 border border-teal-100">READY TO PAY</span>
               </div>
             `;
-            actionBtn = `<button onclick="disburseInvoice('${d.invoice_number}')" aria-label="Disburse payment for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-black hover:bg-slate-800 text-white font-bold text-[11px] shadow-2xs transition-smooth">Disburse</button>`;
+            actionBtn = `<button onclick="disburseInvoice('${d.invoice_number}')" aria-label="Release payment for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white font-bold text-[11px] shadow-2xs transition-smooth amicro-press">Release payment</button>`;
           }
 
           const terms = d.payment_terms || { terms_description: 'Net 30 Days', due_date: '2026-09-30' };
@@ -1379,7 +1596,7 @@
               </td>
               <td class="py-3.5 px-3">
                 <div class="text-slate-700 font-mono font-medium">TDS: INR ${(d.tds_deducted||0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                <div class="text-[10px] text-purple-700 font-mono">${escrow > 0 ? 'INR ' + escrow.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ' Retention' : 'GSTR-2B Confirmed'}</div>
+                <div class="text-[10px] text-teal-700">${escrow > 0 ? 'INR ' + escrow.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ' GST held' : 'GST filing verified'}</div>
               </td>
               <td class="py-3.5 px-3 text-center">
                 ${statusBadge}
@@ -1395,8 +1612,8 @@
       // Render Mobile / Tablet Cards
       if (cardList) {
         cardList.innerHTML = paginatedItems.map(d => {
-          const hasExceptions = (d.active_exceptions && d.active_exceptions.length > 0) || d.status === 'ACTION_REQUIRED';
-          const isPaid = d.status === 'SETTLED' || d.status === 'SHORT_PAID_APPROVED' || d.status === 'APPROVED_BY_CONTROLLER' || d.stage_7_status === 'DISBURSED';
+          const hasExceptions = decisionNeedsReview(d);
+          const isPaid = isDecisionPaid(d);
 
           let statusBadge = '';
           let actionBtn = '';
@@ -1405,11 +1622,11 @@
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">ACTION REQUIRED</span>`;
             actionBtn = `<button onclick="openExceptionModal('${d.invoice_number}')" aria-label="Resolve exception for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] shadow-2xs transition-smooth">Resolve</button>`;
           } else if (isPaid) {
-            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">SETTLED</span>`;
-            actionBtn = `<span class="text-[11px] font-mono text-emerald-700 font-semibold">Cleared</span>`;
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">PAID</span>`;
+            actionBtn = `<span class="text-[11px] text-emerald-700 font-semibold">Bank confirmed</span>`;
           } else {
-            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100">AUTO-SCHEDULED</span>`;
-            actionBtn = `<button onclick="disburseInvoice('${d.invoice_number}')" aria-label="Disburse payment for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-black hover:bg-slate-800 text-white font-bold text-[11px] shadow-2xs transition-smooth">Disburse</button>`;
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-teal-50 text-teal-700 border border-teal-100">READY TO PAY</span>`;
+            actionBtn = `<button onclick="disburseInvoice('${d.invoice_number}')" aria-label="Release payment for invoice ${d.invoice_number}" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white font-bold text-[11px] shadow-2xs transition-smooth amicro-press">Release</button>`;
           }
 
           const terms = d.payment_terms || { terms_description: 'Net 30 Days', due_date: '2026-09-30' };
@@ -1452,14 +1669,16 @@
       if (!container) return;
 
       if (!decisions || decisions.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">No statutory events recorded.</p>`;
+        container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">No payment activity yet.</p>`;
         return;
       }
-
+      const reviewCount = decisions.filter(decisionNeedsReview).length;
+      const readyCount = decisions.filter(isDecisionReady).length;
+      const paidCount = decisions.filter(isDecisionPaid).length;
       const milestones = [
-        { icon: "account_balance", title: "Challan 281 TDS Reserve Booked", desc: "ITA 2025 Sec 393(1) 2% reserved for CBDT deposit", time: "Just Now", color: "bg-rose-50 text-rose-700" },
-        { icon: "verified", title: "NPCI Penny Drop Verified", desc: "Core banking legal name matches Form 26AS", time: "2m ago", color: "bg-emerald-50 text-emerald-700" },
-        { icon: "lock_clock", title: "48-Hour Bank Cooling Barrier Passed", desc: "Beneficiary bank account un-quarantined", time: "10m ago", color: "bg-blue-50 text-blue-700" }
+        { icon: "priority_high", title: `${reviewCount} ${reviewCount === 1 ? 'bill needs' : 'bills need'} review`, desc: reviewCount ? "Payment is paused until the flagged issue is resolved." : "No bills are waiting on a manual decision.", color: "bg-amber-50 text-amber-700" },
+        { icon: "approval", title: `${readyCount} ${readyCount === 1 ? 'bill is' : 'bills are'} ready to pay`, desc: "All required checks passed; a permitted approver can release payment.", color: "bg-teal-50 text-teal-700" },
+        { icon: "task_alt", title: `${paidCount} ${paidCount === 1 ? 'payment has' : 'payments have'} bank proof`, desc: "Only bank-confirmed or settled items are counted as paid.", color: "bg-emerald-50 text-emerald-700" }
       ];
 
       container.innerHTML = milestones.map(m => `
