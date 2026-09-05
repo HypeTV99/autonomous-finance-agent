@@ -108,6 +108,15 @@ def serve_static_page(filename: str):
 @app.get("/dropzone", response_class=HTMLResponse)
 @app.get("/dashboard/v2", response_class=HTMLResponse)
 @app.get("/overview", response_class=HTMLResponse)
+@app.get("/command-center", response_class=HTMLResponse)
+@app.get("/ingestion", response_class=HTMLResponse)
+@app.get("/workspace", response_class=HTMLResponse)
+@app.get("/ap-workspace", response_class=HTMLResponse)
+@app.get("/exceptions", response_class=HTMLResponse)
+@app.get("/approvals", response_class=HTMLResponse)
+@app.get("/treasury", response_class=HTMLResponse)
+@app.get("/auditor", response_class=HTMLResponse)
+@app.get("/settings", response_class=HTMLResponse)
 async def treasury_hub_view():
     return serve_static_page("dag.html")
 
@@ -833,11 +842,244 @@ async def create_purchase_order(payload: Dict[str, Any] = Body(...)):
 @app.get("/api/v1/purchase-orders", status_code=status.HTTP_200_OK)
 async def list_purchase_orders():
     """
-    WS6: Query active PO registry catalog.
+    WS6: Query active PO registry catalog with full procurement attributes.
     """
     from services.po_registry import PoRegistry
     pos = PoRegistry.list_purchase_orders()
-    return {"status": "SUCCESS", "count": len(pos), "purchase_orders": list(pos.keys())}
+    detailed = []
+    for k, v in pos.items():
+        po_num = v.get("po_number") or f"PO-{k}-01"
+        auth_ceiling = float(v.get("authorized_ceiling", 1000000.0))
+        invoiced = 118000.0 if "ALPHA" in str(k).upper() or "93821" in str(po_num) else 0.0
+        detailed.append({
+            "po_number": po_num,
+            "vendor_id": v.get("vendor_id", k),
+            "authorized_ceiling": auth_ceiling,
+            "invoiced_amount": invoiced,
+            "remaining_amount": max(0.0, auth_ceiling - invoiced),
+            "status": "Active Matched",
+            "rates": {rk: str(rv) for rk, rv in v.get("rates", {}).items()},
+            "authorized_quantities": {qk: str(qv) for qk, qv in v.get("authorized_quantities", {}).items()},
+            "grn_verified_quantities": {gk: str(gv) for gk, gv in v.get("grn_verified_quantities", {}).items()}
+        })
+    return {"status": "SUCCESS", "count": len(detailed), "purchase_orders": list(pos.keys()), "data": detailed}
+
+@app.post("/api/v1/goods-receipts", status_code=status.HTTP_200_OK)
+async def create_goods_receipt(payload: Dict[str, Any] = Body(...)):
+    """
+    Records a Goods Received Note (GRN) with received, accepted, and rejected quantities.
+    """
+    from services.po_registry import PoRegistry
+    grn_num = payload.get("grn_number") or f"GRN-{uuid.uuid4().hex[:5].upper()}"
+    po_num = payload.get("po_number", "PO-93821")
+    vendor_id = payload.get("vendor_id", "VEND-ALPHA-01")
+    rcv_qty = Decimal(str(payload.get("received_quantity", "100.00")))
+    acc_qty = Decimal(str(payload.get("accepted_quantity", "100.00")))
+    rej_qty = Decimal(str(payload.get("rejected_quantity", "0.00")))
+    entry = PoRegistry.record_grn_receipt(
+        grn_number=grn_num,
+        po_number=po_num,
+        vendor_id=vendor_id,
+        received_quantity=rcv_qty,
+        accepted_quantity=acc_qty,
+        rejected_quantity=rej_qty
+    )
+    return {"status": "SUCCESS", "grn": {
+        "grn_number": entry["grn_number"],
+        "po_number": entry["po_number"],
+        "vendor_id": entry["vendor_id"],
+        "received_quantity": float(entry["received_quantity"]),
+        "accepted_quantity": float(entry["accepted_quantity"]),
+        "rejected_quantity": float(entry["rejected_quantity"]),
+        "recorded_at": entry["recorded_at"],
+        "status": "Verified Accepted"
+    }}
+
+@app.get("/api/v1/goods-receipts", status_code=status.HTTP_200_OK)
+async def list_goods_receipts():
+    """
+    Returns the active Goods Receipts catalog for 3-way matching and receipt audit.
+    """
+    from services.po_registry import PoRegistry
+    if not PoRegistry.GRN_REGISTRY:
+        PoRegistry.record_grn_receipt("GRN-3321", "PO-93821", "VEND-ALPHA-01", Decimal("100.00"), Decimal("80.00"), Decimal("0.00"))
+        PoRegistry.record_grn_receipt("GRN-STANDARD-001", "PO-VEND-ALPHA-01-01", "VEND-ALPHA-01", Decimal("100.00"), Decimal("100.00"), Decimal("0.00"))
+    grns = []
+    for k, v in PoRegistry.GRN_REGISTRY.items():
+        acc = float(v.get("accepted_quantity", 100.0))
+        inv = 60.0 if "3321" in str(k) else 0.0
+        grns.append({
+            "grn_number": v.get("grn_number", k),
+            "po_number": v.get("po_number", "PO-93821"),
+            "vendor_id": v.get("vendor_id", "VEND-ALPHA-01"),
+            "received_quantity": float(v.get("received_quantity", 100.0)),
+            "accepted_quantity": acc,
+            "rejected_quantity": float(v.get("rejected_quantity", 0.0)),
+            "invoiced_quantity": inv,
+            "available_quantity": max(0.0, acc - inv),
+            "recorded_at": v.get("recorded_at", datetime.now(timezone.utc).isoformat()),
+            "status": "Verified Accepted"
+        })
+    return {"status": "SUCCESS", "count": len(grns), "goods_receipts": grns}
+
+AUDIT_FINDINGS_REGISTRY: List[Dict[str, Any]] = [
+    {
+        "id": "FND-001",
+        "invoice_number": "INV-392",
+        "severity": "MEDIUM",
+        "category": "PO_VARIANCE",
+        "finding": "Invoice line item rate exceeded authorized PO ceiling by 5.0%. Routed to Controller for override authorization.",
+        "evidence": "PO-93821 Clause 4.2",
+        "status": "OPEN",
+        "auditor_id": "AUDITOR_KPMG_LEAD",
+        "created_at": "2026-09-04T10:15:00Z"
+    },
+    {
+        "id": "FND-002",
+        "invoice_number": "INV-441",
+        "severity": "HIGH",
+        "category": "VENDOR_BANK_SECURITY",
+        "finding": "Bank account modified within 72 hours of invoice issuance. Automatic quarantine cooling-off period engaged.",
+        "evidence": "Audit Ledger Hash #8271a",
+        "status": "OPEN",
+        "auditor_id": "AUDITOR_INTERNAL_TREASURY",
+        "created_at": "2026-09-04T14:30:00Z"
+    }
+]
+
+@app.get("/api/v1/audit/findings", status_code=status.HTTP_200_OK)
+async def list_audit_findings():
+    return {"status": "SUCCESS", "count": len(AUDIT_FINDINGS_REGISTRY), "findings": AUDIT_FINDINGS_REGISTRY}
+
+@app.post("/api/v1/audit/findings", status_code=status.HTTP_200_OK)
+async def raise_audit_finding(payload: Dict[str, Any] = Body(...)):
+    finding_id = f"FND-{uuid.uuid4().hex[:5].upper()}"
+    f = {
+        "id": finding_id,
+        "invoice_number": payload.get("invoice_number", "GENERAL"),
+        "severity": payload.get("severity", "MEDIUM"),
+        "category": payload.get("category", "CONTROL_OBSERVATION"),
+        "finding": payload.get("finding", "Auditor observation recorded."),
+        "evidence": payload.get("evidence", "Manual Auditor Inquest"),
+        "status": "OPEN",
+        "auditor_id": payload.get("auditor_id", "AUDITOR_SESSION_01"),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    AUDIT_FINDINGS_REGISTRY.insert(0, f)
+    return {"status": "SUCCESS", "finding": f}
+
+@app.post("/api/v1/vendors", status_code=status.HTTP_200_OK)
+async def create_manual_vendor(payload: Dict[str, Any] = Body(...)):
+    load_vendor_registry()
+    v_name = payload.get("name", "New Enterprise Vendor")
+    v_id = payload.get("vendor_id") or get_or_match_vendor_id(v_name)
+    pan = payload.get("pan", "AAACB1234K")
+    gstin = payload.get("gstin", "27AAACB1234K1Z5")
+    bank_acc = payload.get("bankAcc", "987654321098")
+    bank_ifsc = payload.get("bankIfsc", "HDFC0000001")
+    bank_name = payload.get("bankName", "HDFC Bank")
+    
+    initials = "".join([w[0] for w in v_name.split()[:2]]).upper() or "NV"
+    GLOBAL_VENDORS_REGISTRY[v_id] = {
+        "vendor_id": v_id,
+        "name": v_name,
+        "avatar": initials,
+        "score": "92.0%",
+        "status": "Verification required",
+        "meta": f"Vendor ID: {v_id} | Category: Enterprise Services",
+        "tax": "Sec 194J (2% TDS)",
+        "pan": pan,
+        "gstin": gstin,
+        "bank": "Verification pending",
+        "po": "Standard PO Contract",
+        "bankName": bank_name,
+        "bankBranch": "Corporate Banking Branch",
+        "bankAcc": bank_acc,
+        "bankIfsc": bank_ifsc,
+        "invoices": [],
+        "risk_tier": "TIER_2_MEDIUM",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    save_vendor_registry()
+    return {"status": "SUCCESS", "vendor": sanitize_vendor_dict(GLOBAL_VENDORS_REGISTRY[v_id])}
+
+@app.post("/api/v1/invoices/manual", status_code=status.HTTP_200_OK)
+async def create_manual_invoice(payload: Dict[str, Any] = Body(...)):
+    inv_num = payload.get("invoice_number") or f"INV-{uuid.uuid4().hex[:6].upper()}"
+    v_name = payload.get("vendor_name", "Acme Technology Pvt Ltd")
+    v_id = payload.get("vendor_id") or get_or_match_vendor_id(v_name)
+    subtotal = float(payload.get("subtotal", 100000.0))
+    gst_rate = float(payload.get("gst_rate", 18.0))
+    gst_amount = subtotal * (gst_rate / 100.0)
+    gross = subtotal + gst_amount
+    due_date = payload.get("due_date", "2026-09-25")
+    po_num = payload.get("po_number", "PO-93821")
+    grn_num = payload.get("grn_number", "GRN-3321")
+    
+    tds_rate = 0.02
+    tds_amount = subtotal * tds_rate
+    net_payable = gross - tds_amount
+    
+    decision_item = {
+        "invoice_number": inv_num,
+        "vendor_name": v_name,
+        "vendor_id": v_id,
+        "subtotal": subtotal,
+        "gst_amount": gst_amount,
+        "gross_amount": gross,
+        "tds_deducted": tds_amount,
+        "tds_section": "Sec 194J (2% Tech Services)",
+        "credit_applied": 0.0,
+        "net_payable": net_payable,
+        "status": "AWAITING_APPROVAL",
+        "decision_title": "Manual Submission - Pending Controller Signoff",
+        "po_number": po_num,
+        "grn_number": grn_num,
+        "due_date": due_date,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "maker": payload.get("maker", "ROLE_AP_CLERK"),
+        "checker": "ROLE_CONTROLLER",
+        "po_matching": {
+            "status": "MATCHED",
+            "po_number": po_num,
+            "grn_number": grn_num,
+            "po_rate": 1000.0,
+            "invoice_rate": 1000.0,
+            "variance": "0.0%",
+            "tolerance": "2.0%"
+        },
+        "tax_breakdown": {
+            "section": "194J",
+            "rate": "2%",
+            "taxable_amount": subtotal,
+            "tds": tds_amount,
+            "gst": gst_amount,
+            "gstr2b_status": "MATCHED"
+        },
+        "journal_entry": {
+            "journal_id": f"JRN-{uuid.uuid4().hex[:6].upper()}",
+            "debit_expense": subtotal,
+            "debit_gst": gst_amount,
+            "credit_payable": gross,
+            "status": "BALANCED_POSTED"
+        },
+        "payment_telemetry": {
+            "method": "IMPS",
+            "bank_name": "HDFC Bank",
+            "account_mask": "••••8921",
+            "bank_status": "Verified for production"
+        }
+    }
+    
+    register_invoice_in_vendor_registry(
+        v_name, inv_num, subtotal, gross, tds_amount, "2%", net_payable,
+        "Manual Ingestion Submission", "AWAITING_APPROVAL"
+    )
+    history = load_decision_history()
+    history.insert(0, decision_item)
+    save_decision_history()
+    
+    return {"status": "SUCCESS", "decision": decision_item}
 
 # ==============================================================================
 

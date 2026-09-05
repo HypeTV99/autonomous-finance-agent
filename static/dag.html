@@ -97,25 +97,60 @@
         </div>
 
         <!-- Navigation Menu -->
-        <nav class="space-y-1.5" aria-label="Main Navigation">
-          <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-100 text-slate-900 text-xs font-bold transition-smooth">
+        <div class="space-y-1">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-3 mb-1">AP Operating Suite</span>
+          <button onclick="switchAppScreen('command-center')" id="nav-btn-command-center" class="nav-app-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left">
+            <span class="material-symbols-outlined text-[18px]">dashboard</span>
+            <span>1. Command Center</span>
+          </button>
+          <button onclick="switchAppScreen('ingestion')" id="nav-btn-ingestion" class="nav-app-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left">
+            <span class="material-symbols-outlined text-[18px]">upload_file</span>
+            <span>2. Ingestion</span>
+          </button>
+          <button onclick="switchAppScreen('workspace')" id="nav-btn-workspace" class="nav-app-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left">
+            <span class="material-symbols-outlined text-[18px]">table_view</span>
+            <span>3. AP Workspace</span>
+          </button>
+          <button onclick="switchAppScreen('exceptions')" id="nav-btn-exceptions" class="nav-app-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[18px]">rule</span>
+              <span>4. Exceptions</span>
+            </div>
+            <span id="nav-exception-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 font-mono">1</span>
+          </button>
+          <button onclick="switchAppScreen('treasury')" id="nav-btn-treasury" class="nav-app-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left">
+            <span class="material-symbols-outlined text-[18px]">payments</span>
+            <span>5. Treasury</span>
+          </button>
+          <button onclick="switchAppScreen('auditor')" id="nav-btn-auditor" class="nav-app-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left">
+            <span class="material-symbols-outlined text-[18px]">verified_user</span>
+            <span>6. Auditor</span>
+          </button>
+          <button onclick="switchAppScreen('settings')" id="nav-btn-settings" class="nav-app-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900 text-left">
+            <span class="material-symbols-outlined text-[18px]">settings</span>
+            <span>Settings / Admin</span>
+          </button>
+        </div>
+
+        <nav class="space-y-1 pt-3 border-t border-slate-100" aria-label="Main Navigation">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-3 mb-1">Portals &amp; Reports</span>
+          <a href="/dashboard" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-3.5 py-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">grid_view</span>
             <span>Dashboard</span>
           </a>
-          <a href="/vendor-intel" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+          <a href="/vendor-intel" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-3.5 py-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">storefront</span>
             <span>Vendor Directory</span>
           </a>
-          <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+          <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-3.5 py-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">verified_user</span>
             <span>Auditor Vault</span>
           </a>
-          <!-- DIRECT IN-PAGE ERP DOWNLOAD BUTTON -->
-          <button onclick="downloadERPJournalDirect()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth text-left">
+          <button onclick="downloadERPJournalDirect()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth text-left">
             <span class="material-symbols-outlined text-[18px]">receipt_long</span>
             <span>ERP Journal (CSV)</span>
           </button>
-          <a href="/docs" target="_blank" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
+          <a href="/docs" target="_blank" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-3 px-3.5 py-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold transition-smooth">
             <span class="material-symbols-outlined text-[18px]">code</span>
             <span>API Specifications</span>
           </a>
@@ -155,10 +190,14 @@
         </div>
 
         <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-          <!-- SINGLE INGESTION ACTION -->
-          <button onclick="triggerInvoiceUpload()" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-2 px-5 py-2.5 bg-black hover:bg-slate-800 text-white rounded-2xl text-xs font-bold shadow-xs active:scale-[0.97] transition-smooth">
+          <!-- GLOBAL INGESTION ACTIONS -->
+          <button onclick="openGlobalAddModal()" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-1.5 px-4 py-2.5 bg-black hover:bg-slate-800 text-white rounded-2xl text-xs font-bold shadow-xs active:scale-[0.97] transition-smooth" title="Add Invoice, PO, GRN, or Vendor">
             <span class="material-symbols-outlined text-[16px]">add</span>
-            <span>Add Invoice</span>
+            <span>Add</span>
+          </button>
+          <button onclick="triggerInvoiceUpload()" class="focus-visible:ring-2 focus-visible:ring-slate-900 hidden sm:flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl text-xs font-bold shadow-2xs transition-smooth">
+            <span class="material-symbols-outlined text-[16px]">upload_file</span>
+            <span>Upload</span>
           </button>
 
           <!-- ROLE SWITCHER (MAKER-CHECKER SEGREGATION OF DUTIES - SANDBOX ONLY) -->
@@ -184,8 +223,125 @@
       <input type="file" id="global-file-input" accept=".pdf,.zip" multiple class="hidden" onchange="handleFileSelection(event)" aria-label="Invoice file upload">
 
       <!-- DASHBOARD VIEWS SUB-NAVIGATION & TITLE -->
-      <div class="space-y-4">
+      <section id="screen-command-center" class="app-screen space-y-6">
+<div class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 pb-3" role="tablist" aria-label="Operational Views">
+        <!-- 5-STAGE AP PIPELINE FUNNEL -->
+        <div class="fintech-card p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">AP Autonomous Pipeline Funnel</h3>
+              <p class="text-[11px] text-slate-500">Live transaction progression from intake through statutory settlement</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono">Pipeline Health: 99.4% STP</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="text-[10px] font-bold text-slate-400 block uppercase">1. Ingested</span>
+              <div class="text-base font-bold font-mono text-slate-900 mt-1">100% (24)</div>
+              <span class="text-[10px] text-slate-500">OCR &amp; Verification</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="text-[10px] font-bold text-slate-400 block uppercase">2. 3-Way Matched</span>
+              <div class="text-base font-bold font-mono text-slate-900 mt-1">98.2% (23)</div>
+              <span class="text-[10px] text-emerald-700 font-medium">PO &amp; GRN Aligned</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="text-[10px] font-bold text-slate-400 block uppercase">3. Statutory Tax</span>
+              <div class="text-base font-bold font-mono text-slate-900 mt-1">100% (24)</div>
+              <span class="text-[10px] text-slate-500">TDS &amp; GSTR-2B Verified</span>
+            </div>
+            <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-200">
+              <span class="text-[10px] font-bold text-amber-800 block uppercase">4. Attention &amp; Hold</span>
+              <div class="text-base font-bold font-mono text-amber-900 mt-1" id="funnel-exception-count">1 Item</div>
+              <span class="text-[10px] text-amber-700 font-medium">Price Tolerance Review</span>
+            </div>
+            <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200">
+              <span class="text-[10px] font-bold text-emerald-800 block uppercase">5. Settled Disbursed</span>
+              <div class="text-base font-bold font-mono text-emerald-950 mt-1">87.5% (21)</div>
+              <span class="text-[10px] text-emerald-700 font-medium">Bank UTR Reconciled</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7-DAY CASH REQUIREMENT HORIZON & ATTENTION QUEUE -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+          <div class="xl:col-span-7 fintech-card p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">7-Day Cash Requirement Horizon</h3>
+                <p class="text-[11px] text-slate-500">Predicted daily liquidity outflow for approved payables</p>
+              </div>
+              <span class="text-[11px] font-bold text-slate-700 font-mono">Total Forecast: INR 8,45,000.00</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase">
+                    <th class="py-2 px-2">Date</th>
+                    <th class="py-2 px-2">Invoices</th>
+                    <th class="py-2 px-2 text-right">Scheduled Outflow</th>
+                    <th class="py-2 px-2">Bank Clearing Rail</th>
+                    <th class="py-2 px-2 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-[11px]">
+                  <tr>
+                    <td class="py-2 px-2 font-medium text-slate-800">Today (05 Sep)</td>
+                    <td class="py-2 px-2 font-mono">3 Invoices</td>
+                    <td class="py-2 px-2 font-mono font-bold text-right text-slate-900">INR 1,08,000.00</td>
+                    <td class="py-2 px-2 text-slate-600">HDFC IMPS 24x7</td>
+                    <td class="py-2 px-2 text-center"><span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 text-[10px] font-semibold">Ready to Pay</span></td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 px-2 font-medium text-slate-800">Tomorrow (06 Sep)</td>
+                    <td class="py-2 px-2 font-mono">2 Invoices</td>
+                    <td class="py-2 px-2 font-mono font-bold text-right text-slate-900">INR 2,40,000.00</td>
+                    <td class="py-2 px-2 text-slate-600">HDFC RTGS Rail</td>
+                    <td class="py-2 px-2 text-center"><span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">Scheduled</span></td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 px-2 font-medium text-slate-800">07 Sep 2026</td>
+                    <td class="py-2 px-2 font-mono">4 Invoices</td>
+                    <td class="py-2 px-2 font-mono font-bold text-right text-slate-900">INR 4,97,000.00</td>
+                    <td class="py-2 px-2 text-slate-600">HDFC NEFT Batch</td>
+                    <td class="py-2 px-2 text-center"><span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">Scheduled</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="xl:col-span-5 fintech-card p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold text-amber-900 uppercase tracking-wider">Needs Attention Queue</h3>
+                <p class="text-[11px] text-slate-500">Autonomous safety halts requiring human review</p>
+              </div>
+              <button onclick="switchAppScreen('exceptions')" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs font-bold text-slate-900 hover:underline">Open Desk</button>
+            </div>
+            <div class="space-y-2">
+              <div class="p-3 rounded-xl border border-amber-200 bg-amber-50/50 space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-amber-950">INV-392 &bull; Acme Logistics</span>
+                  <span class="text-[10px] font-bold text-amber-900 font-mono">+5.0% Variance</span>
+                </div>
+                <p class="text-[11px] text-slate-700">Quantity received on GRN-3321 (90) is less than billed on invoice (100).</p>
+                <div class="pt-1 flex items-center gap-2">
+                  <button onclick="switchAppScreen('exceptions')" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-[10px] font-bold px-2.5 py-1 bg-amber-200 hover:bg-amber-300 rounded text-amber-900 transition-smooth">Review Exception</button>
+                </div>
+              </div>
+              <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-800">INV-742 &bull; Delta Systems</span>
+                  <span class="text-[10px] font-bold text-slate-600 font-mono">Cooling-Off</span>
+                </div>
+                <p class="text-[11px] text-slate-600">Vendor bank account updated within last 24h. 48h cooling barrier active.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
           <div class="flex items-center gap-2">
             <button id="view-tab-cockpit" onclick="switchDashboardView('COCKPIT')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs transition-smooth">
               Cockpit Overview
@@ -508,7 +664,783 @@
             </div>
           </div>
         </div>
+
       </div>
+      </section>
+
+      <!-- SCREEN 2: INGESTION STUDIO -->
+      <section id="screen-ingestion" class="app-screen hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 pb-4">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900">Ingestion Studio</h2>
+            <p class="text-xs text-slate-500">Autonomous multi-channel intake for invoices, purchase orders, receipts, and vendor credentials</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="triggerInvoiceUpload()" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-2 px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-smooth">
+              <span class="material-symbols-outlined text-[16px]">upload_file</span>
+              <span>Upload Document</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- DROPZONE & EXTRACTION STEPPER -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+          <div class="xl:col-span-7 fintech-card p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Document Intake Gate</h3>
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] font-semibold text-slate-500">Type:</label>
+                <select id="ingest-doctype-select" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-800 font-semibold">
+                  <option value="AUTO" selected>Auto-Detect (Recommended)</option>
+                  <option value="INVOICE">Commercial Invoice</option>
+                  <option value="PO">Purchase Order</option>
+                  <option value="GRN">Goods Receipt (GRN)</option>
+                  <option value="CREDIT_NOTE">Credit Note</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="dropzone-box" onclick="triggerInvoiceUpload()" class="border-2 border-dashed border-slate-300 hover:border-slate-800 rounded-2xl p-8 text-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-50">
+              <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-700 shadow-2xs mb-3">
+                <span class="material-symbols-outlined text-[24px]">cloud_upload</span>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900">Drag and drop documents here, or click to browse</h4>
+              <p class="text-xs text-slate-500 mt-1">Supports PDF, Scanned Image (JPEG/PNG), RFC JSON, and CSV Batch</p>
+              <div class="flex items-center justify-center gap-2 mt-4">
+                <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 font-mono">PDF / OCR</span>
+                <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 font-mono">MULTI-PAGE</span>
+                <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 font-mono">TAMPER CHECKSUM</span>
+              </div>
+            </div>
+
+            <!-- INGESTION PIPELINE STEPPER -->
+            <div class="pt-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Extraction Pipeline Stage Sequence</span>
+              <div class="grid grid-cols-5 gap-2 text-center text-[10px]">
+                <div class="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold">
+                  1. Ingest
+                </div>
+                <div class="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold">
+                  2. OCR Extract
+                </div>
+                <div class="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold">
+                  3. Validate
+                </div>
+                <div class="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold">
+                  4. Match
+                </div>
+                <div class="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold">
+                  5. Ready
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="xl:col-span-5 fintech-card p-6 space-y-4">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Recent Ingestion Queue</h3>
+            <div class="space-y-2.5" id="recent-ingestion-list">
+              <div class="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
+                <div>
+                  <div class="font-bold text-slate-900">INV-884-AlphaTech.pdf</div>
+                  <div class="text-[10px] text-slate-400 font-mono">99.8% OCR Confidence &bull; 118 KB</div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold">Ready</span>
+              </div>
+              <div class="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
+                <div>
+                  <div class="font-bold text-slate-900">PO-93821-Acme.pdf</div>
+                  <div class="text-[10px] text-slate-400 font-mono">100% Parsed &bull; PO Registry Active</div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">Matched</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABBED MANUAL INGESTION FORMS -->
+        <div class="fintech-card p-6 space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Manual Financial Records Ingestion</h3>
+              <p class="text-xs text-slate-500">Record structured invoices, purchase orders, goods receipts or vendor profiles directly</p>
+            </div>
+            <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold" role="tablist">
+              <button onclick="switchManualTab('invoice')" id="mtab-invoice" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-lg bg-white text-slate-900 font-bold shadow-2xs transition-smooth">Commercial Invoice</button>
+              <button onclick="switchManualTab('po')" id="mtab-po" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Purchase Order</button>
+              <button onclick="switchManualTab('grn')" id="mtab-grn" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Goods Receipt (GRN)</button>
+              <button onclick="switchManualTab('vendor')" id="mtab-vendor" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Vendor Registration</button>
+            </div>
+          </div>
+
+          <!-- FORM A: MANUAL INVOICE -->
+          <form id="form-manual-invoice" onsubmit="handleManualInvoiceSubmit(event)" class="space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Vendor Legal Entity</label>
+                <select id="man-inv-vendor" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800">
+                  <option value="Alpha Technologies Pvt Ltd">Alpha Technologies Pvt Ltd</option>
+                  <option value="Beta Logistics Ltd">Beta Logistics Ltd</option>
+                  <option value="Gamma Cloud Services">Gamma Cloud Services</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Invoice Number</label>
+                <input type="text" id="man-inv-number" required placeholder="e.g. INV-2026-901" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 bg-white font-mono text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Invoice Date</label>
+                <input type="date" id="man-inv-date" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Linked Purchase Order</label>
+                <input type="text" id="man-inv-po" value="PO-93821" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 bg-white font-mono text-slate-800">
+              </div>
+            </div>
+
+            <!-- Line Items Table -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between">
+                <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Line Items Specification</span>
+                <span class="text-[10px] text-slate-500">Live 3-Way Match Validation Enabled</span>
+              </div>
+              <div class="p-4 grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="block text-[10px] text-slate-400 font-bold mb-1">Description</label>
+                  <input type="text" id="man-inv-desc" value="Specialized Engineering & Cloud Consulting" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2 rounded-lg border border-slate-200 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-400 font-bold mb-1">Taxable Subtotal (INR)</label>
+                  <input type="number" id="man-inv-subtotal" value="100000" oninput="updateManualInvoiceCalculations()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2 rounded-lg border border-slate-200 text-xs font-mono">
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-400 font-bold mb-1">GST Rate (%)</label>
+                  <select id="man-inv-gst-rate" onchange="updateManualInvoiceCalculations()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2 rounded-lg border border-slate-200 text-xs font-mono">
+                    <option value="18" selected>18% (Standard GST)</option>
+                    <option value="12">12%</option>
+                    <option value="5">5%</option>
+                    <option value="0">0% (Exempt)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-400 font-bold mb-1">Statutory TDS Code</label>
+                  <select id="man-inv-tds-code" onchange="updateManualInvoiceCalculations()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2 rounded-lg border border-slate-200 text-xs font-mono">
+                    <option value="194J" selected>Sec 194J (2% Tech Services)</option>
+                    <option value="194C">Sec 194C (1% Contractor)</option>
+                    <option value="194I">Sec 194I (10% Rent)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Computed Calculation Preview -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-4 font-mono">
+              <div><span class="text-slate-400 block text-[10px]">Taxable Amount</span><span id="man-prev-sub" class="font-bold text-slate-900">INR 1,00,000.00</span></div>
+              <div><span class="text-slate-400 block text-[10px]">GST Added</span><span id="man-prev-gst" class="font-bold text-slate-700">+INR 18,000.00</span></div>
+              <div><span class="text-slate-400 block text-[10px]">TDS Withholding</span><span id="man-prev-tds" class="font-bold text-rose-800">-INR 2,000.00</span></div>
+              <div><span class="text-slate-400 block text-[10px]">Net Payable Disbursable</span><span id="man-prev-net" class="font-extrabold text-emerald-800 text-sm">INR 1,16,000.00</span></div>
+              <div>
+                <button type="submit" id="btn-submit-manual-invoice" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-5 py-2.5 bg-black hover:bg-slate-800 text-white font-sans font-bold rounded-xl transition-smooth shadow-xs">
+                  Submit Invoice to Pipeline
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- FORM B: MANUAL PO -->
+          <form id="form-manual-po" onsubmit="handleManualPOSubmit(event)" class="hidden space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Vendor Entity</label>
+                <input type="text" id="man-po-vendor" value="Alpha Technologies Pvt Ltd" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 text-slate-800 font-medium">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Purchase Order Number</label>
+                <input type="text" id="man-po-num" placeholder="e.g. PO-2026-X99" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Authorized Spend Ceiling (INR)</label>
+                <input type="number" id="man-po-amount" value="500000" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" id="btn-submit-manual-po" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-5 py-2.5 bg-black hover:bg-slate-800 text-white font-bold rounded-xl transition-smooth">
+                Register Purchase Order
+              </button>
+            </div>
+          </form>
+
+          <!-- FORM C: MANUAL GRN -->
+          <form id="form-manual-grn" onsubmit="handleManualGRNSubmit(event)" class="hidden space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Linked PO Number</label>
+                <input type="text" id="man-grn-po" value="PO-93821" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Goods Receipt (GRN) #</label>
+                <input type="text" id="man-grn-num" placeholder="e.g. GRN-2026-004" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Received Quantity</label>
+                <input type="number" id="man-grn-qty" value="100" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Accepted Quantity</label>
+                <input type="number" id="man-grn-acc-qty" value="100" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" id="btn-submit-manual-grn" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-5 py-2.5 bg-black hover:bg-slate-800 text-white font-bold rounded-xl transition-smooth">
+                Record Goods Receipt
+              </button>
+            </div>
+          </form>
+
+          <!-- FORM D: MANUAL VENDOR -->
+          <form id="form-manual-vendor" onsubmit="handleManualVendorSubmit(event)" class="hidden space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Legal Vendor Name</label>
+                <input type="text" id="man-vend-name" placeholder="e.g. Zenith Tech Solutions Ltd" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">GSTIN (15 Alphanumeric)</label>
+                <input type="text" id="man-vend-gstin" placeholder="27AAACB1234K1Z5" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">PAN Number</label>
+                <input type="text" id="man-vend-pan" placeholder="AAACB1234K" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Bank Account Number</label>
+                <input type="text" id="man-vend-bankacc" placeholder="50200084924021" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">IFSC Code</label>
+                <input type="text" id="man-vend-ifsc" placeholder="HDFC0000060" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Bank Name</label>
+                <input type="text" id="man-vend-bankname" value="HDFC Bank" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 text-slate-800">
+              </div>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" id="btn-submit-manual-vendor" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-5 py-2.5 bg-black hover:bg-slate-800 text-white font-bold rounded-xl transition-smooth">
+                Register Vendor Profile
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: AP WORKSPACE -->
+      <section id="screen-workspace" class="app-screen hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 pb-4">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900">AP Workspace &amp; Catalogs</h2>
+            <p class="text-xs text-slate-500">Comprehensive enterprise ledger for commercial invoices, contracts, delivery receipts, and vendors</p>
+          </div>
+          <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold" role="tablist">
+            <button onclick="switchWorkspaceTab('invoices')" id="wtab-invoices" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-1.5 rounded-lg bg-white text-slate-900 font-bold shadow-2xs transition-smooth">Invoices</button>
+            <button onclick="switchWorkspaceTab('pos')" id="wtab-pos" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Purchase Orders</button>
+            <button onclick="switchWorkspaceTab('grns')" id="wtab-grns" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Goods Receipts</button>
+            <button onclick="switchWorkspaceTab('vendors')" id="wtab-vendors" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Vendors</button>
+          </div>
+        </div>
+
+        <!-- SUB-TAB 1: INVOICES WORKSPACE -->
+        <div id="wpanel-invoices" class="space-y-4">
+          <div class="fintech-card p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <input type="text" id="workspace-inv-search" oninput="filterWorkspaceInvoices(this.value)" placeholder="Filter by invoice #, vendor name..." class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs px-3.5 py-2 rounded-xl border border-slate-200 w-64">
+                <select id="workspace-inv-status" onchange="filterWorkspaceInvoices()" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs px-3 py-2 rounded-xl border border-slate-200 text-slate-700">
+                  <option value="ALL">All Statuses</option>
+                  <option value="READY">Ready to Pay</option>
+                  <option value="ACTION">Action Required</option>
+                  <option value="SETTLED">Settled</option>
+                </select>
+              </div>
+              <span class="text-xs text-slate-400 font-mono" id="workspace-inv-count">Showing 3 transactions</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <th class="py-3 px-3">Invoice # &amp; Vendor</th>
+                    <th class="py-3 px-3">Linked PO / GRN</th>
+                    <th class="py-3 px-3 text-right">Taxable Subtotal</th>
+                    <th class="py-3 px-3 text-right">TDS / Net</th>
+                    <th class="py-3 px-3 text-center">Match Status</th>
+                    <th class="py-3 px-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100" id="workspace-invoices-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB 2: PURCHASE ORDERS -->
+        <div id="wpanel-pos" class="hidden space-y-4">
+          <div class="fintech-card p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Purchase Orders Catalog</h3>
+              <button onclick="switchManualTab('po'); switchAppScreen('ingestion');" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs font-bold text-slate-900 hover:underline">+ New PO</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase">
+                    <th class="py-3 px-3">PO Number</th>
+                    <th class="py-3 px-3">Vendor</th>
+                    <th class="py-3 px-3 text-right">Authorized Value</th>
+                    <th class="py-3 px-3 text-right">Utilized Value</th>
+                    <th class="py-3 px-3 text-right">Available Balance</th>
+                    <th class="py-3 px-3 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-mono" id="workspace-pos-tbody">
+                  <tr>
+                    <td class="py-3 px-3 font-bold text-slate-900">PO-93821</td>
+                    <td class="py-3 px-3 font-sans">Acme Enterprise Technologies</td>
+                    <td class="py-3 px-3 text-right font-bold text-slate-900">INR 5,00,000.00</td>
+                    <td class="py-3 px-3 text-right text-slate-600">INR 1,18,000.00</td>
+                    <td class="py-3 px-3 text-right text-emerald-700 font-bold">INR 3,82,000.00</td>
+                    <td class="py-3 px-3 text-center font-sans"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-semibold">Active Contract</span></td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-3 font-bold text-slate-900">PO-VEND-ALPHA-01-01</td>
+                    <td class="py-3 px-3 font-sans">Alpha Technologies Pvt Ltd</td>
+                    <td class="py-3 px-3 text-right font-bold text-slate-900">INR 10,00,000.00</td>
+                    <td class="py-3 px-3 text-right text-slate-600">INR 1,18,000.00</td>
+                    <td class="py-3 px-3 text-right text-emerald-700 font-bold">INR 8,82,000.00</td>
+                    <td class="py-3 px-3 text-center font-sans"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-semibold">Active Contract</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB 3: GOODS RECEIPTS -->
+        <div id="wpanel-grns" class="hidden space-y-4">
+          <div class="fintech-card p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Goods Receipts (GRN) Catalog</h3>
+              <button onclick="switchManualTab('grn'); switchAppScreen('ingestion');" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs font-bold text-slate-900 hover:underline">+ New GRN</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase">
+                    <th class="py-3 px-3">GRN #</th>
+                    <th class="py-3 px-3">Linked PO</th>
+                    <th class="py-3 px-3 text-right">Received Qty</th>
+                    <th class="py-3 px-3 text-right">Accepted Qty</th>
+                    <th class="py-3 px-3 text-right">Invoiced Qty</th>
+                    <th class="py-3 px-3 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-mono" id="workspace-grns-tbody">
+                  <tr>
+                    <td class="py-3 px-3 font-bold text-slate-900">GRN-3321</td>
+                    <td class="py-3 px-3">PO-93821</td>
+                    <td class="py-3 px-3 text-right">100.00</td>
+                    <td class="py-3 px-3 text-right font-bold text-slate-900">80.00</td>
+                    <td class="py-3 px-3 text-right text-slate-600">60.00</td>
+                    <td class="py-3 px-3 text-center font-sans"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-semibold">Verified Accepted</span></td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-3 font-bold text-slate-900">GRN-STANDARD-001</td>
+                    <td class="py-3 px-3">PO-VEND-ALPHA-01-01</td>
+                    <td class="py-3 px-3 text-right">100.00</td>
+                    <td class="py-3 px-3 text-right font-bold text-slate-900">100.00</td>
+                    <td class="py-3 px-3 text-right text-slate-600">0.00</td>
+                    <td class="py-3 px-3 text-center font-sans"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-semibold">Verified Accepted</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB 4: VENDORS -->
+        <div id="wpanel-vendors" class="hidden space-y-4">
+          <div class="fintech-card p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Enterprise Vendor Directory</h3>
+              <a href="/vendor-intel" class="focus-visible:ring-2 focus-visible:ring-slate-900 text-xs font-bold text-slate-900 hover:underline">Full Directory Suite &rarr;</a>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase">
+                    <th class="py-3 px-3">Vendor Name</th>
+                    <th class="py-3 px-3">PAN</th>
+                    <th class="py-3 px-3">GSTIN</th>
+                    <th class="py-3 px-3">Bank Verification</th>
+                    <th class="py-3 px-3 text-center">TDS Rule</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100" id="workspace-vendors-tbody">
+                  <tr>
+                    <td class="py-3 px-3 font-bold text-slate-900">Alpha Technologies Pvt Ltd</td>
+                    <td class="py-3 px-3 font-mono text-slate-700">AAACB1234K</td>
+                    <td class="py-3 px-3 font-mono text-slate-700">27AAACB1234K1Z5</td>
+                    <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-semibold">Penny Drop Matched</span></td>
+                    <td class="py-3 px-3 text-center font-mono">Sec 194J (2%)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-3 font-bold text-slate-900">Beta Logistics Ltd</td>
+                    <td class="py-3 px-3 font-mono text-slate-700">BBBCB5678L</td>
+                    <td class="py-3 px-3 font-mono text-slate-700">29BBBCB5678L1Z1</td>
+                    <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[10px] font-semibold">Cooling Barrier Active</span></td>
+                    <td class="py-3 px-3 text-center font-mono">Sec 194C (1%)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: EXCEPTIONS & APPROVALS STUDIO -->
+      <section id="screen-exceptions" class="app-screen hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 pb-4">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900">Exceptions &amp; Approvals Desk</h2>
+            <p class="text-xs text-slate-500">Human-in-the-Loop policy gate with Maker-Checker segregation of duties</p>
+          </div>
+          <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold" role="tablist">
+            <button onclick="switchExceptionTab('review')" id="etab-review" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-1.5 rounded-lg bg-white text-slate-900 font-bold shadow-2xs transition-smooth">Needs Review (1)</button>
+            <button onclick="switchExceptionTab('approval')" id="etab-approval" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Awaiting My Approval</button>
+            <button onclick="switchExceptionTab('resolved')" id="etab-resolved" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-smooth">Resolved History</button>
+          </div>
+        </div>
+
+        <div class="space-y-4" id="exceptions-cards-container">
+          <!-- Exception Card 1 -->
+          <div class="fintech-card p-6 border-l-4 border-l-amber-500 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                  <span class="material-symbols-outlined text-[18px]">gavel</span>
+                </span>
+                <div>
+                  <h3 class="text-sm font-bold text-slate-900">PO Unit Rate &amp; Price Ceiling Discrepancy</h3>
+                  <span class="text-[11px] text-slate-500 font-mono">Invoice INV-392 &bull; Supplier: Acme Enterprise Technologies</span>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-200 font-mono">Action Required</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div class="p-3 bg-slate-50 rounded-xl">
+                <span class="text-[10px] text-slate-400 block uppercase font-bold">Plain-Language Problem</span>
+                <p class="text-slate-800 font-semibold mt-1">Invoice billed at INR 1,050/hr vs authorized PO ceiling rate of INR 1,000/hr.</p>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-xl">
+                <span class="text-[10px] text-slate-400 block uppercase font-bold">Financial Impact</span>
+                <p class="font-mono text-slate-900 font-bold mt-1">+INR 5,000.00 Variance (+5.0% over authorized tolerance limit)</p>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-xl">
+                <span class="text-[10px] text-slate-400 block uppercase font-bold">Policy Recommendation</span>
+                <p class="text-slate-800 mt-1">Authorize override with justification or short-pay invoice at contract rate.</p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <span class="text-[11px] text-slate-500">Governance Role Required: <strong>Treasury Controller / Checker</strong></span>
+              <div class="flex items-center gap-2">
+                <button onclick="openExceptionModal('INV-392')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-smooth">
+                  Authorize Override
+                </button>
+                <button onclick="showToast('Short-Pay Action', 'Debit note initiated for INR 5,000 variance.', 'info')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition-smooth">
+                  Request Credit Note
+                </button>
+                <button onclick="showToast('Hold Status', 'Invoice INV-392 placed on dispute hold.', 'info')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition-smooth">
+                  Hold
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: TREASURY DESK -->
+      <section id="screen-treasury" class="app-screen hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 pb-4">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900">Treasury &amp; Liquidity Desk</h2>
+            <p class="text-xs text-slate-500">Autonomous bank disbursement gate, IMPS/RTGS rail settlement, and double-entry reconciliation</p>
+          </div>
+          <button onclick="openBatchDisburseModal()" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-2 px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-smooth">
+            <span class="material-symbols-outlined text-[16px]">payments</span>
+            <span>Batch Release Approved Payments</span>
+          </button>
+        </div>
+
+        <!-- READY TO PAY CHECKLIST -->
+        <div class="fintech-card p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Ready to Pay Checklist</h3>
+            <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold font-mono">1 Eligible Invoice</span>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" checked id="treasury-check-all" class="w-4 h-4 rounded text-black">
+              <div>
+                <span class="font-bold text-slate-900">Select All Approved Payables (1)</span>
+                <span class="text-[11px] text-slate-500 block">All statutory TDS and 3-way matching invariants satisfied</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="font-mono font-extrabold text-emerald-950 text-sm">Total: INR 1,08,000.00</span>
+              <button onclick="openBatchDisburseModal()" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition-smooth">
+                Release Funds
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- AMBIGUOUS STATE RESOLUTION (NO PAY AGAIN BUTTON) -->
+        <div class="fintech-card p-5 border-l-4 border-l-amber-500 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[20px] text-amber-600">sync_problem</span>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900 uppercase">Bank Reconciliation &amp; Gateway Safety Notice</h4>
+                <p class="text-[11px] text-slate-500">Autonomous idempotency fence protecting corporate liquidity</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-mono font-bold">FENCE ACTIVE</span>
+          </div>
+          <div class="p-3 bg-amber-50 rounded-xl text-xs text-amber-950 leading-relaxed">
+            <strong>Payment Safety Rule:</strong> When bank responses time out or reach an ambiguous status, <strong>no duplicate wire release ("Pay Again") is permitted</strong>. The system locks the transaction, queries the bank switch for UTR confirmation, or routes to treasury manual verification to ensure zero duplicate payment risk.
+          </div>
+          <div class="flex items-center gap-2 pt-1">
+            <button onclick="showToast('Bank Query', 'Querying NPCI switch for UTR status on ambiguous payments...', 'info')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-950 text-xs font-bold hover:bg-amber-100 transition-smooth">
+              Query Bank Gateway / UTR Check
+            </button>
+            <button onclick="showToast('Manual Check', 'Opening manual bank settlement verification checklist.', 'info')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-smooth">
+              Manual Settlement Verification
+            </button>
+          </div>
+        </div>
+
+        <!-- SETTLED PAYMENTS LEDGER -->
+        <div class="fintech-card p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Settled Disbursements Ledger</h3>
+            <span class="text-xs text-slate-400 font-mono">1 Settled Transaction</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase">
+                  <th class="py-3 px-3">Transaction</th>
+                  <th class="py-3 px-3">Vendor</th>
+                  <th class="py-3 px-3">Bank UTR Reference</th>
+                  <th class="py-3 px-3 text-right">Net Amount</th>
+                  <th class="py-3 px-3 text-center">Settled Timestamp</th>
+                  <th class="py-3 px-3 text-right">Settlement Proof</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 font-mono">
+                <tr>
+                  <td class="py-3 px-3 font-bold text-slate-900">INV-884</td>
+                  <td class="py-3 px-3 font-sans">Alpha Technologies Pvt Ltd</td>
+                  <td class="py-3 px-3 text-slate-700">RZX20260827184001A8F</td>
+                  <td class="py-3 px-3 text-right font-extrabold text-emerald-950">INR 1,08,000.00</td>
+                  <td class="py-3 px-3 text-center text-slate-500 font-sans">28 Aug 2026, 18:30</td>
+                  <td class="py-3 px-3 text-right font-sans">
+                    <button onclick="document.getElementById('proof-share-modal').showModal()" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-smooth">
+                      Proof JSON
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 6: AUDITOR SUITE -->
+      <section id="screen-auditor" class="app-screen hidden space-y-6">
+        <!-- Read-Only Banner -->
+        <div class="p-3 bg-slate-900 text-white rounded-2xl flex items-center justify-between text-xs px-5 shadow-sm">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-[18px] text-emerald-400">verified_user</span>
+            <span class="font-bold">AUDITOR SUITE &bull; READ-ONLY GOVERNANCE MODE ACTIVE</span>
+          </div>
+          <span class="text-[11px] text-slate-400 font-mono">Financial Mutations Disabled</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 pb-4">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900">Auditor &amp; Forensic Vault</h2>
+            <p class="text-xs text-slate-500">Cryptographically verifiable evidence chain, zero-drift balance proofs, and policy simulation</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openAuditFindingModal()" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-smooth">
+              <span class="material-symbols-outlined text-[16px]">flag</span>
+              <span>Raise Audit Finding</span>
+            </button>
+            <a href="/audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 flex items-center gap-1.5 px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-smooth">
+              <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+              <span>Full Audit Vault</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 4 CONTROLS HEALTH CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="fintech-card p-4 space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Controls Health</span>
+            <div class="text-lg font-bold text-slate-900">17 of 17 Passed</div>
+            <span class="text-[10px] text-emerald-700 font-medium">100% Policy Invariants Met</span>
+          </div>
+          <div class="fintech-card p-4 space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">General Ledger</span>
+            <div class="text-lg font-bold text-slate-900">Balanced (0.00 Drift)</div>
+            <span class="text-[10px] text-emerald-700 font-medium">Debits == Credits Verified</span>
+          </div>
+          <div class="fintech-card p-4 space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Disbursal Settlement</span>
+            <div class="text-lg font-bold text-slate-900">Reconciled</div>
+            <span class="text-[10px] text-emerald-700 font-medium">100% Bank UTR Confirmed</span>
+          </div>
+          <div class="fintech-card p-4 space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Cryptographic Evidence</span>
+            <div class="text-lg font-bold text-slate-900">Signed &amp; Sealed</div>
+            <span class="text-[10px] text-emerald-700 font-medium">Ed25519 Hardware Seal</span>
+          </div>
+        </div>
+
+        <!-- WHAT-IF POLICY SIMULATION (MARKED SIMULATION ONLY) -->
+        <div class="fintech-card p-6 space-y-4 border-2 border-dashed border-slate-300 relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-md bg-purple-100 text-purple-900 text-[10px] font-extrabold uppercase font-mono">
+                SIMULATION ONLY - NO LEDGER IMPACT
+              </span>
+              <h3 class="text-xs font-bold text-slate-900 uppercase">What-If Policy Simulation Engine</h3>
+            </div>
+            <span class="text-[11px] text-slate-400 font-mono">Sandboxed Invariant Modeling</span>
+          </div>
+          <p class="text-xs text-slate-600">Model how adjusting statutory or commercial tolerance thresholds impacts historical throughput without altering production ledgers.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Simulated PO Variance Tolerance</label>
+              <div class="flex items-center gap-3">
+                <input type="range" id="sim-tolerance" min="0" max="10" step="0.5" value="5.0" oninput="document.getElementById('sim-tol-val').innerText = this.value + '%'" class="w-full">
+                <span id="sim-tol-val" class="font-mono font-bold text-xs text-slate-900">5.0%</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Simulated Auto-Approve Ceiling</label>
+              <select id="sim-ceiling" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2 rounded-lg border border-slate-200 text-xs font-mono">
+                <option value="100000">INR 1,00,000.00</option>
+                <option value="250000" selected>INR 2,50,000.00</option>
+                <option value="500000">INR 5,00,000.00</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button onclick="runWhatIfSimulation()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-smooth">
+                Run Simulation
+              </button>
+            </div>
+          </div>
+
+          <div id="sim-result-box" class="p-4 rounded-xl bg-purple-50/50 border border-purple-200 text-xs space-y-1">
+            <span class="font-bold text-purple-950">Simulation Prediction:</span>
+            <p class="text-slate-700 text-[11px]">Under 5.0% PO tolerance ceiling, STP rate increases from 87.5% to 95.8%. Invoice INV-392 would qualify for Straight-Through Processing with 0 exceptions.</p>
+          </div>
+        </div>
+
+        <!-- AUDITOR FINDINGS LOG -->
+        <div class="fintech-card p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Independent Auditor Findings Log</h3>
+            <span class="text-xs text-slate-400 font-mono" id="audit-finding-count">2 Registered Observations</span>
+          </div>
+          <div class="space-y-2" id="audit-findings-list">
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">FND-001 &bull; PO Price Variance Tolerance Review</span>
+                <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold font-mono">MEDIUM</span>
+              </div>
+              <p class="text-[11px] text-slate-600">Invoice line item rate exceeded authorized PO ceiling by 5.0%. Routed to Controller for override authorization.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 7: SETTINGS / ADMIN -->
+      <section id="screen-settings" class="app-screen hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 pb-4">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900">Settings &amp; Governance Administration</h2>
+            <p class="text-xs text-slate-500">Autonomous AP tolerance thresholds, Maker-Checker segregation, and cryptographic system health</p>
+          </div>
+          <button onclick="showToast('Settings Saved', 'Autonomous AP governance parameters updated.', 'success')" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-smooth">
+            Save Changes
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="fintech-card p-6 space-y-4">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Policy Gating Thresholds</h3>
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="block text-slate-600 font-semibold mb-1">3-Way Match Price Variance Tolerance (%)</label>
+                <input type="number" step="0.1" value="2.0" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-600 font-semibold mb-1">Maker-Checker Authorization Limit (INR)</label>
+                <input type="number" value="50000" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-600 font-semibold mb-1">Vendor Bank Modification Cooling-Off Period</label>
+                <select class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200">
+                  <option value="24">24 Hours</option>
+                  <option value="48" selected>48 Hours (Standard)</option>
+                  <option value="72">72 Hours (High Security)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="fintech-card p-6 space-y-4">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">System Health &amp; Infrastructure</h3>
+            <div class="space-y-3 text-xs">
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-slate-600">Cloud Run Service</span>
+                <span class="font-mono text-emerald-700 font-bold">asia-south1 (HEALTHY)</span>
+              </div>
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-slate-600">Database Engine</span>
+                <span class="font-mono text-emerald-700 font-bold">Cloud Firestore (HEALTHY)</span>
+              </div>
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-slate-600">Hardware Root-of-Trust</span>
+                <span class="font-mono text-emerald-700 font-bold">Cloud KMS Ed25519 (ACTIVE)</span>
+              </div>
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-slate-600">Average OCR Latency</span>
+                <span class="font-mono text-slate-800 font-bold">342 ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -735,6 +1667,132 @@
         <button onclick="copyVerifyLink()" class="px-4 py-2 rounded-xl border text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Copy Link</button>
         <button onclick="downloadProofManifest()" class="px-5 py-2 rounded-xl bg-black text-white text-xs font-bold transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">Download RFC 8785 Manifest</button>
       </div>
+    </div>
+  </dialog>
+
+
+  <!-- GLOBAL + ADD MODAL -->
+  <dialog id="global-add-modal" aria-modal="true" aria-labelledby="add-modal-title" class="rounded-3xl p-0 bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm max-w-lg w-full border-0 shadow-2xl transition-smooth">
+    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <h4 class="text-sm font-bold text-slate-900" id="add-modal-title">Record Financial Record</h4>
+        <button onclick="document.getElementById('global-add-modal').close()" aria-label="Close dialog" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <button onclick="document.getElementById('global-add-modal').close(); switchAppScreen('ingestion'); switchManualTab('invoice');" class="focus-visible:ring-2 focus-visible:ring-slate-900 p-4 rounded-2xl border border-slate-200 hover:border-slate-900 text-left space-y-1 hover:bg-slate-50 transition-smooth">
+          <span class="material-symbols-outlined text-[20px] text-slate-900 block mb-1">receipt_long</span>
+          <span class="font-bold text-slate-900 block">Submit Invoice</span>
+          <span class="text-[11px] text-slate-500 block">Commercial invoice with 3-way match</span>
+        </button>
+        <button onclick="document.getElementById('global-add-modal').close(); switchAppScreen('ingestion'); switchManualTab('po');" class="focus-visible:ring-2 focus-visible:ring-slate-900 p-4 rounded-2xl border border-slate-200 hover:border-slate-900 text-left space-y-1 hover:bg-slate-50 transition-smooth">
+          <span class="material-symbols-outlined text-[20px] text-slate-900 block mb-1">assignment</span>
+          <span class="font-bold text-slate-900 block">Create Purchase Order</span>
+          <span class="text-[11px] text-slate-500 block">Authorized contract spend ceiling</span>
+        </button>
+        <button onclick="document.getElementById('global-add-modal').close(); switchAppScreen('ingestion'); switchManualTab('grn');" class="focus-visible:ring-2 focus-visible:ring-slate-900 p-4 rounded-2xl border border-slate-200 hover:border-slate-900 text-left space-y-1 hover:bg-slate-50 transition-smooth">
+          <span class="material-symbols-outlined text-[20px] text-slate-900 block mb-1">inventory_2</span>
+          <span class="font-bold text-slate-900 block">Record Goods Receipt</span>
+          <span class="text-[11px] text-slate-500 block">Warehouse delivery &amp; acceptance</span>
+        </button>
+        <button onclick="document.getElementById('global-add-modal').close(); switchAppScreen('ingestion'); switchManualTab('vendor');" class="focus-visible:ring-2 focus-visible:ring-slate-900 p-4 rounded-2xl border border-slate-200 hover:border-slate-900 text-left space-y-1 hover:bg-slate-50 transition-smooth">
+          <span class="material-symbols-outlined text-[20px] text-slate-900 block mb-1">person_add</span>
+          <span class="font-bold text-slate-900 block">Register Vendor</span>
+          <span class="text-[11px] text-slate-500 block">GSTIN, PAN &amp; banking profile</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- FLAGSHIP 6-SUBTAB INVOICE DETAIL MODAL -->
+  <dialog id="invoice-detail-modal" aria-modal="true" aria-labelledby="modal-inv-title" class="rounded-3xl p-0 bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm max-w-3xl w-full border-0 shadow-2xl transition-smooth">
+    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-black">
+            <span class="material-symbols-outlined text-[18px]">receipt</span>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900" id="modal-inv-title">Invoice Detail: INV-884</h4>
+            <p class="text-[11px] text-slate-500 font-mono" id="modal-inv-sub">Alpha Technologies Pvt Ltd</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('invoice-detail-modal').close()" aria-label="Close dialog" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- 6 SUB-TABS -->
+      <div class="px-6 pt-3 border-b border-slate-100 flex items-center gap-2 overflow-x-auto text-xs font-semibold" role="tablist">
+        <button onclick="switchDetailSubTab('overview')" id="dtab-overview" class="focus-visible:ring-2 focus-visible:ring-slate-900 pb-2.5 px-2 border-b-2 border-slate-900 text-slate-900 font-bold transition-smooth">1. Overview</button>
+        <button onclick="switchDetailSubTab('matching')" id="dtab-matching" class="focus-visible:ring-2 focus-visible:ring-slate-900 pb-2.5 px-2 text-slate-500 hover:text-slate-900 transition-smooth">2. Matching</button>
+        <button onclick="switchDetailSubTab('tax')" id="dtab-tax" class="focus-visible:ring-2 focus-visible:ring-slate-900 pb-2.5 px-2 text-slate-500 hover:text-slate-900 transition-smooth">3. Tax &amp; Credits</button>
+        <button onclick="switchDetailSubTab('accounting')" id="dtab-accounting" class="focus-visible:ring-2 focus-visible:ring-slate-900 pb-2.5 px-2 text-slate-500 hover:text-slate-900 transition-smooth">4. Accounting</button>
+        <button onclick="switchDetailSubTab('payment')" id="dtab-payment" class="focus-visible:ring-2 focus-visible:ring-slate-900 pb-2.5 px-2 text-slate-500 hover:text-slate-900 transition-smooth">5. Payment</button>
+        <button onclick="switchDetailSubTab('audit')" id="dtab-audit" class="focus-visible:ring-2 focus-visible:ring-slate-900 pb-2.5 px-2 text-slate-500 hover:text-slate-900 transition-smooth">6. Audit &amp; Proof</button>
+      </div>
+
+      <div class="p-6 text-xs max-h-[60vh] overflow-y-auto" id="detail-modal-body">
+        <!-- Content populated via JavaScript -->
+      </div>
+    </div>
+  </dialog>
+
+  <!-- QUICK PEEK DRAWER -->
+  <div id="quick-drawer" class="fixed inset-y-0 right-0 w-96 bg-white border-l border-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-200 p-6 flex flex-col justify-between hidden">
+    <div class="space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-xs font-bold text-slate-900 uppercase">Quick Peek Inspector</h3>
+          <span class="text-[10px] text-slate-400 font-mono" id="quick-inv-num">INV-884</span>
+        </div>
+        <button onclick="closeQuickDrawer()" class="text-slate-400 hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <div class="space-y-3" id="quick-drawer-content">
+        <!-- populated dynamically -->
+      </div>
+    </div>
+    <button onclick="openFullDetailFromQuick()" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full py-2.5 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-smooth">
+      Open Full 6-Tab Dossier
+    </button>
+  </div>
+
+  <!-- AUDIT FINDING MODAL -->
+  <dialog id="audit-finding-modal" aria-modal="true" aria-labelledby="fnd-modal-title" class="rounded-3xl p-0 bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm max-w-lg w-full border-0 shadow-2xl transition-smooth">
+    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <h4 class="text-sm font-bold text-slate-900" id="fnd-modal-title">Log Independent Audit Finding</h4>
+        <button onclick="document.getElementById('audit-finding-modal').close()" aria-label="Close dialog" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-800 flex items-center justify-center transition-smooth focus-visible:ring-2 focus-visible:ring-slate-900">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <form onsubmit="handleAuditFindingSubmit(event)" class="p-6 space-y-3 text-xs">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Impacted Transaction</label>
+          <input type="text" id="fnd-inv-num" value="INV-392" required class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-mono text-slate-800">
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Severity Tier</label>
+          <select id="fnd-severity" class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200 font-semibold">
+            <option value="LOW">LOW - Informational Observation</option>
+            <option value="MEDIUM" selected>MEDIUM - Price / Quantity Variance</option>
+            <option value="HIGH">HIGH - Vendor / Bank Control Discrepancy</option>
+            <option value="CRITICAL">CRITICAL - Duplicate Suspect / Anti-Tamper</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Finding Description</label>
+          <textarea id="fnd-desc" rows="3" required placeholder="Detailed description of the observed discrepancy..." class="focus-visible:ring-2 focus-visible:ring-slate-900 w-full p-2.5 rounded-xl border border-slate-200"></textarea>
+        </div>
+        <div class="flex justify-end pt-2">
+          <button type="submit" id="btn-submit-audit-finding" class="focus-visible:ring-2 focus-visible:ring-slate-900 px-5 py-2.5 bg-black hover:bg-slate-800 text-white font-bold rounded-xl transition-smooth">
+            Log Finding to Ledger
+          </button>
+        </div>
+      </form>
     </div>
   </dialog>
 
@@ -1708,5 +2766,6 @@
       }, 4000);
     }
   </script>
+  <script src="/static/app.js"></script>
 </body>
 </html>
