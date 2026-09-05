@@ -5077,7 +5077,7 @@ def extract_invoice_number(text: str, filename: str) -> str:
     inv_pattern = re.search(r'\b(INV[-_][A-Za-z0-9\-_]+)\b', text, re.I)
     if inv_pattern:
         return inv_pattern.group(1).strip().replace('_', '-')
-    f_match = re.search(r'(INV[-_0-9]+)', filename, re.I)
+    f_match = re.search(r'(INV[-_][A-Za-z0-9\-_]+)', filename, re.I)
     if f_match:
         return f_match.group(1).replace('_', '-')
     return f"INV-{uuid.uuid4().hex[:6].upper()}"
@@ -5334,7 +5334,7 @@ async def upload_invoice_pdf(
         _po_rate_override = None
     _po_ref = po_number.strip() if isinstance(po_number, str) and po_number.strip() else ""
     if not _po_ref:
-        _po_m = re.search(r"\bPO\s*(?:Number|No\.?|#)?\s*[:.]?\s*([A-Za-z0-9\-_/]+)", extracted_text or "", re.I)
+        _po_m = re.search(r"\bPO\s*(?:(?:Number|No\.?|#)\s*[:.]?|:)\s*([A-Za-z0-9\-_/]+)", extracted_text or "", re.I)
         if _po_m:
             _po_ref = _po_m.group(1).strip()
     mock_items = [
