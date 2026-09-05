@@ -201,8 +201,8 @@ REGION = os.getenv("GOOGLE_CLOUD_REGION", "asia-south1")
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "SANDBOX").upper()
 RAZORPAYX_MODE = os.getenv("RAZORPAYX_MODE", "TEST").upper()
 
-# Environment and RazorpayX mode logging
-logger.info(f"Deployment environment: {DEPLOYMENT_ENVIRONMENT}, RazorpayX mode: {RAZORPAYX_MODE}")
+# Environment logging (credential-derived mode is logged after secrets load)
+logger.info(f"Deployment environment: {DEPLOYMENT_ENVIRONMENT}")
 
 DEFAULT_SECRETS = {
     "RZP_KEY": "rzp_test_mockKey123",
@@ -225,12 +225,22 @@ def get_runtime_secrets() -> dict:
             res = client.access_secret_version(request={"name": name})
             sec = json.loads(res.payload.data.decode("UTF-8"))
         except Exception:
-            sec = DEFAULT_SECRETS
+            sec = None
+    if sec is None:
+        if DEPLOYMENT_ENVIRONMENT == "PRODUCTION":
+            raise RuntimeError(
+                "PRODUCTION startup refused: no Razorpay credentials in environment "
+                "or Secret Manager (finance-agent-secrets). Refusing placeholder fallback."
+            )
+        logger.warning("No credentials configured: using non-functional TEST placeholders (non-production only).")
+        sec = dict(DEFAULT_SECRETS)
 
     # Log credential mode for observability
     rzp_key = sec.get("RZP_KEY", "")
     key_mode = "LIVE" if rzp_key.startswith("rzp_live_") else "TEST"
     logger.info(f"RazorpayX credential mode: {key_mode}")
+    if key_mode == "LIVE":
+        logger.warning("LIVE RazorpayX credentials detected: real funds can move in this environment.")
     return sec
 
 secrets = get_runtime_secrets()
@@ -252,11 +262,15 @@ async def health_check():
 
 @app.get("/api/system/environment", status_code=status.HTTP_200_OK)
 async def get_system_environment():
+    live_key = str(secrets.get("RZP_KEY", "")).startswith("rzp_live_")
     return {
         "environment": DEPLOYMENT_ENVIRONMENT,
-        "razorpayx_mode": RAZORPAYX_MODE,
-        "badge_text": "TEST MODE",
-        "disclaimer": "This environment uses RazorpayX Test Mode. Payments shown here do not transfer real funds.",
+        "razorpayx_mode": "LIVE" if live_key else "TEST",
+        "badge_text": "LIVE MODE - REAL FUNDS" if live_key else "TEST MODE",
+        "disclaimer": ("WARNING: live credentials active. Payouts transfer real funds."
+                       if live_key else
+                       "This environment uses RazorpayX Test Mode. Payments shown here do not transfer real funds."),
+        "real_funds_possible": live_key,
         "project_id": PROJECT_ID,
         "region": REGION,
         "allow_live_toggle": False
@@ -1920,7 +1934,7 @@ def record_live_decision_state(
 
             {"stage": 5, "id": "policy", "name": "Policy Governance & Multi-Pillar Gate", "status": "COMPLETED" if is_approved else "HELD", "duration_ms": 45, "action": display_status, "details": str(policy_reason)},
 
-            {"stage": 6, "id": "kms", "name": "Hardware Ed25519 KMS Trust Seal", "status": "COMPLETED", "duration_ms": 92, "signature_preview": ed25519_sig[:24] + "...", "trust_anchor": "Google Cloud KMS / HSM Root of Trust"},
+            {"stage": 6, "id": "kms", "name": "Local Ed25519 Trust Seal (test key)", "status": "COMPLETED", "duration_ms": 92, "signature_preview": ed25519_sig[:24] + "...", "trust_anchor": "Local Ed25519 Root of Trust (test key, not HSM)"},
 
             {"stage": 7, "id": "razorpayx", "name": "Scheduled Treasury Settlement", "status": "SCHEDULED" if is_approved else "FENCED", "duration_ms": 178, "payout_id": payout_id, "utr": utr_code if is_approved else "N/A", "net_disbursed": f"INR {net:,.2f}"}
 
@@ -2100,7 +2114,7 @@ def record_live_decision_state(
 
                 "signing_algorithm": "Ed25519 (Edwards-curve Digital Signature)",
 
-                "trust_anchor": "Google Cloud KMS / HSM Root of Trust",
+                "trust_anchor": "Local Ed25519 Root of Trust (test key, not HSM)",
 
                 "public_key_id": "kms-key-asia-south1-fintech-ed25519-v1",
 
@@ -2138,7 +2152,7 @@ def record_live_decision_state(
 
                 {"time": now_str, "msg": f"Working Capital Terms: {payment_terms.get('terms_description', 'Net 30')} (Due: {payment_terms.get('due_date')})."},
 
-                {"time": now_str, "msg": f"Hardware Ed25519 KMS Trust Seal: {ed25519_sig[:16]}..."},
+                {"time": now_str, "msg": f"Local Ed25519 Trust Seal (test): {ed25519_sig[:16]}..."},
 
                 {"time": now_str, "msg": f"Status: {display_status} (STP: {is_approved})."}
 
@@ -3009,7 +3023,7 @@ CBDT CHALLAN 281 DEPOSIT DETAILS:
   BSR Code               : 0210004 (Reserve Bank of India Authorized Rail)
   Date on Challan Tax Dep: {date_str}
   Challan Identification : BSR-0210004-2026-09-03
-  Hardware KMS Seal      : FIPS 140-2 Level 3 Hardware Attested
+  Local Ed25519 Seal     : software test key (not HSM attested)
 
 VERIFICATION:
 I, Chief Financial Officer, hereby certify that a sum of INR {tds:,.2f}
@@ -4581,7 +4595,7 @@ async def simulate_invoice_pipeline(request: Request):
 
     5. Policy Gate Evaluation (Auto-Approve vs Controller Review)
 
-    6. Hardware Ed25519 KMS Cryptographic Seal
+    6. Local Ed25519 Cryptographic Seal (test key)
 
     7. Fenced RazorpayX Corporate Payout Execution
 
@@ -4787,7 +4801,7 @@ async def simulate_invoice_pipeline(request: Request):
 
             {"stage": 5, "name": "POLICY_GOVERNANCE_GATE", "status": "COMPLETED", "action": policy_action, "details": policy_reason},
 
-            {"stage": 6, "name": "ED25519_KMS_CRYPTOGRAPHIC_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
+            {"stage": 6, "name": "ED25519_LOCAL_CRYPTOGRAPHIC_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
 
             {"stage": 7, "name": "TREASURY_DISBURSEMENT", "status": "DISBURSED" if payout_id else "HELD", "payout_id": payout_id or "FENCED_HOLD", "net_disbursed": f"INR {net_payable:,.2f}"}
 
@@ -4849,7 +4863,7 @@ async def public_auditor_verification(request: Request):
 
             "gl_reconciliation_cleared": "PASSED (Matched to UTR)",
 
-            "hardware_kms_ed25519_seal": "PASSED (Cloud KMS Asia-South1)",
+            "hardware_kms_ed25519_seal": "PASSED (local test key)",
 
             "cfds_v1_deterministic_replay": "PASSED (100% Fidelity)"
 
@@ -4861,7 +4875,7 @@ async def public_auditor_verification(request: Request):
 
             "algorithm": "Ed25519",
 
-            "hardware_module": "Google Cloud KMS HSM (FIPS 140-2 Level 3)"
+            "hardware_module": "Local software key (test, not HSM)"
 
         }
 
@@ -4961,7 +4975,7 @@ async def cfo_ai_copilot_chat(request: Request):
 
             " -  **Security Benchmark**: 100.0% Detection Rate across adversarial corpus (0 fraud breaches).\n"
 
-            " -  **Cryptographic Attestation**: Root-of-Trust Hardware Key `kms://asia-south1/...-v1` VALID."
+            " -  **Cryptographic Attestation**: Local Ed25519 test key VALID (not HSM-backed)."
 
         )
 
@@ -5672,7 +5686,7 @@ async def upload_invoice_pdf(
 
             {"stage": 5, "name": "POLICY_GOVERNANCE_GATE", "status": "COMPLETED", "action": policy_action, "details": policy_reason},
 
-            {"stage": 6, "name": "ED25519_KMS_CRYPTOGRAPHIC_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
+            {"stage": 6, "name": "ED25519_LOCAL_CRYPTOGRAPHIC_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
 
             {"stage": 7, "name": "TREASURY_DISBURSEMENT", "status": "DISBURSED", "payout_id": payout_id, "net_disbursed": f"INR {final_disbursed:,.2f}"}
 
