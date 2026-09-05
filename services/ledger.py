@@ -159,12 +159,13 @@ class HardenedStatutoryLedgerEngine:
         applied_credits: Decimal,
         tax_result: TaxCalculationResult,
         gst_amount: Decimal,
-        execution_timestamp: Optional[datetime] = None
+        execution_timestamp: Optional[datetime] = None,
+        gst_hold: Decimal = Decimal("0.00")
     ) -> Tuple[DoubleEntryJournal, Challan281Entry]:
         now = execution_timestamp or datetime.now(timezone.utc)
         txn_id = f"TXN-GL-{int(now.timestamp())}"
 
-        final_payout_after_credits = (tax_result.final_disbursement - applied_credits).quantize(Decimal("0.01"))
+        final_payout_after_credits = (tax_result.final_disbursement - applied_credits - gst_hold).quantize(Decimal("0.01"))
         
         postings: List[LedgerPosting] = [
             LedgerPosting(account_name="Vendor Operating Expense", account_code="EXP-5001", entry_type=JournalEntryType.DEBIT, amount=gross_subtotal)
@@ -177,6 +178,9 @@ class HardenedStatutoryLedgerEngine:
 
         if applied_credits > Decimal("0.00"):
             postings.append(LedgerPosting(account_name="Vendor Open Credit Balance Offset", account_code="AST-1409", entry_type=JournalEntryType.CREDIT, amount=applied_credits))
+
+        if gst_hold > Decimal("0.00"):
+            postings.append(LedgerPosting(account_name="GST Retention Escrow Payable", account_code="LIAB-2150", entry_type=JournalEntryType.CREDIT, amount=gst_hold))
 
         if tax_result.tds_deducted > Decimal("0.00"):
             postings.append(LedgerPosting(account_name="TDS Statutory Withholding Payable", account_code="LIAB-2200", entry_type=JournalEntryType.CREDIT, amount=tax_result.tds_deducted))
@@ -202,7 +206,12 @@ class HardenedStatutoryLedgerEngine:
         return journal, challan
 
     @classmethod
-    def generate_reversal_records(cls, original_journal: DoubleEntryJournal) -> DoubleEntryJournal:
+    def generate_reversal_records(
+        cls,
+        original_journal: DoubleEntryJournal,
+        reason: str = "Accounting correction / cancellation",
+        actor: str = "SYSTEM"
+    ) -> DoubleEntryJournal:
         now = datetime.now(timezone.utc)
         reversal_postings = [
             LedgerPosting(

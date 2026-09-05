@@ -23,3 +23,5 @@ venv/
 *.zip
 *.log
 .DS_Store
+scratch/
+node_modules/

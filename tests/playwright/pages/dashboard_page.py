@@ -2,7 +2,7 @@ class DashboardPage:
     def __init__(self, page):
         self.page = page
         self.skip_link = page.locator("a[href='#main-content']")
-        self.env_badge = page.locator("text=SANDBOX / UAT SIMULATION")
+        self.env_badge = page.locator("text=TEST MODE")
         self.role_select = page.locator("#user-role-select")
         self.search_input = page.locator("#universal-search")
         self.kpi_settled = page.locator("#metric-hero-settled")

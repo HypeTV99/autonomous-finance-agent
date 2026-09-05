@@ -23,6 +23,9 @@ import re
 from typing import Optional, List, Dict, Any
 
 import uuid
+import tempfile
+
+import threading
 
 from dotenv import load_dotenv
 
@@ -167,46 +170,41 @@ async def auditor_suite_view():
     return serve_static_page("auditor_suite.html")
 
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "financex-506313")
-
 REGION = os.getenv("GOOGLE_CLOUD_REGION", "asia-south1")
+DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "SANDBOX").upper()
+RAZORPAYX_MODE = os.getenv("RAZORPAYX_MODE", "TEST").upper()
+
+# Environment and RazorpayX mode logging
+logger.info(f"Deployment environment: {DEPLOYMENT_ENVIRONMENT}, RazorpayX mode: {RAZORPAYX_MODE}")
 
 DEFAULT_SECRETS = {
-
     "RZP_KEY": "rzp_test_mockKey123",
-
     "RZP_SECRET": "mockSecretKey456",
-
     "RZP_ACCOUNT": "2323230012345678",
-
     "SLACK_WEBHOOK": "https://hooks.slack.com/services/MOCK",
-
     "SLACK_SECRET": "slack_signing_sec_123",
-
     "WEBHOOK_SECRET": "whsec_test_secret"
-
 }
 
 def get_runtime_secrets() -> dict:
-
+    sec = None
     if os.getenv("RZP_KEY"):
+        sec = {k: os.getenv(k, v) for k, v in DEFAULT_SECRETS.items()}
+    else:
+        try:
+            from google.cloud import secretmanager
+            client = secretmanager.SecretManagerServiceClient()
+            name = f"projects/{PROJECT_ID}/secrets/finance-agent-secrets/versions/latest"
+            res = client.access_secret_version(request={"name": name})
+            sec = json.loads(res.payload.data.decode("UTF-8"))
+        except Exception:
+            sec = DEFAULT_SECRETS
 
-        return {k: os.getenv(k, v) for k, v in DEFAULT_SECRETS.items()}
-
-    try:
-
-        from google.cloud import secretmanager
-
-        client = secretmanager.SecretManagerServiceClient()
-
-        name = f"projects/{PROJECT_ID}/secrets/finance-agent-secrets/versions/latest"
-
-        res = client.access_secret_version(request={"name": name})
-
-        return json.loads(res.payload.data.decode("UTF-8"))
-
-    except Exception:
-
-        return DEFAULT_SECRETS
+    # Log credential mode for observability
+    rzp_key = sec.get("RZP_KEY", "")
+    key_mode = "LIVE" if rzp_key.startswith("rzp_live_") else "TEST"
+    logger.info(f"RazorpayX credential mode: {key_mode}")
+    return sec
 
 secrets = get_runtime_secrets()
 
@@ -218,14 +216,26 @@ razorpay_client = RazorpayXBankingClient(secrets["RZP_KEY"], secrets["RZP_SECRET
 
 slack_service = HardenedSlackService(secrets["SLACK_WEBHOOK"], secrets["SLACK_SECRET"])
 
+from services.webhook_service import ProviderWebhookService, WebhookAuthenticationError, WebhookReplayError
+webhook_service = ProviderWebhookService(store=store)
+
 @app.get("/health", status_code=status.HTTP_200_OK)
-
 async def health_check():
-
     return {"status": "HEALTHY", "region": REGION, "service": "finance-agent"}
 
-@app.post("/pubsub/gcs-invoice-event", status_code=status.HTTP_200_OK)
+@app.get("/api/system/environment", status_code=status.HTTP_200_OK)
+async def get_system_environment():
+    return {
+        "environment": DEPLOYMENT_ENVIRONMENT,
+        "razorpayx_mode": RAZORPAYX_MODE,
+        "badge_text": "TEST MODE",
+        "disclaimer": "This environment uses RazorpayX Test Mode. Payments shown here do not transfer real funds.",
+        "project_id": PROJECT_ID,
+        "region": REGION,
+        "allow_live_toggle": False
+    }
 
+@app.post("/pubsub/gcs-invoice-event", status_code=status.HTTP_200_OK)
 async def handle_gcs_pubsub_event(request: Request):
 
     try:
@@ -637,7 +647,7 @@ async def handle_gcs_pubsub_event(request: Request):
 
                     idempotency_key=idempotency_key,
 
-                    reference_id=f"INV-{invoice.invoice_number}",
+                    reference_id=f"INV-{invoice.invoice_number}"[:40],
 
                     narration=f"TDS Ded Rs{tax_res.tds_deducted}",
 
@@ -941,7 +951,7 @@ async def handle_slack_callback_atomic(request: Request):
 
                     idempotency_key=idempotency_key,
 
-                    reference_id=f"INV-{invoice.invoice_number}",
+                    reference_id=f"INV-{invoice.invoice_number}"[:40],
 
                     narration=f"TDS Ded Rs{tax_res.tds_deducted}",
 
@@ -986,32 +996,24 @@ async def handle_slack_callback_atomic(request: Request):
         await asyncio.to_thread(store.release_lock, lock_key, lease_id)
 
 @app.post("/api/v1/webhooks/razorpayx", status_code=status.HTTP_200_OK)
-
 async def handle_razorpayx_webhook(request: Request, x_razorpay_signature: str = Header(..., alias="X-Razorpay-Signature")):
-
     raw_body = await request.body()
+    wh_secret = secrets.get("WEBHOOK_SECRET", "whsec_test_secret")
 
-    wh_secret = secrets.get("WEBHOOK_SECRET", "whsec_test_secret").encode("utf-8")
-
-    expected = hmac.new(key=wh_secret, msg=raw_body, digestmod=hashlib.sha256).hexdigest()
-
-    if not hmac.compare_digest(expected, x_razorpay_signature.strip()):
-
+    try:
+        result = webhook_service.process_razorpayx_webhook(
+            raw_body=raw_body,
+            signature=x_razorpay_signature,
+            secret=wh_secret
+        )
+        return JSONResponse(content=result, status_code=status.HTTP_200_OK)
+    except WebhookAuthenticationError:
         raise HTTPException(status_code=401, detail="Signature mismatch")
-
-    event_payload = json.loads(raw_body)
-
-    event_type = event_payload.get("event")
-
-    payout_entity = event_payload.get("payload", {}).get("payout", {}).get("entity", {})
-
-    if event_type == "payout.reversed":
-
-        journal_id = payout_entity.get("notes", {}).get("journal_id")
-
-        logger.warning(f"Payout reversed for GL {journal_id}. Reversing accounting ledger...")
-
-    return {"status": "ACKNOWLEDGED"}
+    except WebhookReplayError as re:
+        raise HTTPException(status_code=400, detail=str(re))
+    except Exception as e:
+        logger.error(f"Error in webhook handler: {e}")
+        return JSONResponse(content={"status": "ERROR", "message": str(e)}, status_code=status.HTTP_200_OK)
 
 @app.post("/api/v1/vendors/{vendor_id}/credits", status_code=status.HTTP_200_OK)
 
@@ -1598,7 +1600,7 @@ async def upload_vendor_credit_note_pdf(
 
 # ==============================================================================
 
-DECISION_HISTORY_FILE = "/tmp/decisions_history.json"
+DECISION_HISTORY_FILE = os.environ.get("DECISION_HISTORY_FILE", os.path.join(tempfile.gettempdir(), "decisions_history.json"))
 
 DEFAULT_LATEST_DECISION = None
 
@@ -1650,35 +1652,50 @@ async def reset_treasury_ledger():
 
     }
 
+DECISION_HISTORY_LOCK = threading.Lock()
+
 def load_decision_history():
 
     global GLOBAL_DECISION_HISTORY
 
-    if os.path.exists(DECISION_HISTORY_FILE):
+    with DECISION_HISTORY_LOCK:
 
-        try:
+        if os.path.exists(DECISION_HISTORY_FILE):
 
-            with open(DECISION_HISTORY_FILE, "r", encoding="utf-8") as f:
+            try:
 
-                GLOBAL_DECISION_HISTORY = json.load(f)
+                with open(DECISION_HISTORY_FILE, "r", encoding="utf-8") as f:
 
-        except Exception:
+                    GLOBAL_DECISION_HISTORY = json.load(f)
 
-            pass
+            except Exception:
+
+                pass
 
     return GLOBAL_DECISION_HISTORY
 
 def save_decision_history():
+    global GLOBAL_DECISION_HISTORY
+    with DECISION_HISTORY_LOCK:
+        history_dir = os.path.dirname(os.path.abspath(DECISION_HISTORY_FILE))
+        os.makedirs(history_dir, exist_ok=True)
+        temp_file = f"{DECISION_HISTORY_FILE}.tmp.{os.getpid()}_{uuid.uuid4().hex}"
+        try:
+            with open(temp_file, "w", encoding="utf-8") as f:
+                json.dump(GLOBAL_DECISION_HISTORY, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(temp_file, DECISION_HISTORY_FILE)
+        except Exception as e:
+            logger.error(f"Error atomically saving decision history: {e}")
+            if os.path.exists(temp_file):
+                try:
 
-    try:
+                    os.remove(temp_file)
 
-        with open(DECISION_HISTORY_FILE, "w", encoding="utf-8") as f:
+                except Exception:
 
-            json.dump(GLOBAL_DECISION_HISTORY, f, indent=2)
-
-    except Exception:
-
-        pass
+                    pass
 
 def record_live_decision_state(
 
@@ -2798,10 +2815,77 @@ async def disburse_invoice_settlement(
             detail=f"Disbursal blocked: Invoice '{invoice_number}' is in '{curr_status}' state (requires Controller/Treasurer approval or valid STP)."
         )
 
-    utr = f"RZX{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{uuid.uuid4().hex[:4].upper()}"
-    payout_id = f"pout_{uuid.uuid4().hex[:14]}"
+    # Durable Payment Orchestration
+    from services.payment_orchestrator import (
+        PaymentOrchestrator,
+        PaymentMaterialConflictError,
+        PaymentAmbiguousOutcomeError
+    )
+    orchestrator = PaymentOrchestrator(store=store, banking_client=razorpay_client)
+
+    vendor_id = d.get("vendor_id", "VEND_GENERIC")
+    load_vendor_registry()
+    v_reg = GLOBAL_VENDORS_REGISTRY.get(vendor_id, {})
+    vendor_pan = d.get("vendor_pan") or d.get("pan") or v_reg.get("pan", "AAACB1234K")
+    fund_account_id = v_reg.get("bankAcc") or d.get("fund_account_id", "fa_00000000000001")
+
+    from vertex_agent import normalize_fiscal_year
+    fy_str = d.get("invoice_date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+    fiscal_yr = d.get("fiscal_year") or normalize_fiscal_year("", fy_str)
+
+    net_payable_amt = Decimal(str(d.get("net_payable", d.get("final_disbursed", 0.0))))
+    subtotal_amt = Decimal(str(d.get("subtotal", net_payable_amt)))
+    tax_amt = Decimal(str(d.get("gst_added", d.get("gst_amount", 0.0))))
+    tds_amt = Decimal(str(d.get("tds_deducted", 0.0)))
+    credits_amt = Decimal(str(d.get("credit_applied", 0.0)))
+
+    try:
+        intent, is_new = orchestrator.get_or_create_payment_intent(
+            invoice_number=invoice_number,
+            vendor_id=vendor_id,
+            vendor_pan=vendor_pan,
+            fiscal_year=fiscal_yr,
+            fund_account_id=fund_account_id,
+            gross_subtotal=subtotal_amt,
+            tax_amount=tax_amt,
+            tds_withheld=tds_amt,
+            tds_section=TDSSection.NONE,
+            applied_credits=credits_amt,
+            net_payout_amount=net_payable_amt
+        )
+    except PaymentMaterialConflictError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+    effective_idemp_key = x_idempotency_key or intent.idempotency_key
+
+    # Durable External Dispatch
+    dispatch_res = orchestrator.dispatch_payment_intent(intent, client=razorpay_client)
+    payout_id = dispatch_res.get("payout_id") or f"pout_{intent.idempotency_key[:14]}"
+    utr = dispatch_res.get("utr") or f"RZX{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{uuid.uuid4().hex[:4].upper()}"
+
+    if dispatch_res.get("status") == "AMBIGUOUS":
+        d["status"] = "PAYMENT_UNKNOWN"
+        d["idempotency_key"] = effective_idemp_key
+        d["decision_title"] = "INVOICE DISBURSAL AMBIGUOUS (Reconciliation Mandated)"
+        d["stage_7_status"] = "UNKNOWN"
+        d["payout_telemetry"] = {
+            "payout_id": payout_id,
+            "utr": None,
+            "status": "ambiguous",
+            "requires_reconciliation": True,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        GLOBAL_DECISION_HISTORY = [d] + [x for x in history if x.get("invoice_number") != invoice_number]
+        save_decision_history()
+        return {
+            "status": "AMBIGUOUS",
+            "message": dispatch_res.get("message"),
+            "bank_utr": None,
+            "active_decision": sanitize_decision_dict(d)
+        }
+
     d["status"] = InvoiceStateMachine.transition(curr_status, "SETTLED")
-    d["idempotency_key"] = x_idempotency_key or payout_id
+    d["idempotency_key"] = effective_idemp_key
     d["decision_title"] = "INVOICE DISBURSED & SETTLED (IMPS Instant Clearing)"
     d["stage_7_status"] = "DISBURSED"
     d["payout_telemetry"] = {
@@ -2812,13 +2896,12 @@ async def disburse_invoice_settlement(
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
-    global GLOBAL_DECISION_HISTORY
     GLOBAL_DECISION_HISTORY = [d] + [x for x in history if x.get("invoice_number") != invoice_number]
     save_decision_history()
 
     return {
         "status": "SUCCESS",
-        "message": "Disbursal processed successfully",
+        "message": dispatch_res.get("message", "Disbursal processed successfully"),
         "bank_utr": utr,
         "active_decision": sanitize_decision_dict(d)
     }
@@ -2965,24 +3048,74 @@ async def bulk_disburse_approved(
     history = load_decision_history()
     settled_list = []
     from services.invoice_state_machine import InvoiceStateMachine
+    from services.payment_orchestrator import PaymentOrchestrator
+    orchestrator = PaymentOrchestrator(store=store, banking_client=razorpay_client)
+    load_vendor_registry()
 
     for d in history:
         status_val = d.get("status", "")
         # Disburse any approved/auto-scheduled invoice that is not yet settled
         if InvoiceStateMachine.is_disbursable(status_val) and d.get("stage_7_status") != "DISBURSED":
-            d["status"] = InvoiceStateMachine.transition(status_val, "SETTLED")
-            d["stage_7_status"] = "DISBURSED"
-            d["decision_title"] = "INVOICE DISBURSED & SETTLED (IMPS Instant Clearing)"
-            utr = f"RZX{datetime.now(timezone.utc).strftime('%Y%m%d%H%M')}{uuid.uuid4().hex[:6].upper()}"
-            if "payout_telemetry" not in d or not isinstance(d["payout_telemetry"], dict):
-                d["payout_telemetry"] = {}
-            d["payout_telemetry"]["status"] = "processed"
-            d["payout_telemetry"]["utr"] = utr
-            d["payout_telemetry"]["mode"] = "IMPS Instant Treasury Clearing"
-            d["payout_telemetry"]["timestamp"] = datetime.now(timezone.utc).isoformat()
-            settled_list.append(d.get("invoice_number"))
+            inv_num = d.get("invoice_number")
+            vendor_id = d.get("vendor_id", "VEND_GENERIC")
+            v_reg = GLOBAL_VENDORS_REGISTRY.get(vendor_id, {})
+            vendor_pan = d.get("vendor_pan") or d.get("pan") or v_reg.get("pan", "AAACB1234K")
+            fund_account_id = v_reg.get("bankAcc") or d.get("fund_account_id", "fa_00000000000001")
 
-    global GLOBAL_DECISION_HISTORY
+            from vertex_agent import normalize_fiscal_year
+            fy_str = d.get("invoice_date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+            fiscal_yr = d.get("fiscal_year") or normalize_fiscal_year("", fy_str)
+
+            net_payable_amt = Decimal(str(d.get("net_payable", d.get("final_disbursed", 0.0))))
+            subtotal_amt = Decimal(str(d.get("subtotal", net_payable_amt)))
+            tax_amt = Decimal(str(d.get("gst_added", d.get("gst_amount", 0.0))))
+            tds_amt = Decimal(str(d.get("tds_deducted", 0.0)))
+            credits_amt = Decimal(str(d.get("credit_applied", 0.0)))
+
+            try:
+                intent, _ = orchestrator.get_or_create_payment_intent(
+                    invoice_number=inv_num,
+                    vendor_id=vendor_id,
+                    vendor_pan=vendor_pan,
+                    fiscal_year=fiscal_yr,
+                    fund_account_id=fund_account_id,
+                    gross_subtotal=subtotal_amt,
+                    tax_amount=tax_amt,
+                    tds_withheld=tds_amt,
+                    tds_section=TDSSection.NONE,
+                    applied_credits=credits_amt,
+                    net_payout_amount=net_payable_amt
+                )
+                dispatch_res = orchestrator.dispatch_payment_intent(intent, client=razorpay_client)
+                payout_id = dispatch_res.get("payout_id") or f"pout_{intent.idempotency_key[:14]}"
+                utr = dispatch_res.get("utr") or f"RZX{datetime.now(timezone.utc).strftime('%Y%m%d%H%M')}{uuid.uuid4().hex[:6].upper()}"
+
+                if dispatch_res.get("status") == "AMBIGUOUS":
+                    d["status"] = "PAYMENT_UNKNOWN"
+                    d["stage_7_status"] = "UNKNOWN"
+                    d["payout_telemetry"] = {
+                        "payout_id": payout_id,
+                        "utr": None,
+                        "status": "ambiguous",
+                        "requires_reconciliation": True,
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }
+                else:
+                    d["status"] = InvoiceStateMachine.transition(status_val, "SETTLED")
+                    d["idempotency_key"] = intent.idempotency_key
+                    d["stage_7_status"] = "DISBURSED"
+                    d["decision_title"] = "INVOICE DISBURSED & SETTLED (IMPS Instant Clearing)"
+                    if "payout_telemetry" not in d or not isinstance(d["payout_telemetry"], dict):
+                        d["payout_telemetry"] = {}
+                    d["payout_telemetry"]["status"] = "processed"
+                    d["payout_telemetry"]["utr"] = utr
+                    d["payout_telemetry"]["payout_id"] = payout_id
+                    d["payout_telemetry"]["mode"] = "IMPS Instant Treasury Clearing"
+                    d["payout_telemetry"]["timestamp"] = datetime.now(timezone.utc).isoformat()
+                    settled_list.append(inv_num)
+            except Exception as ex:
+                logger.error(f"Bulk disburse error on {inv_num}: {ex}")
+
     GLOBAL_DECISION_HISTORY = history
     save_decision_history()
 

@@ -167,6 +167,7 @@ class StatutoryComplianceTaxEngine:
             "official_source_uri": source_uri,
             "effective_date": dt.isoformat(),
             "rule_version": "v1961.Legacy" if is_legacy_1961 else "v2025.1-ITA2025-Transition",
+            "policy_version": "2026.1",
             "statutory_return_form": return_form,
             "statutory_return_field_code": return_field,
             "form_26q_code": return_field,

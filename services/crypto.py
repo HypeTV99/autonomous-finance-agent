@@ -38,8 +38,18 @@ class CanonicalFinancialDecisionSerializer:
        - Timestamp Policy: ISO 8601 UTC with explicit 'Z' designator.
        - Null Policy: Explicit null keys preserved; undefined fields rejected.
     2. Serialization Component:
-       - RFC 8785 / JSON Canonicalization Scheme (JCS) compliant formatting (zero whitespace, UTF-8).
+       - Deterministic JSON formatting with zero whitespace (separators=(',', ':')) and UTF-8 encoding.
+       - Standards Classification:
+         This profile (CFDS-v1) is a Domain-Specific Deterministic Canonical Financial Serialization standard.
+         It intentionally applies Unicode NFC canonical composition to eliminate equivalent composed/decomposed
+         representation variance before CFDS-v1 hashing, and quantizes financial Decimals to fixed-scale strings
+         to eliminate IEEE 754 float precision loss. (Note: General homoglyph/confusable-character detection
+         is handled as a distinct identity-security control and is not claimed to be solved by NFC alone).
+         Because RFC 8785 / JCS strictly forbids Unicode character normalization (RFC 8785 Section 3.2.1)
+         and specifies ECMAScript numeric serialization, CFDS-v1 is classified as:
+         DOMAIN-SPECIFIC DETERMINISTIC SERIALIZER — NOT CLAIMED AS RFC 8785.
     """
+    SERIALIZATION_PROFILE: str = "CFDS-v1"
     @staticmethod
     def format_money(val: Any) -> str:
         d = Decimal(str(val)) if not isinstance(val, Decimal) else val

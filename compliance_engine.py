@@ -49,6 +49,13 @@ from services.penny_drop import PennyDropValidationEngine
 from services.duplicate_detector import MultiSignalDuplicateDetector
 from services.working_capital import WorkingCapitalScheduler
 from services.erp_exporter import ERPJournalExportEngine
+from services.policy_registry import (
+    EnterprisePolicyRegistry,
+    PolicyDefinition,
+    PolicyType,
+    ImmutablePolicyMutationError,
+    PolicyNotFoundError
+)
 from tax_engine import StatutoryComplianceTaxEngine as ComplianceTaxEngine, StatutoryComplianceTaxEngine
 from schemas import *
 
@@ -79,5 +86,10 @@ __all__ = [
     "MultiSignalDuplicateDetector",
     "WorkingCapitalScheduler",
     "ERPJournalExportEngine",
+    "EnterprisePolicyRegistry",
+    "PolicyDefinition",
+    "PolicyType",
+    "ImmutablePolicyMutationError",
+    "PolicyNotFoundError",
 ]
 

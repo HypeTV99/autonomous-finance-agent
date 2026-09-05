@@ -79,7 +79,25 @@ class DecisionEngine:
         idempotency_key: str,
         source_document_uri: Optional[str] = None,
         gst_irn: Optional[str] = None,
-        previous_decision_digest: Optional[str] = None
+        previous_decision_digest: Optional[str] = None,
+        po_snapshot_hash: Optional[str] = None,
+        grn_snapshot_hash: Optional[str] = None,
+        vendor_snapshot_hash: Optional[str] = None,
+        matching_policy_version: str = "2026.1",
+        tax_policy_version: Optional[str] = None,
+        payment_policy_version: str = "2026.1",
+        retention_policy_version: str = "2026.1",
+        tolerance_policy_version: str = "2026.1",
+        discount_policy_version: str = "2026.1",
+        accounting_policy_version: str = "2026.1",
+        risk_policy_version: str = "2026.1",
+        credit_allocation_hash: Optional[str] = None,
+        gstr_evidence_hash: Optional[str] = None,
+        bank_verification_evidence_hash: Optional[str] = None,
+        ledger_entry_hash: Optional[str] = None,
+        payment_intent_id: Optional[str] = None,
+        schema_version: str = "2026.1",
+        canonicalization_version: str = "CFDS-v1"
     ) -> Tuple[DecisionRecord, PaymentInstruction]:
         import uuid
         from decimal import ROUND_HALF_UP
@@ -108,6 +126,19 @@ class DecisionEngine:
             requires_zero_payout_hold=is_zero_payout,
             status="BYPASSED_ZERO_PAYOUT" if is_zero_payout else "READY_FOR_EXECUTION"
         )
+
+        effective_tax_policy_version = tax_policy_version or getattr(tax_result, "tax_rule_version", "2026.1")
+        if credit_allocation_hash is None and netting_result.credit_allocation_audit:
+            credit_allocation_hash = hashlib.sha256(
+                json.dumps(netting_result.credit_allocation_audit, sort_keys=True).encode("utf-8")
+            ).hexdigest()
+        if ledger_entry_hash is None:
+            ledger_entry_hash = hashlib.sha256(journal.transaction_id.encode("utf-8")).hexdigest()
+        if gstr_evidence_hash is None and reconciliation_evidence:
+            gstr_evidence_hash = hashlib.sha256(
+                json.dumps(reconciliation_evidence, sort_keys=True).encode("utf-8")
+            ).hexdigest()
+        effective_payment_intent_id = payment_intent_id or idempotency_key
 
         decision_payload = {
             "decision_id": decision_id,
@@ -151,7 +182,26 @@ class DecisionEngine:
             "credit_allocation_manifest": netting_result.credit_allocation_audit,
             "general_ledger_tx_id": journal.transaction_id,
             "payment_instruction": payment_instruction.model_dump(mode="json"),
-            "decision_timestamp": now_str
+            "decision_timestamp": now_str,
+            # Complete Material Attestation Context
+            "schema_version": schema_version,
+            "po_snapshot_hash": po_snapshot_hash,
+            "grn_snapshot_hash": grn_snapshot_hash,
+            "vendor_snapshot_hash": vendor_snapshot_hash,
+            "matching_policy_version": matching_policy_version,
+            "tax_policy_version": effective_tax_policy_version,
+            "payment_policy_version": payment_policy_version,
+            "retention_policy_version": retention_policy_version,
+            "tolerance_policy_version": tolerance_policy_version,
+            "discount_policy_version": discount_policy_version,
+            "accounting_policy_version": accounting_policy_version,
+            "risk_policy_version": risk_policy_version,
+            "credit_allocation_hash": credit_allocation_hash,
+            "gstr_evidence_hash": gstr_evidence_hash,
+            "bank_verification_evidence_hash": bank_verification_evidence_hash,
+            "ledger_entry_hash": ledger_entry_hash,
+            "payment_intent_id": effective_payment_intent_id,
+            "canonicalization_version": canonicalization_version
         }
 
         # CFDS-v1 Canonical Serialization & Deterministic SHA-256 Digest
@@ -211,7 +261,25 @@ class DecisionEngine:
             key_valid_until=key_metadata["valid_until"],
             public_key_hex=ED25519_PUBLIC_KEY_HEX,
             cryptographic_signature=cryptographic_signature,
-            signed_decision_digest=canonical_payload_sha256
+            signed_decision_digest=canonical_payload_sha256,
+            schema_version=schema_version,
+            po_snapshot_hash=po_snapshot_hash,
+            grn_snapshot_hash=grn_snapshot_hash,
+            vendor_snapshot_hash=vendor_snapshot_hash,
+            matching_policy_version=matching_policy_version,
+            tax_policy_version=effective_tax_policy_version,
+            payment_policy_version=payment_policy_version,
+            retention_policy_version=retention_policy_version,
+            tolerance_policy_version=tolerance_policy_version,
+            discount_policy_version=discount_policy_version,
+            accounting_policy_version=accounting_policy_version,
+            risk_policy_version=risk_policy_version,
+            credit_allocation_hash=credit_allocation_hash,
+            gstr_evidence_hash=gstr_evidence_hash,
+            bank_verification_evidence_hash=bank_verification_evidence_hash,
+            ledger_entry_hash=ledger_entry_hash,
+            payment_intent_id=effective_payment_intent_id,
+            canonicalization_version=canonicalization_version
         )
 
         return decision_record, payment_instruction

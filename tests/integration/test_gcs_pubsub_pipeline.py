@@ -1,11 +1,13 @@
 import base64
 import json
+import uuid
 from firestore_store import FirestoreStateStore
 
 def test_pubsub_at_least_once_deduplication():
     store = FirestoreStateStore()
-    doc_digest = "digest_event_pubsub_001"
-    inv_num = "INV-PUBSUB-DEDUP-01"
+    uid = uuid.uuid4().hex[:8]
+    doc_digest = f"digest_event_pubsub_{uid}"
+    inv_num = f"INV-PUBSUB-DEDUP-{uid}"
 
     # 1. First event arrival
     assert store.is_already_processed(doc_digest) is False

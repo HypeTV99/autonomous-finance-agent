@@ -1,3 +1,5 @@
+import hashlib
+import json
 import uuid
 from datetime import date, datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
@@ -5,6 +7,8 @@ from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 from schemas import (
     Challan281Entry,
     DecisionRecord,
+    ReplayMode,
+    ReplayExecutionResult,
     DoubleEntryJournal,
     ExtractedInvoicePayload,
     JournalEntryType,
@@ -306,6 +310,134 @@ class DecisionReplayEngine:
                 "verification_status": decision.overall_verification_status.value
             }
         }
+
+    @classmethod
+    def execute_replay(
+        cls,
+        decision_record: DecisionRecord,
+        mode: ReplayMode = ReplayMode.HISTORICAL_REPLAY,
+        overrides: Optional[Dict[str, Any]] = None
+    ) -> ReplayExecutionResult:
+        """
+        Executes a deterministic replay of a DecisionRecord under either:
+        1. HISTORICAL_REPLAY: Reconstructs exact point-in-time state using recorded snapshot
+           hashes, policy versions, and calculations. Asserts exact cryptographic digest match.
+           Admissible for audit verification.
+        2. WHAT_IF_REPLAY: Replays decision with counterfactual parameter/policy overrides.
+           Strictly simulation-only and inadmissible for financial payout.
+        """
+        now_str = datetime.now(timezone.utc).isoformat()
+        
+        reconstructed_payload: Dict[str, Any] = {
+            "decision_id": decision_record.decision_id,
+            "invoice_number": decision_record.invoice_number,
+            "vendor_id": decision_record.vendor_id,
+            "vendor_pan": decision_record.vendor_pan,
+            "fiscal_year": decision_record.fiscal_year,
+            "source_document_hash": decision_record.source_document_hash,
+            "source_document_uri": decision_record.source_document_uri,
+            "gst_irn": decision_record.gst_irn,
+            "tax_framework": decision_record.tax_framework.value,
+            "canonical_rule_id": decision_record.canonical_rule_id.value,
+            "internal_rule_id": decision_record.internal_rule_id,
+            "statutory_provision": decision_record.statutory_provision,
+            "government_section": decision_record.government_section,
+            "government_table_item": decision_record.government_table_item,
+            "gazette_citation": decision_record.gazette_citation,
+            "cbdt_circular_reference": decision_record.cbdt_circular_reference,
+            "official_source_uri": decision_record.official_source_uri,
+            "tax_rule_version": decision_record.tax_rule_version,
+            "statutory_return_form": decision_record.statutory_return_form,
+            "statutory_return_field_code": decision_record.statutory_return_field_code,
+            "form_26q_code": decision_record.form_26q_code,
+            "internal_reporting_code": decision_record.internal_reporting_code,
+            "challan_281_code": decision_record.challan_281_code,
+            "pan_26as_credit_tag": decision_record.pan_26as_credit_tag,
+            "calculation_version": decision_record.calculation_version,
+            "effective_date": decision_record.effective_date,
+            "previous_decision_digest": decision_record.previous_decision_digest,
+            "reconciliation_evidence": decision_record.reconciliation_evidence,
+            "tds_calculation": decision_record.tds_calculation,
+            "credit_allocation_manifest": decision_record.credit_allocation_manifest,
+            "general_ledger_tx_id": decision_record.general_ledger_tx_id,
+            "payment_instruction": decision_record.payment_instruction,
+            "decision_timestamp": decision_record.decision_timestamp,
+            # Complete Material Attestation Context
+            "schema_version": decision_record.schema_version,
+            "po_snapshot_hash": decision_record.po_snapshot_hash,
+            "grn_snapshot_hash": decision_record.grn_snapshot_hash,
+            "vendor_snapshot_hash": decision_record.vendor_snapshot_hash,
+            "matching_policy_version": decision_record.matching_policy_version,
+            "tax_policy_version": decision_record.tax_policy_version,
+            "payment_policy_version": decision_record.payment_policy_version,
+            "retention_policy_version": decision_record.retention_policy_version,
+            "tolerance_policy_version": decision_record.tolerance_policy_version,
+            "discount_policy_version": decision_record.discount_policy_version,
+            "accounting_policy_version": decision_record.accounting_policy_version,
+            "risk_policy_version": decision_record.risk_policy_version,
+            "credit_allocation_hash": decision_record.credit_allocation_hash,
+            "gstr_evidence_hash": decision_record.gstr_evidence_hash,
+            "bank_verification_evidence_hash": decision_record.bank_verification_evidence_hash,
+            "ledger_entry_hash": decision_record.ledger_entry_hash,
+            "payment_intent_id": decision_record.payment_intent_id,
+            "canonicalization_version": decision_record.canonicalization_version
+        }
+
+        variance_details: Optional[Dict[str, Any]] = None
+
+        if mode == ReplayMode.HISTORICAL_REPLAY:
+            # Reconstruct exact point-in-time evaluation without external dependencies
+            canonical_json = CanonicalFinancialDecisionSerializer.serialize(reconstructed_payload)
+            replayed_digest = hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
+            cryptographically_identical = (replayed_digest == decision_record.canonical_payload_sha256)
+            is_simulation = False
+            admissible_for_payout = cryptographically_identical
+            variance_detected = not cryptographically_identical
+            if variance_detected:
+                variance_details = {
+                    "reason": "HISTORICAL_REPLAY_HASH_MISMATCH",
+                    "expected_digest": decision_record.canonical_payload_sha256,
+                    "replayed_digest": replayed_digest
+                }
+        else:
+            # WHAT_IF_REPLAY: Apply counterfactual overrides
+            import copy
+            reconstructed_payload = copy.deepcopy(reconstructed_payload)
+            if overrides:
+                for k, v in overrides.items():
+                    if k in reconstructed_payload:
+                        reconstructed_payload[k] = v
+                    elif k.startswith("tds_calculation."):
+                        sub_k = k.split(".", 1)[1]
+                        if "tds_calculation" in reconstructed_payload and isinstance(reconstructed_payload["tds_calculation"], dict):
+                            reconstructed_payload["tds_calculation"][sub_k] = str(v)
+
+            canonical_json = CanonicalFinancialDecisionSerializer.serialize(reconstructed_payload)
+            replayed_digest = hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
+            cryptographically_identical = (replayed_digest == decision_record.canonical_payload_sha256)
+            # CRITICAL GOVERNANCE INVARIANT: WHAT_IF replays are ALWAYS simulation-only and NEVER admissible for payout
+            is_simulation = True
+            admissible_for_payout = False
+            variance_detected = (replayed_digest != decision_record.canonical_payload_sha256)
+            variance_details = {
+                "applied_overrides": overrides or {},
+                "original_digest": decision_record.canonical_payload_sha256,
+                "counterfactual_digest": replayed_digest
+            }
+
+        return ReplayExecutionResult(
+            replay_mode=mode,
+            decision_id=decision_record.decision_id,
+            original_digest=decision_record.canonical_payload_sha256,
+            replayed_digest=replayed_digest,
+            cryptographically_identical=cryptographically_identical,
+            is_simulation=is_simulation,
+            admissible_for_payout=admissible_for_payout,
+            variance_detected=variance_detected,
+            variance_details=variance_details,
+            replayed_decision=reconstructed_payload,
+            replayed_at=now_str
+        )
 
 
 class ContractClauseIntelligenceEngine:
