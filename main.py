@@ -335,6 +335,8 @@ async def handle_gcs_pubsub_event(request: Request):
 
         gcs_uri = f"gs://{bucket_name}/{name}"
 
+        from google.cloud import storage
+
         storage_client = storage.Client()
 
         bucket = storage_client.bucket(bucket_name)
