@@ -359,9 +359,7 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Invoice / CN Number
 
-            inv_match = re.search(r"(?:Invoice\s*(?:No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
-
-            inv_num = inv_match.group(1).strip() if inv_match else f"INV-{doc_name.replace('.pdf', '')}"
+            inv_num = extract_invoice_number(text, doc_name)
 
             # PAN & GSTIN
 
