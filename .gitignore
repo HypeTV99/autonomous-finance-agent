@@ -25,3 +25,12 @@ venv/
 .DS_Store
 scratch/
 node_modules/
+
+# Tool outputs & Internal Agent Memories
+graphify-out/
+.serena/
+.agents/
+bandit_report.txt
+DIFF_INVENTORY.md
+FINAL_IMPLEMENTATION_REPORT.md
+HANDOFF.md
