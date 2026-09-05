@@ -151,6 +151,7 @@ const inr=n=>'Rs.'+Number(n).toLocaleString('en-IN');
 let ff='',fq='',pg=0;const PAGE=3;
 let role='CHECK';try{role=localStorage.getItem('yire-role')||'CHECK';}catch(e){}
 function canPay(){return role==='PAY';}
+function beRole(){try{const r=localStorage.getItem('yire-role')||'CHECK';return r==='PAY'?'ROLE_TREASURER':(r==='ADD'?'ROLE_AP_CLERK':'ROLE_CONTROLLER');}catch(e){return 'ROLE_CONTROLLER';}}
 function blockedBySeller(x){return SELLER_STATE[x.s]==='WAIT';}
 function payable(x){return x.st==='READY' && !blockedBySeller(x);}
 function render(){const r=BILLS.filter(x=>JSON.stringify(x).toLowerCase().includes(fq)&&(!ff||x.st===ff));
@@ -188,16 +189,7 @@ function showToast(msg){
   t._tm = setTimeout(()=>{ t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 3500);
 }
 
-function payLess(b){
-  const hit = BILLS.find(x => x.b === b);
-  const current = hit ? hit.pay : 0;
-  const val = prompt('Enter negotiated payout amount for ' + b + ' (Rs.):', current);
-  if(val !== null && !isNaN(Number(val)) && Number(val) > 0){
-    if(hit) hit.pay = Math.round(Number(val));
-    resolve(b, 'READY');
-    showToast('Adjusted payout to ' + inr(Number(val)) + ' for ' + b);
-  }
-}
+function payLess(b){ shortPayBill(b); }
 
 async function payOne(b,el){
   el.disabled=true;
@@ -206,7 +198,7 @@ async function payOne(b,el){
   try {
     const resp = await fetch(`/api/v1/decisions/${encodeURIComponent(b)}/disburse`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idem, 'X-User-Role': beRole() },
       body: JSON.stringify({ idempotency_key: idem })
     });
     if (resp.ok) {
@@ -226,18 +218,29 @@ async function payOne(b,el){
   setTimeout(()=>{render(); showToast('Settlement dispatched for ' + b);},400);
 }
 
-async function resolve(b,to){
-  try {
-    await fetch(`/api/v1/decisions/${encodeURIComponent(b)}/resolve-exception`, {
+async function sendResolve(b, action, reason){
+  try{
+    const resp = await fetch(`/api/v1/decisions/${encodeURIComponent(b)}/resolve-exception`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resolution: to === 'READY' ? 'APPROVE' : 'REJECT' })
+      headers: { 'Content-Type': 'application/json', 'X-User-Role': beRole() },
+      body: JSON.stringify({ action, reason: reason || '', controller_id: 'MOCK-DESK' })
     });
-  } catch(e) {}
-  BILLS=BILLS.map(x=>x.b===b?{...x,st:to}:x);
-  render();
-  showToast('Marked ' + b + (to === 'READY' ? ' Approved' : ' Declined'));
+    if(!resp.ok){ let d={}; try{ d = await resp.json(); }catch(e){} showToast('Not applied: ' + (d.detail || ('HTTP ' + resp.status))); return false; }
+    return true;
+  }catch(e){ return true; }
 }
+async function approveBill(b){
+  const r = prompt('Justification (required for override) for ' + b + ':');
+  if(!r) return;
+  if(await sendResolve(b,'OVERRIDE',r)){ BILLS=BILLS.map(x=>x.b===b?{...x,st:'READY'}:x); render(); showToast('Approved ' + b); }
+}
+async function shortPayBill(b){
+  if(await sendResolve(b,'SHORT_PAY','Short-pay to PO ceiling')){ BILLS=BILLS.map(x=>x.b===b?{...x,st:'READY'}:x); render(); showToast('Short-pay authorized for ' + b); }
+}
+async function declineBill(b){
+  if(await sendResolve(b,'REJECT','Declined in mock review')){ BILLS=BILLS.map(x=>x.b===b?{...x,st:'NO'}:x); render(); showToast('Declined ' + b); }
+}
+function resolve(b,to){ if(to==='READY'){ approveBill(b); } else { declineBill(b); } }
 
 document.getElementById('q').addEventListener('input',e=>{fq=e.target.value.toLowerCase();pg=0;render()});
 function setTab(b){document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');movePill(b);ff=b.dataset.f;pg=0;render();}

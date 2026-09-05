@@ -82,7 +82,7 @@ function mapHtml(x,i){
     const conn=k<STAGES.length-1?'<span style="flex:1;min-width:12px;height:2px;border-radius:2px;background:'+((x.ok||k<1)?'#533afd':'#e5edf5')+'"></span>':'';
     return '<span class="inline-flex items-center gap-1 text-xs" style="color:#50617a">'+dot+s+'</span>'+conn;
   }).join('');
-  return '<div class="hidden mt-4 pt-4" id="m-'+i+'" style="border-top:1px solid #e5edf5"><div class="flex items-center gap-1 flex-wrap">'+nodes+'</div><div class="text-xs mt-2" style="color:#64748d">Sealed · Books balanced · <span id="rvt-'+i+'">Last verified '+x.date+'</span></div></div>';
+  return '<div class="hidden mt-4 pt-4" id="m-'+i+'" style="border-top:1px solid #e5edf5"><div class="flex items-center gap-1 flex-wrap">'+nodes+'</div><div class="text-xs mt-2" style="color:#64748d">Sealed · Books balanced · <span id="rvt-'+i+'">Last verified '+x.date+'</span><span id="aud-\'+i+\'"></span></div></div>';
 }
 
 function updateStats(){
@@ -101,8 +101,22 @@ function renderRecords(){
 <div class="flex items-center gap-3">
 <span class="material-symbols-outlined" style="font-size:28px">${x.ok?'verified':'block'}</span>
 <span><b>${x.b}</b> · ${x.s}<br><span style="color:#50617a">${x.date} · Paid <b>${x.pay}</b> · Bank receipt ${x.rcpt} · ${x.ok?'<b style="color:#533afd">Verified</b>':'<b>Declined - retained for audit</b>'}</span></span>
-<span class="ml-auto flex gap-2"><button class="btn btn-tert" id="rvb-${i}" onclick="reverify(${i})">Re-verify</button><button class="btn btn-tert" onclick="document.getElementById('m-${i}').classList.toggle('hidden')">Evidence map</button></span></div>
+<span class="ml-auto flex gap-2"><button class="btn btn-tert" id="rvb-${i}" onclick="reverify(${i})">Re-verify</button><button class="btn btn-tert" onclick="toggleMap(${i},'${x.b}')">Evidence map</button></span></div>
 ${mapHtml(x,i)}</div>`).join('');
+}
+
+async function toggleMap(i,b){
+  const m=document.getElementById('m-'+i); const opening=m.classList.contains('hidden'); m.classList.toggle('hidden');
+  if(!opening||m.dataset.loaded) return; m.dataset.loaded='1';
+  try{
+    const r=await fetch('/api/v1/decisions/'+encodeURIComponent(b)+'/audit-report');
+    const el=document.getElementById('aud-'+i);
+    if(r.ok){ const j=await r.json(); const ev={};
+      (function fk(o){ if(!o||typeof o!=='object')return; for(const k of Object.keys(o)){ if(['canonical_payload_sha256','cryptographic_signature','signing_key_id','public_key_hex'].indexOf(k)>=0) ev[k]=o[k]; fk(o[k]); } })(j);
+      if(ev.canonical_payload_sha256){ R[i].hash=ev.canonical_payload_sha256; R[i].sig=ev.cryptographic_signature; if(el) el.textContent=' | audit report on file'; }
+      else if(el){ el.textContent=' | report found'; }
+    } else if(el){ el.textContent=' | no report'; }
+  }catch(e){}
 }
 
 async function reverify(i){
@@ -124,7 +138,7 @@ async function reverify(i){
     b.disabled=false;
     b.textContent='Re-verify';
     const stampEl = document.getElementById('rvt-'+i);
-    if (stampEl) stampEl.textContent = (data && data.status === 'SUCCESS') ? 'Cryptographically valid just now' : 'Re-verified just now';
+    if (stampEl) stampEl.textContent = (data && data.valid === false) ? 'Seal check FAILED' : 'Re-verified just now';
   } catch(e) {
     b.disabled=false;
     b.textContent='Re-verify';
