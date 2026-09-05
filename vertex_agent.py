@@ -118,7 +118,8 @@ class AutonomousFinanceAgent:
 
         # 3. Dynamic PDF Text & Document Parser (Universal for ANY arbitrary PDF)
         if not raw_data and pdf_bytes:
-            raw_data = self._fallback_regex_extract(pdf_bytes, default_tds_section)
+            raw_data = self._fallback_regex_extract(pdf_bytes, default_tds_section,
+                                                    filename_hint=gcs_pdf_uri.rsplit("/", 1)[-1])
 
         if not raw_data:
             # Fallback default if PDF could not be read
@@ -253,7 +254,8 @@ class AutonomousFinanceAgent:
     def _fallback_regex_extract(
         cls,
         pdf_bytes: bytes,
-        default_tds_section: TDSSection = TDSSection.SECTION_194J_PROF
+        default_tds_section: TDSSection = TDSSection.SECTION_194J_PROF,
+        filename_hint: str = ""
     ) -> Optional[Dict[str, Any]]:
         """
         Tier 2 Deterministic Regex Fallback Extractor (WS3):
@@ -265,9 +267,17 @@ class AutonomousFinanceAgent:
             reader = PdfReader(io.BytesIO(pdf_bytes))
             text = "\n".join([page.extract_text() or "" for page in reader.pages])
 
-            # Invoice Number
+            # Invoice Number: keyword line, else INV token in text, else filename, else unknown
             inv_match = re.search(r"(?:Invoice\s*(?:No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
-            inv_num = inv_match.group(1).strip() if inv_match else "INV-UNKNOWN"
+            if inv_match:
+                inv_num = inv_match.group(1).strip()
+            else:
+                tok_match = re.search(r"\b(INV[-_][A-Za-z0-9\-_]+)\b", text, re.I)
+                if tok_match:
+                    inv_num = tok_match.group(1).strip().replace("_", "-")
+                else:
+                    fn_match = re.search(r"(INV[-_][A-Za-z0-9\-_]+)", filename_hint or "", re.I)
+                    inv_num = fn_match.group(1).replace("_", "-") if fn_match else "INV-UNKNOWN"
 
             # PAN & GSTIN
             pan_match = re.search(r"\b([A-Z]{5}[0-9]{4}[A-Z]{1})\b", text)
