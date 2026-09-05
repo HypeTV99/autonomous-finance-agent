@@ -664,6 +664,40 @@ async def handle_gcs_pubsub_event(request: Request):
 
                 await asyncio.to_thread(store.persist_immutable_decision_record, decision_rec.model_dump(mode="json"))
 
+            try:
+                _gcs_status = str(result.get("status", ""))
+                _gcs_approved = (_gcs_status == "APPROVED")
+                _gcs_exceptions = []
+                if is_fuzzy_dup:
+                    _gcs_exceptions.append({"type": "DUPLICATE_SUSPECT", "severity": "CRITICAL", "message": fuzzy_dup_reason})
+                if _gcs_status in ("FLAGGED_FOR_REVIEW", "RECONCILIATION_FAILED"):
+                    _gcs_exceptions.append({"type": "GCS_REVIEW_HOLD", "severity": "HIGH", "message": "GCS pipeline status " + _gcs_status + " requires controller review."})
+                _gcs_sec = str(getattr(tax_res, "applied_section", "")).split(".")[-1].replace("SECTION_", "").replace("_", " ")
+                _gcs_rate = Decimal(str(getattr(tax_res, "tds_rate", "0.00")))
+                record_live_decision_state(
+                    inv_num=invoice.invoice_number,
+                    vendor_id=vendor_id,
+                    vendor_name=vendor_name,
+                    subtotal=float(invoice.subtotal),
+                    gst_added=float(invoice.tax_amount),
+                    tds_deducted=float(tax_res.tds_deducted),
+                    tds_rate=float(_gcs_rate),
+                    tds_label=str(int(_gcs_rate * 100)) + "% TDS (Sec " + _gcs_sec + ")",
+                    vendor_pan=vendor_pan,
+                    credit_applied=float(netting_res.applied_credit_total),
+                    credit_notes_found=[],
+                    final_disbursed=float(netting_res.net_taxable_subtotal),
+                    policy_action="AUTO_SCHEDULED_STP" if _gcs_approved and not _gcs_exceptions else "EXCEPTION_HOLD",
+                    policy_reason="GCS ingestion completed with status " + _gcs_status + "." + (" " + fuzzy_dup_reason if is_fuzzy_dup else ""),
+                    bank_age_hours=720,
+                    bank_age_known=False,
+                    gstr2b_status="PENDING_SUPPLIER_FILING",
+                    penny_drop={},
+                    po_matches=[],
+                    active_exceptions=_gcs_exceptions,
+                )
+            except Exception as e:
+                logger.warning(f"GCS decision mirror skipped: {e}")
             final_payout_amount = result["netting"].net_taxable_subtotal
 
             payout_paise = int(final_payout_amount * 100)
@@ -1785,6 +1819,7 @@ def record_live_decision_state(
     override_audit: Optional[Dict[str, Any]] = None,
     tds_label: str = "",
     vendor_pan: str = "",
+    bank_age_known: bool = True,
 ):
 
     try:
@@ -2016,7 +2051,7 @@ def record_live_decision_state(
 
             "why_tax": f"Statutory TDS {int(crate * 100)}% withheld (INR {tds:,.2f})." + (f" GST INR {hold_gst:,.2f} retained in escrow pending GSTR-2B match." if hold_gst > 0 else " GSTR-2B confirmed."),
 
-            "why_cooling": f"Beneficiary account verified for {int(bank_age_hours)} hours (>48h anti-takeover barrier satisfied)." if int(bank_age_hours) >= 48 else f"FRAUD WARNING: Account altered {int(bank_age_hours)}h ago (<48h cooling barrier required). Automatic disbursement suspended.",
+            "why_cooling": ("Beneficiary account verified for {h} hours (>48h anti-takeover barrier satisfied).".format(h=int(bank_age_hours)) if int(bank_age_hours) >= 48 else "FRAUD WARNING: Account altered {h}h ago (<48h cooling barrier required). Automatic disbursement suspended.".format(h=int(bank_age_hours))) if bank_age_known else "Bank age not captured on this ingestion path; cooling gate evaluated separately.",
 
             "why_rate": "3-Way PO rate tolerance satisfied (variance <= 2%)." if not any(e.get("type") == "PO_PRICE_VARIANCE" for e in (active_exceptions or [])) else "PO Price Variance exceeded authorized ceiling.",
 
