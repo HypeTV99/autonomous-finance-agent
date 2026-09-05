@@ -47,3 +47,46 @@ def test_responsive_mobile_layout(mobile_context):
 
     ensure_screenshots_dir()
     page.screenshot(path="artifacts/screenshots/mobile_dashboard_375.png", full_page=False)
+
+
+def test_all_operating_screens_visual_capture(desktop_context):
+    page = desktop_context.new_page()
+    dash = DashboardPage(page)
+    dash.goto()
+    ensure_screenshots_dir()
+
+    # 1. Command Center
+    page.screenshot(path="artifacts/screenshots/screen_1_command_center.png", full_page=False)
+
+    # 2. Ingestion
+    page.locator("#nav-btn-ingestion").click()
+    page.wait_for_timeout(300)
+    page.screenshot(path="artifacts/screenshots/screen_2_ingestion.png", full_page=False)
+
+    # 3. AP Workspace
+    page.locator("#nav-btn-workspace").click()
+    page.wait_for_timeout(300)
+    page.screenshot(path="artifacts/screenshots/screen_3_workspace.png", full_page=False)
+
+    # 4. Detail Modal
+    page.evaluate("openFullDetailModal('INV-884')")
+    page.wait_for_timeout(300)
+    page.screenshot(path="artifacts/screenshots/screen_3_detail_modal.png", full_page=False)
+    page.keyboard.press("Escape")
+    page.wait_for_timeout(200)
+
+    # 5. Exceptions
+    page.locator("#nav-btn-exceptions").click()
+    page.wait_for_timeout(300)
+    page.screenshot(path="artifacts/screenshots/screen_4_exceptions.png", full_page=False)
+
+    # 6. Treasury
+    page.locator("#nav-btn-treasury").click()
+    page.wait_for_timeout(300)
+    page.screenshot(path="artifacts/screenshots/screen_5_treasury.png", full_page=False)
+
+    # 7. Auditor
+    page.locator("#nav-btn-auditor").click()
+    page.wait_for_timeout(300)
+    page.screenshot(path="artifacts/screenshots/screen_6_auditor.png", full_page=False)
+
