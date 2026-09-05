@@ -5399,9 +5399,9 @@ async def upload_invoice_pdf(
 
         po_number=(_po_ref or None),
 
-        store=store,
+        store=(store if _po_ref else None),
 
-        auto_allocate=True,
+        auto_allocate=bool(_po_ref),
 
         invoice_number=invoice_num,
 
@@ -5463,7 +5463,31 @@ async def upload_invoice_pdf(
 
     if not po_compliant:
 
-        active_exceptions.append({"type": "PO_PRICE_VARIANCE", "severity": "HIGH", "message": f"PO unit rate ceiling exceeded by INR {po_overage:,.2f}"})
+        if po_overage > 0:
+
+            _po_msg = f"PO unit rate ceiling exceeded by INR {po_overage:,.2f}"
+
+        else:
+
+            try:
+
+                def _g(o, k):
+                    try:
+                        return o.get(k, "0") if isinstance(o, dict) else getattr(o, k, "0")
+                    except Exception:
+                        return "0"
+
+                _cum = max([Decimal(str(_g(m, "cumulative_allocated_quantity"))) for m in po_matches] or [Decimal("0")])
+
+                _auth = max([Decimal(str(_g(m, "po_authorized_quantity"))) for m in po_matches] or [Decimal("0")])
+
+                _po_msg = f"PO cumulative quantity exhausted ({_cum} of {_auth} units allocated)"
+
+            except Exception:
+
+                _po_msg = "PO cumulative quantity exhausted"
+
+        active_exceptions.append({"type": "PO_PRICE_VARIANCE", "severity": "HIGH", "message": _po_msg})
 
     if bank_age_hours < 48:
 
