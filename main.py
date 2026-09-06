@@ -2016,7 +2016,7 @@ def record_live_decision_state(
 
             "erp_voucher": erp_voucher,
 
-            "why_kyc": f"PAN {pan} verified in 26AS. Penny Drop Name Match: {penny_drop.get('pan_name_match_score_pct', 95.0)}%.",
+            "why_kyc": f"PAN {pan} verified in 26AS. Penny Drop Name Match: {penny_drop.get('pan_name_match_score_pct', 95.0)}%." if pan != "PAN_NOT_PROVIDED" else f"PAN not provided - penal TDS path applies. Penny Drop Name Match: {penny_drop.get('pan_name_match_score_pct', 95.0)}%.",
 
             "why_tax": f"Statutory TDS {int(crate * 100)}% withheld (INR {tds:,.2f})." + (f" GST INR {hold_gst:,.2f} retained in escrow pending GSTR-2B match." if hold_gst > 0 else " GSTR-2B confirmed."),
 
@@ -2076,7 +2076,7 @@ def record_live_decision_state(
 
                 "pan": pan,
 
-                "pan_status": "VALID & ACTIVE",
+                "pan_status": "VALID & ACTIVE" if pan != "PAN_NOT_PROVIDED" else "NOT_PROVIDED",
 
                 "section_206ab_non_filer": False,
 
