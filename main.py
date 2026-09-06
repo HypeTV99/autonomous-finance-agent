@@ -114,33 +114,60 @@ app = FastAPI(title="Autonomous Finance Agent Production Server", version="21.0.
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 if os.path.exists("static"):
-
     app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
+if os.path.exists("mock"):
+    app.mount("/mock", StaticFiles(directory="mock", html=True), name="mock")
+
+if os.path.exists(os.path.join("mock", "react", "dist")):
+    app.mount("/app", StaticFiles(directory=os.path.join("mock", "react", "dist"), html=True), name="react_app")
+
+@app.get("/app", response_class=HTMLResponse)
+async def react_app_root():
+    react_index = os.path.join("mock", "react", "dist", "index.html")
+    if os.path.exists(react_index):
+        return FileResponse(react_index)
+    return HTMLResponse("<h1>React app build pending</h1>")
+
 def serve_static_page(filename: str):
-
     path = os.path.join("static", filename)
-
     if os.path.exists(path):
-
         return FileResponse(path)
+    return HTMLResponse(f"<h1>View '{filename}' under initialization</h1>")
 
+def serve_mock_page(filename: str):
+    path = os.path.join("mock", filename)
+    if os.path.exists(path):
+        return FileResponse(path)
     return HTMLResponse(f"<h1>View '{filename}' under initialization</h1>")
 
 @app.get("/", response_class=HTMLResponse)
+@app.get("/bills", response_class=HTMLResponse)
+@app.get("/index.html", response_class=HTMLResponse)
+async def mock_bills_view():
+    return serve_mock_page("index.html")
+
+@app.get("/sellers", response_class=HTMLResponse)
+@app.get("/sellers.html", response_class=HTMLResponse)
+async def mock_sellers_view():
+    return serve_mock_page("sellers.html")
+
+@app.get("/records", response_class=HTMLResponse)
+@app.get("/records.html", response_class=HTMLResponse)
+async def mock_records_view():
+    return serve_mock_page("records.html")
+
+@app.get("/controls", response_class=HTMLResponse)
+@app.get("/controls.html", response_class=HTMLResponse)
+async def mock_controls_view():
+    return serve_mock_page("controls.html")
 
 @app.get("/dashboard", response_class=HTMLResponse)
-
 @app.get("/dag", response_class=HTMLResponse)
-
 @app.get("/dropzone", response_class=HTMLResponse)
-
 @app.get("/dashboard/v2", response_class=HTMLResponse)
-
 @app.get("/overview", response_class=HTMLResponse)
-
 async def treasury_hub_view():
-
     return serve_static_page("dag.html")
 
 @app.get("/vendors", response_class=HTMLResponse)
@@ -174,8 +201,8 @@ REGION = os.getenv("GOOGLE_CLOUD_REGION", "asia-south1")
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "SANDBOX").upper()
 RAZORPAYX_MODE = os.getenv("RAZORPAYX_MODE", "TEST").upper()
 
-# Environment and RazorpayX mode logging
-logger.info(f"Deployment environment: {DEPLOYMENT_ENVIRONMENT}, RazorpayX mode: {RAZORPAYX_MODE}")
+# Environment logging (credential-derived mode is logged after secrets load)
+logger.info(f"Deployment environment: {DEPLOYMENT_ENVIRONMENT}")
 
 DEFAULT_SECRETS = {
     "RZP_KEY": "rzp_test_mockKey123",
@@ -198,12 +225,22 @@ def get_runtime_secrets() -> dict:
             res = client.access_secret_version(request={"name": name})
             sec = json.loads(res.payload.data.decode("UTF-8"))
         except Exception:
-            sec = DEFAULT_SECRETS
+            sec = None
+    if sec is None:
+        if DEPLOYMENT_ENVIRONMENT == "PRODUCTION":
+            raise RuntimeError(
+                "PRODUCTION startup refused: no Razorpay credentials in environment "
+                "or Secret Manager (finance-agent-secrets). Refusing placeholder fallback."
+            )
+        logger.warning("No credentials configured: using non-functional TEST placeholders (non-production only).")
+        sec = dict(DEFAULT_SECRETS)
 
     # Log credential mode for observability
     rzp_key = sec.get("RZP_KEY", "")
     key_mode = "LIVE" if rzp_key.startswith("rzp_live_") else "TEST"
     logger.info(f"RazorpayX credential mode: {key_mode}")
+    if key_mode == "LIVE":
+        logger.warning("LIVE RazorpayX credentials detected: real funds can move in this environment.")
     return sec
 
 secrets = get_runtime_secrets()
@@ -225,11 +262,15 @@ async def health_check():
 
 @app.get("/api/system/environment", status_code=status.HTTP_200_OK)
 async def get_system_environment():
+    live_key = str(secrets.get("RZP_KEY", "")).startswith("rzp_live_")
     return {
         "environment": DEPLOYMENT_ENVIRONMENT,
-        "razorpayx_mode": RAZORPAYX_MODE,
-        "badge_text": "TEST MODE",
-        "disclaimer": "This environment uses RazorpayX Test Mode. Payments shown here do not transfer real funds.",
+        "razorpayx_mode": "LIVE" if live_key else "TEST",
+        "badge_text": "LIVE MODE - REAL FUNDS" if live_key else "TEST MODE",
+        "disclaimer": ("WARNING: live credentials active. Payouts transfer real funds."
+                       if live_key else
+                       "This environment uses RazorpayX Test Mode. Payments shown here do not transfer real funds."),
+        "real_funds_possible": live_key,
         "project_id": PROJECT_ID,
         "region": REGION,
         "allow_live_toggle": False
@@ -294,6 +335,8 @@ async def handle_gcs_pubsub_event(request: Request):
 
         gcs_uri = f"gs://{bucket_name}/{name}"
 
+        from google.cloud import storage
+
         storage_client = storage.Client()
 
         bucket = storage_client.bucket(bucket_name)
@@ -316,7 +359,7 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Invoice / CN Number
 
-            inv_match = re.search(r"( - :Invoice\s*( - :No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
+            inv_match = re.search(r"(?:Invoice\s*(?:No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
 
             inv_num = inv_match.group(1).strip() if inv_match else f"INV-{doc_name.replace('.pdf', '')}"
 
@@ -324,7 +367,7 @@ async def handle_gcs_pubsub_event(request: Request):
 
             pan_match = re.search(r"\b([A-Z]{5}[0-9]{4}[A-Z]{1})\b", text)
 
-            vendor_pan = pan_match.group(1) if pan_match else "AAACB0000K"
+            vendor_pan = pan_match.group(1) if pan_match else "PAN_NOT_PROVIDED"
 
             gstin_match = re.search(r"\b(\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1})\b", text)
 
@@ -340,13 +383,13 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Document Type Classification
 
-            has_tax_invoice = bool(re.search(r"( - :TAX\s*INVOICE|COMMERCIAL\s*INVOICE|BILL\s*OF\s*SUPPLY)", text, re.I))
+            has_tax_invoice = bool(re.search(r"(?:TAX\s*INVOICE|COMMERCIAL\s*INVOICE|BILL\s*OF\s*SUPPLY)", text, re.I))
 
             has_credit_note_title = bool(re.search(r"^\s*CREDIT\s*NOTE", text, re.I | re.M) or re.search(r"\n\s*CREDIT\s*NOTE", text, re.I))
 
-            has_cn_number = bool(re.search(r"( - :Credit\s*Note\s*( - :No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
+            has_cn_number = bool(re.search(r"(?:Credit\s*Note\s*(?:No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
 
-            has_inv_number = bool(re.search(r"( - :Invoice\s*( - :No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
+            has_inv_number = bool(re.search(r"(?:Invoice\s*(?:No|Number|#)|INV\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I))
 
             is_credit_note = False
 
@@ -366,11 +409,11 @@ async def handle_gcs_pubsub_event(request: Request):
 
             if is_credit_note:
 
-                cn_match = re.search(r"( - :Credit\s*Note\s*( - :No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
+                cn_match = re.search(r"(?:Credit\s*Note\s*(?:No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", text, re.I)
 
                 cn_id = cn_match.group(1).strip() if cn_match else f"CN-{doc_name.replace('.pdf', '')}"
 
-                cn_amt_match = re.search(r"( - :Total Credit Value|Total Credit Available|Credit Amount|Total Amount|Total|Subtotal)[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+                cn_amt_match = re.search(r"(?:Total Credit Value|Total Credit Available|Credit Amount|Total Amount|Total|Subtotal)[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
                 credit_amount = Decimal(cn_amt_match.group(1).replace(",", "")) if cn_amt_match else Decimal("0.00")
 
@@ -410,15 +453,15 @@ async def handle_gcs_pubsub_event(request: Request):
 
             # Subtotal & Tax
 
-            sub_match = re.search(r"Subtotal[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+            sub_match = re.search(r"Subtotal[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
             subtotal_val = Decimal(sub_match.group(1).replace(",", "")) if sub_match else Decimal("0.00")
 
-            total_match = re.search(r"Total Invoice Value[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+            total_match = re.search(r"Total Invoice Value[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
             if not total_match:
 
-                total_match = re.search(r"( - :Grand Total|Total Amount|Total Value|Total)[^:]*:\s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.\d{2}) - )", text, re.I)
+                total_match = re.search(r"(?:Grand Total|Total Amount|Total Value|Total)[^:]*:\s*(?:Rs\.|INR|₹)?\s*([0-9,]+(?:\.\d{2})?)", text, re.I)
 
             if total_match:
 
@@ -1057,6 +1100,10 @@ async def create_purchase_order(payload: Dict[str, Any] = Body(...)):
         rates=rates,
         grn_quantities=grn_qtys
     )
+    try:
+        store.save_purchase_order(po_num, entry)
+    except Exception as e:
+        logger.warning(f"PO Firestore persist skipped: {e}")
     return {
         "status": "SUCCESS",
         "vendor_id": vendor_id,
@@ -1739,8 +1786,9 @@ def record_live_decision_state(
 
     erp_voucher: Optional[Dict[str, Any]] = None,
 
-    override_audit: Optional[Dict[str, Any]] = None
-
+    override_audit: Optional[Dict[str, Any]] = None,
+    tds_label: str = "",
+    vendor_pan: str = "",
 ):
 
     try:
@@ -1777,7 +1825,8 @@ def record_live_decision_state(
 
         v_id_safe = str(vendor_id or "VEND-ALPHA-01")
 
-        pan = " -  -  -  -  -  - 1234K" if "alpha" in v_name_safe.lower() else (" -  -  -  -  -  - 5678L" if "beta" in v_name_safe.lower() else " -  -  -  -  -  - 9012M")
+        _pan_tail = vendor_pan[-5:] if isinstance(vendor_pan, str) and len(vendor_pan) >= 5 else ""
+        pan = ("XXXXXX" + _pan_tail) if _pan_tail and vendor_pan != "PAN_NOT_PROVIDED" else "PAN_NOT_PROVIDED"
 
         sub = float(subtotal)
 
@@ -1887,7 +1936,7 @@ def record_live_decision_state(
 
             {"stage": 5, "id": "policy", "name": "Policy Governance & Multi-Pillar Gate", "status": "COMPLETED" if is_approved else "HELD", "duration_ms": 45, "action": display_status, "details": str(policy_reason)},
 
-            {"stage": 6, "id": "kms", "name": "Hardware Ed25519 KMS Trust Seal", "status": "COMPLETED", "duration_ms": 92, "signature_preview": ed25519_sig[:24] + "...", "trust_anchor": "Google Cloud KMS / HSM Root of Trust"},
+            {"stage": 6, "id": "kms", "name": "Local Ed25519 Trust Seal (test key)", "status": "COMPLETED", "duration_ms": 92, "signature_preview": ed25519_sig[:24] + "...", "trust_anchor": "Local Ed25519 Root of Trust (test key, not HSM)"},
 
             {"stage": 7, "id": "razorpayx", "name": "Scheduled Treasury Settlement", "status": "SCHEDULED" if is_approved else "FENCED", "duration_ms": 178, "payout_id": payout_id, "utr": utr_code if is_approved else "N/A", "net_disbursed": f"INR {net:,.2f}"}
 
@@ -1919,7 +1968,7 @@ def record_live_decision_state(
 
             "tds_formatted": f"-INR {tds:,.2f}",
 
-            "tds_rate_text": f"{int(crate * 100)}% TDS ({'Sec 194J' if crate >= 0.05 else 'Sec 194C'})",
+            "tds_rate_text": tds_label or f"{int(crate * 100)}% TDS ({'Sec  194J' if crate >= 0.05 else 'Sec 194C'})",
 
             "credit_deducted": cred,
 
@@ -1967,7 +2016,7 @@ def record_live_decision_state(
 
             "erp_voucher": erp_voucher,
 
-            "why_kyc": f"PAN {pan} verified in 26AS. Penny Drop Name Match: {penny_drop.get('pan_name_match_score_pct', 95.0)}%.",
+            "why_kyc": f"PAN {pan} verified in 26AS. Penny Drop Name Match: {penny_drop.get('pan_name_match_score_pct', 95.0)}%." if pan != "PAN_NOT_PROVIDED" else f"PAN not provided - penal TDS path applies. Penny Drop Name Match: {penny_drop.get('pan_name_match_score_pct', 95.0)}%.",
 
             "why_tax": f"Statutory TDS {int(crate * 100)}% withheld (INR {tds:,.2f})." + (f" GST INR {hold_gst:,.2f} retained in escrow pending GSTR-2B match." if hold_gst > 0 else " GSTR-2B confirmed."),
 
@@ -2027,7 +2076,7 @@ def record_live_decision_state(
 
                 "pan": pan,
 
-                "pan_status": "VALID & ACTIVE",
+                "pan_status": "VALID & ACTIVE" if pan != "PAN_NOT_PROVIDED" else "NOT_PROVIDED",
 
                 "section_206ab_non_filer": False,
 
@@ -2067,7 +2116,7 @@ def record_live_decision_state(
 
                 "signing_algorithm": "Ed25519 (Edwards-curve Digital Signature)",
 
-                "trust_anchor": "Google Cloud KMS / HSM Root of Trust",
+                "trust_anchor": "Local Ed25519 Root of Trust (test key, not HSM)",
 
                 "public_key_id": "kms-key-asia-south1-fintech-ed25519-v1",
 
@@ -2105,7 +2154,7 @@ def record_live_decision_state(
 
                 {"time": now_str, "msg": f"Working Capital Terms: {payment_terms.get('terms_description', 'Net 30')} (Due: {payment_terms.get('due_date')})."},
 
-                {"time": now_str, "msg": f"Hardware Ed25519 KMS Trust Seal: {ed25519_sig[:16]}..."},
+                {"time": now_str, "msg": f"Local Ed25519 Trust Seal (test): {ed25519_sig[:16]}..."},
 
                 {"time": now_str, "msg": f"Status: {display_status} (STP: {is_approved})."}
 
@@ -2976,7 +3025,7 @@ CBDT CHALLAN 281 DEPOSIT DETAILS:
   BSR Code               : 0210004 (Reserve Bank of India Authorized Rail)
   Date on Challan Tax Dep: {date_str}
   Challan Identification : BSR-0210004-2026-09-03
-  Hardware KMS Seal      : FIPS 140-2 Level 3 Hardware Attested
+  Local Ed25519 Seal     : software test key (not HSM attested)
 
 VERIFICATION:
 I, Chief Financial Officer, hereby certify that a sum of INR {tds:,.2f}
@@ -4538,6 +4587,10 @@ async def simulate_invoice_pipeline(request: Request):
 
     Simulates the live 7-stage autonomous pipeline for an uploaded invoice:
 
+    SIMULATION ONLY - simplified demo math (flat 2% TDS, 18% GST), local
+    Ed25519 test-key seal (not KMS/HSM), TEST-mode payout staging only.
+    Not authoritative - use /upload for real decisions.
+
     1. OCR Ingestion & Hash Generation
 
     2. Contract PO Milestone Matching
@@ -4548,9 +4601,9 @@ async def simulate_invoice_pipeline(request: Request):
 
     5. Policy Gate Evaluation (Auto-Approve vs Controller Review)
 
-    6. Hardware Ed25519 KMS Cryptographic Seal
+    6. Local Ed25519 test-key seal (not KMS/HSM)
 
-    7. Fenced RazorpayX Corporate Payout Execution
+    7. Fenced RazorpayX TEST-mode payout staging only
 
     """
 
@@ -4622,7 +4675,7 @@ async def simulate_invoice_pipeline(request: Request):
 
     canonical_hash = hashlib.sha256(f"{inv_num}:{net_payable}:{policy_action}".encode()).hexdigest()
 
-    kms_seal = f"sig_ed25519_{uuid.uuid4().hex}"
+    kms_seal = f"local_testkey_sig_{uuid.uuid4().hex}"
 
     # Stage 7: Disbursement & Live Razorpay Order Creation
 
@@ -4734,6 +4787,10 @@ async def simulate_invoice_pipeline(request: Request):
 
         "status": "SUCCESS",
 
+        "simulated": True,
+
+        "warning": "SIMULATED result only: flat 2% TDS / 18% GST demo math, local test-key seal (not KMS/HSM), TEST-mode staging. Use /upload for authoritative decisions.",
+
         "pipeline_execution_id": f"EXEC-{uuid.uuid4().hex[:6].upper()}",
 
         "invoice_number": inv_num,
@@ -4748,15 +4805,15 @@ async def simulate_invoice_pipeline(request: Request):
 
             {"stage": 2, "name": "CONTRACT_PO_MATCHING", "status": "COMPLETED", "details": f"Matched CONT-2026-CLOUD-01 (Rate: INR {authorized_rate}/hr)"},
 
-            {"stage": 3, "name": "STATUTORY_TAX_CALCULATION", "status": "COMPLETED", "details": f"Income-tax Act 2025 Sec 393(1)  -  TDS: INR {tds_deducted:,.2f}"},
+            {"stage": 3, "name": "STATUTORY_TAX_CALCULATION_SIMULATED", "status": "COMPLETED", "details": f"SIMULATED flat 2% demo: TDS INR {tds_deducted:,.2f} (not section engine)"},
 
             {"stage": 4, "name": "BEHAVIORAL_RISK_ASSESSMENT", "status": "COMPLETED", "details": f"Score: {risk_score}/100 ({risk_tier})  -  Cooling Age: {bank_age_hours}h"},
 
             {"stage": 5, "name": "POLICY_GOVERNANCE_GATE", "status": "COMPLETED", "action": policy_action, "details": policy_reason},
 
-            {"stage": 6, "name": "ED25519_KMS_CRYPTOGRAPHIC_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
+            {"stage": 6, "name": "ED25519_LOCAL_TEST_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
 
-            {"stage": 7, "name": "TREASURY_DISBURSEMENT", "status": "DISBURSED" if payout_id else "HELD", "payout_id": payout_id or "FENCED_HOLD", "net_disbursed": f"INR {net_payable:,.2f}"}
+            {"stage": 7, "name": "TREASURY_DISBURSEMENT_SIMULATED", "status": "STAGED_TEST" if payout_id else "HELD", "payout_id": payout_id or "FENCED_HOLD", "net_disbursed": f"INR {net_payable:,.2f}"}
 
         ]
 
@@ -4816,7 +4873,7 @@ async def public_auditor_verification(request: Request):
 
             "gl_reconciliation_cleared": "PASSED (Matched to UTR)",
 
-            "hardware_kms_ed25519_seal": "PASSED (Cloud KMS Asia-South1)",
+            "hardware_kms_ed25519_seal": "PASSED (local test key)",
 
             "cfds_v1_deterministic_replay": "PASSED (100% Fidelity)"
 
@@ -4828,7 +4885,7 @@ async def public_auditor_verification(request: Request):
 
             "algorithm": "Ed25519",
 
-            "hardware_module": "Google Cloud KMS HSM (FIPS 140-2 Level 3)"
+            "hardware_module": "Local software key (test, not HSM)"
 
         }
 
@@ -4928,7 +4985,7 @@ async def cfo_ai_copilot_chat(request: Request):
 
             " -  **Security Benchmark**: 100.0% Detection Rate across adversarial corpus (0 fraud breaches).\n"
 
-            " -  **Cryptographic Attestation**: Root-of-Trust Hardware Key `kms://asia-south1/...-v1` VALID."
+            " -  **Cryptographic Attestation**: Local Ed25519 test key VALID (not HSM-backed)."
 
         )
 
@@ -5034,7 +5091,7 @@ def extract_vendor_from_text_or_filename(text: str, filename: str) -> str:
 
         if any(kw in line.lower() for kw in ["pvt ltd", "private limited", "llp", "ltd", "technologies", "infotech", "robotics", "labs", "systems", "logistics", "corporation", "enterprises", "contractor", "services", "automation", "studio", "advisors", "consulting", "solutions"]):
 
-            cleaned = re.sub(r'^( - :Account Name|Vendor|From|Billed By|For|Beneficiary)\s*[:] - \s*', '', line, flags=re.I).strip()
+            cleaned = re.sub(r'^(?:Account Name|Vendor|From|Billed By|For|Beneficiary)\s*[:]?\s*', '', line, flags=re.I).strip()
 
             cleaned = re.sub(r'^\([^\)]*\)\s*', '', cleaned).strip()
 
@@ -5056,7 +5113,7 @@ def extract_vendor_from_text_or_filename(text: str, filename: str) -> str:
 
     clean_name = os.path.splitext(filename)[0]
 
-    clean_name = re.sub(r'^( - :INV|CN)[-_0-9]*_', '', clean_name)
+    clean_name = re.sub(r'^(?:INV|CN)[-_0-9]*_', '', clean_name)
 
     clean_name = clean_name.replace('_', ' ').replace('-', ' ').strip()
 
@@ -5067,59 +5124,32 @@ def extract_vendor_from_text_or_filename(text: str, filename: str) -> str:
     return "Alpha Tech Labs Pvt Ltd"
 
 def extract_invoice_number(text: str, filename: str) -> str:
-
-    inv_match = re.search(r'\b( - :Invoice\s*( - :No|Number|#)|INV\s*NO|Invoice\s*ID)\s*[:.\s]+([A-Za-z0-9\-_/]+)', text, re.I)
-
+    inv_match = re.search(r'\b(?:Invoice\s*(?:No|Number|#)|INV\s*NO|Invoice\s*ID)\s*[:.\s]+([A-Za-z0-9\-_/]+)', text, re.I)
     if inv_match:
-
         val = inv_match.group(1).strip()
-
         if val.upper() not in ["TAX", "INVOICE", "DATE", "NO", "NUMBER", "DETAILS", "TO", "BUYER"]:
-
             return val
-
     inv_pattern = re.search(r'\b(INV[-_][A-Za-z0-9\-_]+)\b', text, re.I)
-
     if inv_pattern:
-
         return inv_pattern.group(1).strip().replace('_', '-')
-
-    f_match = re.search(r'(INV[-_0-9]+)', filename, re.I)
-
+    f_match = re.search(r'(INV[-_][A-Za-z0-9\-_]+)', filename, re.I)
     if f_match:
-
         return f_match.group(1).replace('_', '-')
-
     return f"INV-{uuid.uuid4().hex[:6].upper()}"
-
 def extract_subtotal(text: str) -> float:
-
-    amt_match = re.search(r'( - :Subtotal\s*( - :\([^\)]*\)) - |Taxable Value|Total Amount|Sub Total)\s*[:.] - \s*( - :Rs\. - |INR|INR ) - \s*([0-9,]+( - :\.[0-9]{2}) - )', text, re.I)
-
+    amt_match = re.search(r'(?:Subtotal\s*(?:\([^\)]*\))?|Taxable Value|Total Amount|Sub Total)\s*[:.]?\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]{2})?)', text, re.I)
     if amt_match:
-
         try:
-
             return float(amt_match.group(1).replace(',', ''))
-
         except ValueError:
-
             pass
-
-    amt_match = re.search(r'( - :Total|Amount|INR|Rs\. - |INR )\s*[:.] - \s*([0-9,]+( - :\.[0-9]{2}) - )', text, re.I)
-
+    amt_match = re.search(r'(?:Total|Amount|INR|Rs\.?|₹)\s*[:.]?\s*([0-9,]+(?:\.[0-9]{2})?)', text, re.I)
     if amt_match:
-
         try:
-
             return float(amt_match.group(1).replace(',', ''))
-
         except ValueError:
-
             pass
-
     return 100000.0
-
 def extract_credit_note_details(p_text: str, filename: str) -> tuple[str, float]:
     cn_match = re.search(r"(?:Credit\s*Note\s*(?:No|Number|#)|CN\s*NO)[:.\s]*([A-Z0-9-/]+)", p_text, re.I)
     cn_id = cn_match.group(1).strip() if cn_match else f"CN-{filename.replace('.pdf', '')}"
@@ -5130,7 +5160,12 @@ def extract_credit_note_details(p_text: str, filename: str) -> tuple[str, float]
 @app.post("/api/v1/invoices/upload", status_code=status.HTTP_200_OK)
 async def upload_invoice_pdf(
     file: Optional[UploadFile] = File(None),
-    files: Optional[List[UploadFile]] = File(None)
+    files: Optional[List[UploadFile]] = File(None),
+    tds_section: Optional[str] = Form(None),
+    vendor_206ab: Optional[bool] = Form(None),
+    bank_age_hours: Optional[int] = Form(None),
+    po_unit_rate: Optional[str] = Form(None),
+    po_number: Optional[str] = Form(None)
 ):
     """
     Direct Ingestion Endpoint:
@@ -5152,8 +5187,19 @@ async def upload_invoice_pdf(
     credit_notes_found = []
     total_credit_applied = 0.0
     invoice_num = f"INV-{uuid.uuid4().hex[:6].upper()}"
+    filename = "invoice.pdf"
+    file_sha256 = ""
+    content = b""
     vendor_name = "Alpha Tech Labs Pvt Ltd"
-    bank_age_hours = 720
+    if bank_age_hours is None:
+        bank_age_hours = 720
+    else:
+        try:
+            bank_age_hours = int(bank_age_hours)
+            if not (0 <= bank_age_hours <= 87600):
+                bank_age_hours = 720
+        except (TypeError, ValueError):
+            bank_age_hours = 720
     import io
     import zipfile
 
@@ -5173,6 +5219,8 @@ async def upload_invoice_pdf(
             else:
                 extracted_text += p_text + " "
                 invoice_num = extract_invoice_number(p_text, f_name)
+                filename = f_name
+                content = f_bytes
                 vendor_name = extract_vendor_from_text_or_filename(p_text, f_name)
                 subtotal = extract_subtotal(p_text)
                 file_sha256 = hashlib.sha256(f_bytes).hexdigest()
@@ -5186,6 +5234,7 @@ async def upload_invoice_pdf(
             raise HTTPException(status_code=400, detail="Empty file uploaded. Please upload a valid invoice PDF or ZIP.")
 
         if filename.lower().endswith(".zip"):
+            file_sha256 = hashlib.sha256(content).hexdigest()
             try:
                 with zipfile.ZipFile(io.BytesIO(content)) as z:
                     pdf_names = [f for f in z.namelist() if f.lower().endswith(".pdf") and not f.startswith("__MACOSX")]
@@ -5230,11 +5279,64 @@ async def upload_invoice_pdf(
         else:
             raise HTTPException(status_code=400, detail=f"Unsupported file format '{filename}'. Only .pdf and .zip are accepted.")
 
-    # Statutory Calculations (ITA 2025 Sec 393(1) 2% Pre-GST TDS + 18% GST - Credit Netting)
-
-    tds_rate = 0.02
-
-    tds_deducted = subtotal * tds_rate
+    # Statutory Calculations via canonical engine (section + 206AB aware;
+    # falls back to legacy flat 2% only if the engine itself errors)
+    _sec_alias = {
+        "194J_PROF": TDSSection.SECTION_194J_PROF, "194J": TDSSection.SECTION_194J_PROF,
+        "194J_TECH": TDSSection.SECTION_194J_TECH,
+        "194C_CORP": TDSSection.SECTION_194C_COMPANY, "194C": TDSSection.SECTION_194C_COMPANY,
+        "194C_IND": TDSSection.SECTION_194C_INDIVIDUAL,
+        "194Q": TDSSection.SECTION_194Q_GOODS, "194Q_GOODS": TDSSection.SECTION_194Q_GOODS,
+        "NONE": TDSSection.NONE,
+    }
+    try:
+        _sec_key = str(tds_section or "").strip().upper()
+    except Exception:
+        _sec_key = ""
+    _nominated = _sec_alias.get(_sec_key)
+    _pan_m = re.search(r"\b([A-Z]{5}[0-9]{4}[A-Z]{1})\b", extracted_text or "")
+    extracted_pan = _pan_m.group(1) if _pan_m else ""
+    _date_m = re.search(r"Date[:.\s]*(\d{4}-\d{2}-\d{2})", extracted_text or "", re.I)
+    _inv_date_str = _date_m.group(1) if _date_m else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if _nominated is None:
+        _doc_sec = re.search(r"TDS Section:\s*(194[A-Z_]+|194Q)", extracted_text or "", re.I)
+        _doc_key = _doc_sec.group(1).upper() if _doc_sec else ""
+        _nominated = _sec_alias.get(_doc_key)
+    if _nominated is None:
+        _tl = (extracted_text or "").lower()
+        if any(w in _tl for w in ["legal", "advisory", "audit", "retainer"]):
+            _nominated = TDSSection.SECTION_194J_PROF
+        elif any(w in _tl for w in ["software", "cloud", "tech", "devops"]):
+            _nominated = TDSSection.SECTION_194J_TECH
+        elif any(w in _tl for w in ["transport", "freight", "logistics", "courier", "decor", "interior", "facility"]):
+            _nominated = TDSSection.SECTION_194C_COMPANY if extracted_pan[3:4] == "C" else TDSSection.SECTION_194C_INDIVIDUAL
+        elif any(w in _tl for w in ["steel", "goods", "materials", "hardware", "supply"]):
+            _nominated = TDSSection.SECTION_194Q_GOODS
+        else:
+            _nominated = TDSSection.SECTION_194C_COMPANY
+    if isinstance(vendor_206ab, str):
+        is_206ab = vendor_206ab.strip().lower() in ("1", "true", "yes", "y")
+    else:
+        is_206ab = bool(vendor_206ab)
+    try:
+        _tax_res = StatutoryComplianceTaxEngine.compute_statutory_tax(
+            subtotal_excluding_gst=Decimal(str(subtotal)),
+            nominated_section=_nominated,
+            vendor_pan=extracted_pan,
+            is_206ab_non_filer=is_206ab,
+            transaction_date=_inv_date_str,
+        )
+        tds_rate = float(_tax_res.tds_rate)
+        tds_deducted = float(_tax_res.tds_deducted)
+        _sec_short = str(_tax_res.applied_section).split(".")[-1].replace("SECTION_", "").replace("_", " ")
+        section_label = f"{int(Decimal(str(_tax_res.tds_rate)) * 100)}% TDS (Sec {_sec_short})"
+        if getattr(_tax_res, "is_penal_rate_applied", False):
+            section_label += " + 206AB penal"
+    except Exception:
+        logger.warning("Statutory engine fallback to flat 2% TDS")
+        tds_rate = 0.02
+        tds_deducted = subtotal * tds_rate
+        section_label = "2% TDS (Sec 194C)"
 
     gst_rate = 0.18
 
@@ -5279,6 +5381,23 @@ async def upload_invoice_pdf(
 
     # 2. 3-Way PO & GRN Line-Item Rate Matcher
 
+    try:
+        _po_rate_override = Decimal(str(po_unit_rate)) if po_unit_rate is not None else None
+        if _po_rate_override is not None and _po_rate_override <= 0:
+            _po_rate_override = None
+    except Exception:
+        _po_rate_override = None
+    _po_ref = po_number.strip() if isinstance(po_number, str) and po_number.strip() else ""
+    if not _po_ref:
+        _po_m = re.search(r"\bPO\s*(?:(?:Number|No\.?|#)\s*[:.]?|:)\s*([A-Za-z0-9\-_/]+)", extracted_text or "", re.I)
+        if _po_m:
+            _po_ref = _po_m.group(1).strip()
+    if _po_ref:
+        try:
+            from services.po_registry import PoRegistry
+            PoRegistry.get_purchase_order_by_number(_po_ref, store=store)
+        except Exception as e:
+            logger.warning(f"PO registry warm skipped: {e}")
     mock_items = [
 
         InvoiceLineItem(
@@ -5289,7 +5408,7 @@ async def upload_invoice_pdf(
 
             quantity=Decimal("100.00"),
 
-            unit_price=Decimal(str(round(subtotal / 100.0, 2))),
+            unit_price=(_po_rate_override if _po_rate_override is not None else Decimal(str(round(subtotal / 100.0, 2)))),
 
             line_total=Decimal(str(round(subtotal, 2)))
 
@@ -5300,8 +5419,15 @@ async def upload_invoice_pdf(
     po_matches, po_compliant, po_overage = ThreeWayPOMatchingEngine.evaluate_line_items(
 
         vendor_id=f"VEND-{vendor_name[:5].upper()}",
+        line_items=mock_items,
 
-        line_items=mock_items
+        po_number=(_po_ref or None),
+
+        store=(store if _po_ref else None),
+
+        auto_allocate=bool(_po_ref),
+
+        invoice_number=invoice_num,
 
     )
 
@@ -5361,7 +5487,31 @@ async def upload_invoice_pdf(
 
     if not po_compliant:
 
-        active_exceptions.append({"type": "PO_PRICE_VARIANCE", "severity": "HIGH", "message": f"PO unit rate ceiling exceeded by INR {po_overage:,.2f}"})
+        if po_overage > 0:
+
+            _po_msg = f"PO unit rate ceiling exceeded by INR {po_overage:,.2f}"
+
+        else:
+
+            try:
+
+                def _g(o, k):
+                    try:
+                        return o.get(k, "0") if isinstance(o, dict) else getattr(o, k, "0")
+                    except Exception:
+                        return "0"
+
+                _cum = max([Decimal(str(_g(m, "cumulative_allocated_quantity"))) for m in po_matches] or [Decimal("0")])
+
+                _auth = max([Decimal(str(_g(m, "po_authorized_quantity"))) for m in po_matches] or [Decimal("0")])
+
+                _po_msg = f"PO cumulative quantity exhausted ({_cum} of {_auth} units allocated)"
+
+            except Exception:
+
+                _po_msg = "PO cumulative quantity exhausted"
+
+        active_exceptions.append({"type": "PO_PRICE_VARIANCE", "severity": "HIGH", "message": _po_msg})
 
     if bank_age_hours < 48:
 
@@ -5459,6 +5609,10 @@ async def upload_invoice_pdf(
 
         tds_rate=float(tds_rate),
 
+        tds_label=section_label,
+
+        vendor_pan=extracted_pan,
+
         credit_applied=float(total_credit_applied),
 
         credit_notes_found=credit_notes_found or [],
@@ -5542,7 +5696,7 @@ async def upload_invoice_pdf(
 
             {"stage": 5, "name": "POLICY_GOVERNANCE_GATE", "status": "COMPLETED", "action": policy_action, "details": policy_reason},
 
-            {"stage": 6, "name": "ED25519_KMS_CRYPTOGRAPHIC_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
+            {"stage": 6, "name": "ED25519_LOCAL_CRYPTOGRAPHIC_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
 
             {"stage": 7, "name": "TREASURY_DISBURSEMENT", "status": "DISBURSED", "payout_id": payout_id, "net_disbursed": f"INR {final_disbursed:,.2f}"}
 

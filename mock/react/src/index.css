@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+:root {
+  --color-indigo-ink: #533afd;
+  --color-midnight-ink: #061b31;
+  --color-slate: #64748d;
+  --color-steel: #50617a;
+  --color-mist: #f8fafd;
+  --color-frost: #e5edf5;
+  --color-wash: #e8e9ff;
+}
+
+html {
+  font-family: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 300;
+  color: var(--color-midnight-ink);
+  background: #fff;
+  font-feature-settings: "ss01" on, "tnum" on;
+}
+
+body {
+  margin: 0;
+}

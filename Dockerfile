@@ -17,6 +17,7 @@ COPY schemas.py tax_engine.py compliance_engine.py firestore_store.py \
      razorpayx_client.py slack_service.py vertex_agent.py benchmark_suite.py main.py ./
 COPY services/ ./services/
 COPY static/ ./static/
+COPY mock/ ./mock/
 
 EXPOSE 8080
 
