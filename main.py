@@ -335,6 +335,8 @@ async def handle_gcs_pubsub_event(request: Request):
 
         gcs_uri = f"gs://{bucket_name}/{name}"
 
+        from google.cloud import storage
+
         storage_client = storage.Client()
 
         bucket = storage_client.bucket(bucket_name)
@@ -365,7 +367,7 @@ async def handle_gcs_pubsub_event(request: Request):
 
             pan_match = re.search(r"\b([A-Z]{5}[0-9]{4}[A-Z]{1})\b", text)
 
-            vendor_pan = pan_match.group(1) if pan_match else "AAACB0000K"
+            vendor_pan = pan_match.group(1) if pan_match else "PAN_NOT_PROVIDED"
 
             gstin_match = re.search(r"\b(\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1})\b", text)
 
@@ -1824,7 +1826,7 @@ def record_live_decision_state(
         v_id_safe = str(vendor_id or "VEND-ALPHA-01")
 
         _pan_tail = vendor_pan[-5:] if isinstance(vendor_pan, str) and len(vendor_pan) >= 5 else ""
-        pan = ("XXXXXX" + _pan_tail) if _pan_tail else (" -  -  -  -  -  - 1234K" if "alpha" in v_name_safe.lower() else (" -  -  -  -  -  - 5678L" if "beta" in v_name_safe.lower() else " -  -  -  -  -  - 9012M"))
+        pan = ("XXXXXX" + _pan_tail) if _pan_tail and vendor_pan != "PAN_NOT_PROVIDED" else "PAN_NOT_PROVIDED"
 
         sub = float(subtotal)
 
@@ -4585,6 +4587,10 @@ async def simulate_invoice_pipeline(request: Request):
 
     Simulates the live 7-stage autonomous pipeline for an uploaded invoice:
 
+    SIMULATION ONLY - simplified demo math (flat 2% TDS, 18% GST), local
+    Ed25519 test-key seal (not KMS/HSM), TEST-mode payout staging only.
+    Not authoritative - use /upload for real decisions.
+
     1. OCR Ingestion & Hash Generation
 
     2. Contract PO Milestone Matching
@@ -4595,9 +4601,9 @@ async def simulate_invoice_pipeline(request: Request):
 
     5. Policy Gate Evaluation (Auto-Approve vs Controller Review)
 
-    6. Local Ed25519 Cryptographic Seal (test key)
+    6. Local Ed25519 test-key seal (not KMS/HSM)
 
-    7. Fenced RazorpayX Corporate Payout Execution
+    7. Fenced RazorpayX TEST-mode payout staging only
 
     """
 
@@ -4669,7 +4675,7 @@ async def simulate_invoice_pipeline(request: Request):
 
     canonical_hash = hashlib.sha256(f"{inv_num}:{net_payable}:{policy_action}".encode()).hexdigest()
 
-    kms_seal = f"sig_ed25519_{uuid.uuid4().hex}"
+    kms_seal = f"local_testkey_sig_{uuid.uuid4().hex}"
 
     # Stage 7: Disbursement & Live Razorpay Order Creation
 
@@ -4781,6 +4787,10 @@ async def simulate_invoice_pipeline(request: Request):
 
         "status": "SUCCESS",
 
+        "simulated": True,
+
+        "warning": "SIMULATED result only: flat 2% TDS / 18% GST demo math, local test-key seal (not KMS/HSM), TEST-mode staging. Use /upload for authoritative decisions.",
+
         "pipeline_execution_id": f"EXEC-{uuid.uuid4().hex[:6].upper()}",
 
         "invoice_number": inv_num,
@@ -4795,15 +4805,15 @@ async def simulate_invoice_pipeline(request: Request):
 
             {"stage": 2, "name": "CONTRACT_PO_MATCHING", "status": "COMPLETED", "details": f"Matched CONT-2026-CLOUD-01 (Rate: INR {authorized_rate}/hr)"},
 
-            {"stage": 3, "name": "STATUTORY_TAX_CALCULATION", "status": "COMPLETED", "details": f"Income-tax Act 2025 Sec 393(1)  -  TDS: INR {tds_deducted:,.2f}"},
+            {"stage": 3, "name": "STATUTORY_TAX_CALCULATION_SIMULATED", "status": "COMPLETED", "details": f"SIMULATED flat 2% demo: TDS INR {tds_deducted:,.2f} (not section engine)"},
 
             {"stage": 4, "name": "BEHAVIORAL_RISK_ASSESSMENT", "status": "COMPLETED", "details": f"Score: {risk_score}/100 ({risk_tier})  -  Cooling Age: {bank_age_hours}h"},
 
             {"stage": 5, "name": "POLICY_GOVERNANCE_GATE", "status": "COMPLETED", "action": policy_action, "details": policy_reason},
 
-            {"stage": 6, "name": "ED25519_LOCAL_CRYPTOGRAPHIC_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
+            {"stage": 6, "name": "ED25519_LOCAL_TEST_SEAL", "status": "COMPLETED", "signature_preview": kms_seal[:24] + "...", "canonical_sha256": canonical_hash},
 
-            {"stage": 7, "name": "TREASURY_DISBURSEMENT", "status": "DISBURSED" if payout_id else "HELD", "payout_id": payout_id or "FENCED_HOLD", "net_disbursed": f"INR {net_payable:,.2f}"}
+            {"stage": 7, "name": "TREASURY_DISBURSEMENT_SIMULATED", "status": "STAGED_TEST" if payout_id else "HELD", "payout_id": payout_id or "FENCED_HOLD", "net_disbursed": f"INR {net_payable:,.2f}"}
 
         ]
 
